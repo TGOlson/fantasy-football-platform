@@ -8,11 +8,11 @@
 
 ## Progress Overview
 
-**Current Status:** Milestone 1 Complete ✅
+**Current Status:** Milestone 2 Complete ✅
 
 - ✅ Milestone 1: Project Scaffolding & Infrastructure Setup
-- 🔄 Milestone 2: Database & Prisma Setup (Next)
-- ⏳ Milestone 3: Basic API Infrastructure
+- ✅ Milestone 2: Database & Drizzle ORM Setup
+- 🔄 Milestone 3: Basic API Infrastructure (tRPC) (Next)
 - ⏳ Milestone 4: Frontend Foundation & Basic UI
 - ⏳ Milestone 5: Core Resources & Relationships
 - ⏳ Milestone 6: NFL Player Data Integration (Static)
@@ -60,28 +60,44 @@
 
 ---
 
-## Milestone 2: Database & Prisma Setup
+## Milestone 2: Database & Drizzle ORM Setup ✅
 
-**Goal:** Set up PostgreSQL, initialize Prisma, and create core data models.
+**Goal:** Set up PostgreSQL, initialize Drizzle ORM, and create core data models.
+
+**Status:** COMPLETED (December 15, 2024)
+
+**Note:** Changed from Prisma to Drizzle ORM for simpler TypeScript-native schema definition.
 
 ### Tasks
 
-- [ ] Set up local PostgreSQL database (via Docker or local install)
-- [ ] Initialize Prisma in packages/database
-  - [ ] Configure datasource and generator
-  - [ ] Set up migration workflow
-- [ ] Create initial Prisma schema with core models:
-  - [ ] User model (id, email, password hash, name, timestamps)
-  - [ ] League model (id, name, settings, season, timestamps)
-  - [ ] Team model (id, league relation, owner relation, name, timestamps)
-  - [ ] Player model (id, nfl player data, position, team affiliation)
-  - [ ] ScoringRules model (id, league relation, rules as JSONB)
-- [ ] Run initial migration
-- [ ] Generate Prisma Client
-- [ ] Create basic seed script with sample data
-- [ ] Verify database connection from API
+- [x] Set up local PostgreSQL database via Docker
+- [x] Initialize Drizzle in packages/database
+  - [x] Configure drizzle.config.ts
+  - [x] Set up migration workflow with drizzle-kit
+- [x] Create initial Drizzle schema with core models (TypeScript):
+  - [x] User model (id, email, passwordHash, name, timestamps)
+  - [x] League model (id, name, season, timestamps)
+  - [x] Team model (id, league relation, owner relation, name, timestamps)
+  - [x] Player model (id, nflId, name, position, team)
+  - [x] ScoringRules model (id, league relation, rules as JSONB)
+- [x] Run initial migration
+- [x] Create basic seed script with sample data
+- [x] Verify database connection from API
+- [x] Update @fantasy-platform/types to re-export database types
 
-**Success Criteria:** Database is running, migrations work, can query data via Prisma Client from API.
+**Success Criteria:** ✅ Database is running, migrations work, can query data via Drizzle from API.
+
+**What Was Built:**
+- PostgreSQL 16 running in Docker container
+- Drizzle ORM with TypeScript-native schemas
+- Five core tables: users, leagues, teams, players, scoring_rules
+- Type-safe database client accessible from API
+- Seed script with sample data (2 users, 1 league, 2 teams, TE Premium scoring)
+- Type sharing via @fantasy-platform/types package
+- Database connection test endpoint at `/api/test/db`
+
+**Known Issues:**
+- Dynamic imports required for env var loading (TODO: refactor to lazy initialization)
 
 ---
 

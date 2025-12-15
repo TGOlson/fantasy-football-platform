@@ -11,7 +11,7 @@ fantasy-platform/
 │   └── api/           # Express + TypeScript backend
 ├── packages/
 │   ├── types/         # Shared TypeScript types
-│   ├── database/      # Prisma schema (coming in Milestone 2)
+│   ├── database/      # Drizzle ORM schema and migrations
 │   └── config/        # Shared configuration
 └── docs/              # Project documentation
 ```
@@ -22,12 +22,24 @@ fantasy-platform/
 
 - Node.js >= 18
 - pnpm >= 10.26.0
+- Docker (for PostgreSQL)
 
 ### Installation
 
 ```bash
-# Install dependencies
+# 1. Install dependencies
 pnpm install
+
+# 2. Start PostgreSQL database
+docker compose up -d
+
+# 3. Run database migrations
+cd packages/database
+pnpm db:generate  # Generate migration from schema
+pnpm db:migrate   # Apply migration to database
+
+# 4. (Optional) Seed with sample data
+pnpm db:seed
 ```
 
 ### Development
@@ -52,6 +64,46 @@ pnpm build:web
 pnpm build:api
 ```
 
+### Database Commands
+
+All database commands are run from `packages/database`:
+
+```bash
+cd packages/database
+
+# Generate migration from schema changes
+pnpm db:generate
+
+# Apply migrations to database
+pnpm db:migrate
+
+# Push schema directly (dev only, skips migrations)
+pnpm db:push
+
+# Open Drizzle Studio (database GUI)
+pnpm db:studio
+
+# Seed database with sample data
+pnpm db:seed
+```
+
+### Docker Commands
+
+```bash
+# Start PostgreSQL
+docker compose up -d
+
+# Stop PostgreSQL
+docker compose down
+
+# View logs
+docker compose logs postgres
+
+# Reset database (WARNING: deletes all data)
+docker compose down -v
+docker compose up -d
+```
+
 ## Development Progress
 
 - ✅ **Milestone 1:** Project Scaffolding & Infrastructure Setup
@@ -61,7 +113,15 @@ pnpm build:api
   - Shared types package
   - Both apps running and communicating
 
-- 🔄 **Next:** Milestone 2 - Database & Prisma Setup
+- ✅ **Milestone 2:** Database & Drizzle ORM Setup
+  - PostgreSQL 16 in Docker
+  - Drizzle ORM with TypeScript-native schemas
+  - Five core tables: users, leagues, teams, players, scoring_rules
+  - Type-safe database client with lazy initialization
+  - Seed script with sample data
+  - Database connection verified from API
+
+- 🔄 **Next:** Milestone 3 - tRPC API Infrastructure
 
 See [plan.md](./plan.md) for the full development roadmap.
 
@@ -76,25 +136,34 @@ See [plan.md](./plan.md) for the full development roadmap.
 **Frontend:**
 - Vite + React + TypeScript
 - Tailwind CSS
-- shadcn/ui (to be added)
-- TanStack Query & Table
+- shadcn/ui (to be added in Milestone 4)
+- TanStack Query & Table (to be added)
 
 **Backend:**
 - Express + TypeScript
-- PostgreSQL + Prisma (to be added)
-- REST API
+- PostgreSQL 16 + Drizzle ORM
+- tRPC (to be added in Milestone 3)
+
+**Database:**
+- PostgreSQL 16 (Docker)
+- Drizzle ORM (TypeScript-native)
+- 5 core tables with relations
 
 **Deployment:**
 - Railway or Render (planned)
 
 ## Environment Variables
 
-Copy `.env.example` files to `.env` in each app:
+Environment variables are already configured in:
+- `apps/web/.env` - Frontend configuration
+- `apps/api/.env` - Backend configuration (includes DATABASE_URL)
 
-```bash
-cp apps/web/.env.example apps/web/.env
-cp apps/api/.env.example apps/api/.env
+Default database connection:
 ```
+DATABASE_URL=postgresql://fantasy:fantasy_dev_password@localhost:5432/fantasy_platform
+```
+
+**Note:** `.env` files are included in the repo for local development. Do not commit production secrets.
 
 ## License
 
