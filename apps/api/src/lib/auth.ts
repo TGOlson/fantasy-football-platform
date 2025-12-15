@@ -16,17 +16,14 @@ function getJwtSecret(): string {
   return secret;
 }
 
-function getJwtExpiresIn(): string {
-  return process.env.JWT_EXPIRES_IN || '7d';
-}
-
 /**
  * Generate a JWT token for a user
  */
 export function signToken(payload: JwtPayload): string {
-  return jwt.sign(payload, getJwtSecret(), {
-    expiresIn: getJwtExpiresIn(),
-  });
+  const secret = getJwtSecret();
+  const expiresIn = (process.env.JWT_EXPIRES_IN as any) || '7d';
+
+  return jwt.sign(payload, secret, { expiresIn });
 }
 
 /**
