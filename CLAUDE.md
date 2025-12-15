@@ -156,3 +156,4 @@ npx shadcn-ui@latest add button card dialog table command badge
 * Claude should never try to run services (eg. pmpm dev) or typecheck commands to verify output
   * Always delegate that work to the user
 * Always prefer types (`type Foo = ...`) over interfaces (`interface Foo ...`)
+* Keep TODOs in `TODO.md` files (either in project root or located in relevant sub-dir)

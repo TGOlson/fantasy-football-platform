@@ -8,11 +8,11 @@
 
 ## Progress Overview
 
-**Current Status:** Milestone 3 In Progress (Phase A & B Complete) 🔄
+**Current Status:** Milestone 3 Complete ✅
 
 - ✅ Milestone 1: Project Scaffolding & Infrastructure Setup
 - ✅ Milestone 2: Database & Drizzle ORM Setup
-- 🔄 Milestone 3: tRPC API Infrastructure (Phase A & B Complete, Phase C Pending)
+- ✅ Milestone 3: tRPC API Infrastructure (All Phases Complete)
 - ⏳ Milestone 4: Frontend Foundation & Basic UI
 - ⏳ Milestone 5: Core Resources & Relationships
 - ⏳ Milestone 6: NFL Player Data Integration (Static)
@@ -22,7 +22,7 @@
 - ⏳ Milestone 10: Stats Caching & Performance
 - ⏳ Milestone 11: Polish & MVP Launch Prep
 
-**Last Updated:** December 15, 2024 (Milestone 3 Phase A & B Complete)
+**Last Updated:** December 15, 2024 (Milestone 3 Complete)
 
 ---
 
@@ -101,11 +101,11 @@
 
 ---
 
-## Milestone 3: tRPC API Infrastructure 🔄
+## Milestone 3: tRPC API Infrastructure ✅
 
 **Goal:** Set up tRPC server with auth, error handling, and basic CRUD procedures with auto-generated frontend hooks.
 
-**Status:** IN PROGRESS (Phase A & B Complete, Phase C Remaining)
+**Status:** COMPLETED (All Phases Complete)
 
 **Note:** Changed from REST to tRPC for type-safe APIs and auto-generated React hooks.
 
@@ -130,20 +130,20 @@
   - [x] `auth.me` - Get current user (protected)
 - [x] Export Drizzle operators (`eq`, `and`, etc.) from database package
 
-### Phase C: Core CRUD Procedures (Remaining Work)
+### Phase C: Core CRUD Procedures ✅
 
-- [ ] Leagues router:
-  - [ ] `leagues.list` - Get all leagues (query)
-  - [ ] `leagues.getById` - Get league by ID with teams (query)
-  - [ ] `leagues.create` - Create new league with scoring rules (mutation, protected)
-  - [ ] `leagues.update` - Update league settings (mutation, protected)
-- [ ] Teams router:
-  - [ ] `teams.getById` - Get team by ID with roster (query)
-  - [ ] `teams.update` - Update team name (mutation, protected)
-  - [ ] `teams.getByLeague` - Get all teams in a league (query)
-- [ ] Players router:
-  - [ ] `players.list` - Get all players with filtering (position, team, search) (query)
-  - [ ] `players.getById` - Get single player (query)
+- [x] Leagues router:
+  - [x] `leagues.list` - Get all leagues (query)
+  - [x] `leagues.getById` - Get league by ID with teams (query)
+  - [x] `leagues.create` - Create new league with scoring rules (mutation, protected)
+  - [x] `leagues.update` - Update league settings (mutation, protected)
+- [x] Teams router:
+  - [x] `teams.getById` - Get team by ID with roster (query)
+  - [x] `teams.update` - Update team name (mutation, protected)
+  - [x] `teams.getByLeague` - Get all teams in a league (query)
+- [x] Players router:
+  - [x] `players.list` - Get all players with filtering (position, team, search) (query)
+  - [x] `players.getById` - Get single player (query)
 
 ### Phase D: Frontend Integration (Next Milestone)
 
@@ -155,10 +155,10 @@ Will be completed in Milestone 4:
 **Success Criteria:**
 - ✅ tRPC server running with type-safe procedures
 - ✅ Auth working (register, login, protected routes)
-- ⏳ CRUD operations for leagues, teams, players
-- ⏳ Frontend can call procedures with full type safety
+- ✅ CRUD operations for leagues, teams, players
+- ⏳ Frontend can call procedures with full type safety (Next Milestone)
 
-**What Was Built (Phase A & B):**
+**What Was Built:**
 - tRPC server mounted at `/trpc` endpoint
 - Type-safe context with database and user authentication
 - Protected procedure middleware (checks JWT)
@@ -167,6 +167,18 @@ Will be completed in Milestone 4:
 - Lazy initialization pattern for JWT_SECRET (env var loading)
 - Health check router for testing tRPC setup
 - Drizzle operators exported from database package for easy querying
+- **Leagues router** (Phase C):
+  - `leagues.list` - Get all leagues
+  - `leagues.getById` - Get league with teams and scoring rules
+  - `leagues.create` - Create league with optional scoring rules (protected)
+  - `leagues.update` - Update league settings (protected)
+- **Teams router** (Phase C):
+  - `teams.getById` - Get team with owner and league info
+  - `teams.update` - Update team name with ownership verification (protected)
+  - `teams.getByLeague` - Get all teams in a league with owner info
+- **Players router** (Phase C):
+  - `players.list` - Get all players with optional filters (position, team, search)
+  - `players.getById` - Get single player by ID
 
 **Technical Notes:**
 - Using bcryptjs instead of bcrypt (no native bindings needed)

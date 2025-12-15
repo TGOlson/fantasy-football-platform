@@ -1,16 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  :root {
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  body {
-    @apply min-h-screen;
-  }
-}
+@import '@mantine/core/styles.css';
+@import '@mantine/notifications/styles.css';
+@import 'mantine-datatable/styles.css';

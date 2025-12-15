@@ -13,7 +13,9 @@
       "Bash(pnpm --filter @fantasy-platform/types install)",
       "Bash(pnpm --filter api dev:*)",
       "Bash(curl:*)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ]
   }
 }
