@@ -24,3 +24,6 @@ export function getDatabase() {
 
 // Export all schema and types
 export * from './schema/index.js';
+
+// Export commonly used Drizzle operators
+export { eq, and, or, ne, gt, gte, lt, lte, isNull, isNotNull, inArray, notInArray, like, desc, asc } from 'drizzle-orm';

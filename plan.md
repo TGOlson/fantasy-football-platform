@@ -8,11 +8,11 @@
 
 ## Progress Overview
 
-**Current Status:** Milestone 2 Complete ✅
+**Current Status:** Milestone 3 In Progress (Phase A & B Complete) 🔄
 
 - ✅ Milestone 1: Project Scaffolding & Infrastructure Setup
 - ✅ Milestone 2: Database & Drizzle ORM Setup
-- 🔄 Milestone 3: Basic API Infrastructure (tRPC) (Next)
+- 🔄 Milestone 3: tRPC API Infrastructure (Phase A & B Complete, Phase C Pending)
 - ⏳ Milestone 4: Frontend Foundation & Basic UI
 - ⏳ Milestone 5: Core Resources & Relationships
 - ⏳ Milestone 6: NFL Player Data Integration (Static)
@@ -22,7 +22,7 @@
 - ⏳ Milestone 10: Stats Caching & Performance
 - ⏳ Milestone 11: Polish & MVP Launch Prep
 
-**Last Updated:** December 15, 2024
+**Last Updated:** December 15, 2024 (Milestone 3 Phase A & B Complete)
 
 ---
 
@@ -101,30 +101,83 @@
 
 ---
 
-## Milestone 3: Basic API Infrastructure
+## Milestone 3: tRPC API Infrastructure 🔄
 
-**Goal:** Build foundational API layer with auth, error handling, and basic CRUD endpoints.
+**Goal:** Set up tRPC server with auth, error handling, and basic CRUD procedures with auto-generated frontend hooks.
 
-### Tasks
+**Status:** IN PROGRESS (Phase A & B Complete, Phase C Remaining)
 
-- [ ] Set up Express middleware (cors, json parser, error handler)
-- [ ] Implement basic error handling middleware
-- [ ] Set up authentication infrastructure
-  - [ ] JWT token generation and verification
-  - [ ] Auth middleware to protect routes
-  - [ ] Basic password hashing (bcrypt)
-- [ ] Create authentication endpoints
-  - [ ] POST /api/auth/register
-  - [ ] POST /api/auth/login
-  - [ ] GET /api/auth/me (protected)
-- [ ] Create basic CRUD routes for core resources:
-  - [ ] Leagues: GET /api/leagues, GET /api/leagues/:id, POST /api/leagues
-  - [ ] Teams: GET /api/teams/:id, PATCH /api/teams/:id
-  - [ ] Players: GET /api/players (with filtering/search)
-- [ ] Add request validation (using Zod)
-- [ ] Test endpoints with Thunder Client/Postman/curl
+**Note:** Changed from REST to tRPC for type-safe APIs and auto-generated React hooks.
 
-**Success Criteria:** Can register user, login, create league, fetch data via authenticated API calls.
+### Phase A: tRPC Setup ✅
+
+- [x] Install tRPC dependencies (server + client)
+- [x] Set up tRPC server in apps/api
+- [x] Create tRPC context (for auth, db access)
+- [x] Set up tRPC router structure
+- [x] Connect tRPC to Express at `/trpc` endpoint
+- [x] Create health check router for testing
+
+### Phase B: Authentication ✅
+
+- [x] Install JWT and bcryptjs dependencies
+- [x] Create auth utilities (JWT sign/verify, password hash with bcryptjs)
+- [x] Create protected procedure middleware
+- [x] Update context to include user from JWT (Authorization header)
+- [x] Create auth router with procedures:
+  - [x] `auth.register` - Create new user with hashed password
+  - [x] `auth.login` - Login and get JWT token
+  - [x] `auth.me` - Get current user (protected)
+- [x] Export Drizzle operators (`eq`, `and`, etc.) from database package
+
+### Phase C: Core CRUD Procedures (Remaining Work)
+
+- [ ] Leagues router:
+  - [ ] `leagues.list` - Get all leagues (query)
+  - [ ] `leagues.getById` - Get league by ID with teams (query)
+  - [ ] `leagues.create` - Create new league with scoring rules (mutation, protected)
+  - [ ] `leagues.update` - Update league settings (mutation, protected)
+- [ ] Teams router:
+  - [ ] `teams.getById` - Get team by ID with roster (query)
+  - [ ] `teams.update` - Update team name (mutation, protected)
+  - [ ] `teams.getByLeague` - Get all teams in a league (query)
+- [ ] Players router:
+  - [ ] `players.list` - Get all players with filtering (position, team, search) (query)
+  - [ ] `players.getById` - Get single player (query)
+
+### Phase D: Frontend Integration (Next Milestone)
+
+Will be completed in Milestone 4:
+- [ ] Set up tRPC client in apps/web
+- [ ] Configure TanStack Query integration
+- [ ] Test auto-generated hooks from frontend
+
+**Success Criteria:**
+- ✅ tRPC server running with type-safe procedures
+- ✅ Auth working (register, login, protected routes)
+- ⏳ CRUD operations for leagues, teams, players
+- ⏳ Frontend can call procedures with full type safety
+
+**What Was Built (Phase A & B):**
+- tRPC server mounted at `/trpc` endpoint
+- Type-safe context with database and user authentication
+- Protected procedure middleware (checks JWT)
+- Auth router: register, login, me
+- JWT-based authentication with bcryptjs password hashing
+- Lazy initialization pattern for JWT_SECRET (env var loading)
+- Health check router for testing tRPC setup
+- Drizzle operators exported from database package for easy querying
+
+**Technical Notes:**
+- Using bcryptjs instead of bcrypt (no native bindings needed)
+- JWT tokens in `Authorization: Bearer <token>` header
+- Protected procedures throw UNAUTHORIZED error if no valid token
+- All input validation handled by Zod schemas in tRPC procedures
+
+**Future Enhancements (Noted in apps/api/TODO.md):**
+- OAuth support (Google, GitHub, etc.)
+- Refresh tokens for longer sessions
+- Two-factor authentication
 
 ---
 

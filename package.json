@@ -10,10 +10,18 @@
     "build": "pnpm --filter \"./apps/*\" build",
     "build:web": "pnpm --filter web build",
     "build:api": "pnpm --filter api build",
-    "test": "pnpm --filter \"./apps/*\" test"
+    "test": "pnpm --filter \"./apps/*\" test",
+    "typecheck": "pnpm -r --parallel typecheck"
   },
-  "keywords": ["fantasy-football", "scoring", "sports"],
+  "keywords": [
+    "fantasy-football",
+    "scoring",
+    "sports"
+  ],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.26.0"
+  "packageManager": "pnpm@10.26.0",
+  "devDependencies": {
+    "@types/node": "^25.0.2"
+  }
 }

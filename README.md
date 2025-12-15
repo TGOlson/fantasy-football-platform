@@ -64,6 +64,18 @@ pnpm build:web
 pnpm build:api
 ```
 
+### Type Checking
+
+```bash
+# Typecheck entire monorepo (all packages in parallel)
+pnpm typecheck
+
+# Or check individual packages:
+pnpm --filter api typecheck
+pnpm --filter web typecheck
+pnpm --filter @fantasy-platform/database typecheck
+```
+
 ### Database Commands
 
 All database commands are run from `packages/database`:
@@ -121,7 +133,11 @@ docker compose up -d
   - Seed script with sample data
   - Database connection verified from API
 
-- 🔄 **Next:** Milestone 3 - tRPC API Infrastructure
+- 🔄 **Milestone 3:** tRPC API Infrastructure (In Progress)
+  - ✅ Phase A: tRPC server setup with Express integration
+  - ✅ Phase B: Authentication (register, login, JWT, bcryptjs)
+  - ⏳ Phase C: Core CRUD procedures (leagues, teams, players)
+  - ⏳ Phase D: Frontend integration with auto-generated hooks
 
 See [plan.md](./plan.md) for the full development roadmap.
 
