@@ -1,0 +1,19 @@
+{
+  "name": "fantasy-platform",
+  "version": "1.0.0",
+  "description": "Custom fantasy football platform with advanced scoring customization",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "build": "pnpm --filter \"./apps/*\" build",
+    "build:web": "pnpm --filter web build",
+    "build:api": "pnpm --filter api build",
+    "test": "pnpm --filter \"./apps/*\" test"
+  },
+  "keywords": ["fantasy-football", "scoring", "sports"],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.26.0"
+}
