@@ -8,12 +8,12 @@
 
 ## Progress Overview
 
-**Current Status:** Milestone 3 Complete ✅
+**Current Status:** Milestone 4 Complete ✅
 
 - ✅ Milestone 1: Project Scaffolding & Infrastructure Setup
 - ✅ Milestone 2: Database & Drizzle ORM Setup
 - ✅ Milestone 3: tRPC API Infrastructure (All Phases Complete)
-- ⏳ Milestone 4: Frontend Foundation & Basic UI
+- ✅ Milestone 4: Frontend Foundation & Basic UI
 - ⏳ Milestone 5: Core Resources & Relationships
 - ⏳ Milestone 6: NFL Player Data Integration (Static)
 - ⏳ Milestone 7: Basic Scoring Engine (Foundation)
@@ -22,7 +22,7 @@
 - ⏳ Milestone 10: Stats Caching & Performance
 - ⏳ Milestone 11: Polish & MVP Launch Prep
 
-**Last Updated:** December 15, 2024 (Milestone 3 Complete)
+**Last Updated:** December 15, 2024 (Milestone 4 Complete - Mantine Migration)
 
 ---
 
@@ -193,35 +193,69 @@ Will be completed in Milestone 4:
 
 ---
 
-## Milestone 4: Frontend Foundation & Basic UI
+## Milestone 4: Frontend Foundation & Basic UI ✅
 
-**Goal:** Set up shadcn/ui, create layouts, and build basic pages to interact with API.
+**Goal:** Set up UI library, create layouts, and build basic pages to interact with API.
+
+**Status:** COMPLETED (December 15, 2024)
+
+**Note:** Switched from shadcn/ui to Mantine for better data-heavy UI components.
 
 ### Tasks
 
-- [ ] Initialize shadcn/ui
-  - [ ] Run init command and configure
-  - [ ] Add core components: button, card, input, label, form, table, dialog, toast
-- [ ] Set up React Router
-  - [ ] Configure routes for auth and main app
-  - [ ] Create protected route wrapper
-- [ ] Create basic layout components
-  - [ ] AuthLayout (for login/register)
-  - [ ] AppLayout (with sidebar/nav for main app)
-- [ ] Implement authentication pages
-  - [ ] Login page with form
-  - [ ] Register page with form
-  - [ ] Auth state management (Context or simple state)
-- [ ] Set up API client (axios or fetch wrapper)
-  - [ ] Configure base URL and auth token handling
-  - [ ] Set up TanStack Query
-- [ ] Create basic pages
-  - [ ] Dashboard/home page
-  - [ ] Leagues list page
-  - [ ] League detail page (basic view)
-- [ ] Add toast notifications for feedback
+- [x] Set up Mantine UI
+  - [x] Install Mantine core, hooks, notifications, form, datatable
+  - [x] Configure theme with Linear-inspired colors (violet primary)
+  - [x] Set up PostCSS config for Mantine
+- [x] Set up React Router
+  - [x] Configure routes for auth and main app
+  - [x] Create protected route wrapper
+- [x] Create basic layout components
+  - [x] AppLayout with AppShell (header + sidebar)
+- [x] Implement authentication pages
+  - [x] Login page with Mantine form components
+  - [x] Register page with Mantine form components
+  - [x] Auth state management (Context)
+- [x] Set up tRPC client
+  - [x] Configure tRPC provider with TanStack Query
+  - [x] Auto-include JWT token in requests
+- [x] Create basic pages
+  - [x] Dashboard/home page with stats cards
+  - [x] Leagues list page with grid layout
+  - [x] Players page with DataTable (sortable, filterable)
+- [x] Set up notifications system (Mantine notifications)
 
-**Success Criteria:** Can register, login, see leagues list, view league details in a clean UI.
+**Success Criteria:** ✅ Can register, login, see leagues list, browse players in polished UI.
+
+**What Was Built:**
+- **Mantine UI System** - Complete component library with excellent defaults
+  - `@mantine/core` - Buttons, inputs, cards, papers, etc.
+  - `@mantine/notifications` - Toast notification system
+  - `mantine-datatable` - Professional data tables with sorting/filtering
+  - AppShell layout with responsive sidebar
+- **Authentication Flow**
+  - Login/Register pages with proper validation
+  - JWT token management via React Context
+  - Protected routes that redirect to login
+  - Auto-fetch current user on mount
+- **Pages Built**
+  - Dashboard with stat cards (SimpleGrid)
+  - Leagues list with card grid
+  - Players list with DataTable (search + filter by position)
+- **tRPC Integration**
+  - Client configured with auth headers
+  - Auto-generated type-safe hooks
+  - Works seamlessly with Mantine components
+
+**Technical Decisions:**
+- **Why Mantine over shadcn/ui**: Better for data-heavy apps (DataTable is killer)
+- **Why AppShell**: Professional sidebar layout with mobile responsive built-in
+- **Why DataTable**: Fantasy football = lots of tables. Mantine's DataTable has everything (sorting, filtering, row selection, sticky headers, pagination)
+
+**What's Different from Plan:**
+- Replaced shadcn/ui with Mantine (better for our use case)
+- No separate AuthLayout needed (Mantine Container handles it)
+- League detail page moved to next milestone
 
 ---
 

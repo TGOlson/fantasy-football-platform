@@ -1,49 +1,67 @@
 # Web App TODOs
 
-## Install Dependencies
+## ✅ Completed (Milestone 4)
 
-All dependencies are already in package.json. Just run from the project root:
+- ✅ Migrated from Tailwind + shadcn to Mantine
+- ✅ Set up Mantine theme with Linear-inspired colors
+- ✅ Built Login/Register pages with Mantine forms
+- ✅ Built Dashboard with stat cards
+- ✅ Built Leagues list page
+- ✅ Built Players page with DataTable (search, filter, sort)
+- ✅ Set up AppShell layout with responsive sidebar
+- ✅ Integrated tRPC client with auth headers
+- ✅ Auth context with JWT token management
+- ✅ Protected routes
 
-```bash
-pnpm install
-```
+## 🔨 Next Up (Milestone 5)
 
-## Optional: Add shadcn/ui Components
+### League Detail Page
+- [ ] Create `/leagues/:id` route
+- [ ] Display league info (name, season, teams)
+- [ ] Show scoring rules summary
+- [ ] List teams in league
+- [ ] Add "Join League" functionality
 
-To add pre-built components from shadcn/ui:
+### Team Management
+- [ ] Create team detail page
+- [ ] Show team roster
+- [ ] Add roster management UI (when roster schema exists)
 
-```bash
-# Navigate to apps/web first
-cd apps/web
+### UI Polish
+- [ ] Add loading skeletons (Mantine Skeleton component)
+- [ ] Better empty states with illustrations
+- [ ] Add error boundaries
+- [ ] Toast notifications for mutations (success/error)
 
-# Then add components as needed
-pnpx shadcn@latest add button
-pnpx shadcn@latest add card
-pnpx shadcn@latest add input
-pnpx shadcn@latest add label
-pnpx shadcn@latest add form
-pnpx shadcn@latest add toast
-pnpx shadcn@latest add dialog
-pnpx shadcn@latest add table
-```
+## 📝 Future Enhancements
 
-## Completed
+### Advanced Player Table Features
+- [ ] Add sortable columns (Mantine DataTable supports this)
+- [ ] Add pagination for large player lists
+- [ ] Add row selection for roster management
+- [ ] Add player stats columns (when stats exist)
 
-- ✅ tRPC client setup with TanStack Query
-- ✅ shadcn/ui initialization with Linear-inspired design tokens
-- ✅ Path aliases (@/* imports) configured
+### Mantine Components to Explore
+- [ ] `Modal` - For dialogs (add player, create league)
+- [ ] `Tabs` - For league pages (roster, matchup, standings)
+- [ ] `NumberInput` - For scoring config
+- [ ] `ActionIcon` - For icon buttons
+- [ ] `Menu` - For dropdown actions
+- [ ] `Skeleton` - For loading states
+- [ ] `Badge` - Already using, but can expand (player status: Q, O, BYE)
 
-## In Progress
+### Performance
+- [ ] Add proper loading states everywhere
+- [ ] Optimize re-renders with React.memo if needed
+- [ ] Lazy load routes with React.lazy
 
-- 🔄 React Router setup
-- 🔄 Auth context and JWT management
-- 🔄 Layout components
-- 🔄 Auth pages
+### Mobile
+- [ ] Test on mobile devices
+- [ ] Ensure AppShell collapses sidebar properly
+- [ ] Touch-friendly interactions
 
-## Future Tasks
+## 📚 Documentation
 
-- Add dark mode toggle
-- Build player browsing UI
-- Build league management UI
-- Add toast notifications
-- Implement command palette (⌘K)
+See:
+- `docs/tech-stack.md` - Overview of all frontend tech
+- `docs/api-spec.md` - tRPC API endpoints and usage

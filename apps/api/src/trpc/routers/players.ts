@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure } from '../trpc.js';
 import { getDatabase, players, eq, and, like } from '@fantasy-platform/database';
-import type { SQL } from 'drizzle-orm';
 
 export const playersRouter = router({
   // Get all players with filtering
@@ -18,7 +17,7 @@ export const playersRouter = router({
       const db = getDatabase();
 
       // Build where conditions dynamically
-      const conditions: SQL[] = [];
+      const conditions = [];
 
       if (input.position) {
         conditions.push(eq(players.position, input.position));
@@ -34,13 +33,9 @@ export const playersRouter = router({
       }
 
       // Query with conditions if any exist
-      let query = db.select().from(players);
-
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
-
-      const allPlayers = await query;
+      const allPlayers = conditions.length > 0
+        ? await db.select().from(players).where(and(...conditions))
+        : await db.select().from(players);
 
       return allPlayers;
     }),
