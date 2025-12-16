@@ -1,5 +1,8 @@
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import {
   getDatabase,
   users,
@@ -13,10 +16,50 @@ import {
   playerWeeklyStats,
   rosterPlayers,
   matchups,
+  eq,
 } from './index.js';
 
 // Load environment variables
 dotenv.config({ path: '../../.env' });
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const SEED_DATA_DIR = path.join(__dirname, '../seed-data');
+
+// Helper to parse CSV
+function parseCSV(filePath: string): any[] {
+  const content = fs.readFileSync(filePath, 'utf8');
+  const lines = content.trim().split('\n');
+  const headers = lines[0].split(',');
+
+  return lines.slice(1).map((line) => {
+    // Handle quoted values
+    const values: string[] = [];
+    let currentValue = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        values.push(currentValue);
+        currentValue = '';
+      } else {
+        currentValue += char;
+      }
+    }
+    values.push(currentValue); // Last value
+
+    const row: any = {};
+    headers.forEach((header, index) => {
+      const value = values[index]?.trim();
+      row[header] = value === '' ? null : value;
+    });
+    return row;
+  });
+}
 
 async function seed() {
   console.log('🌱 Seeding database...');
@@ -178,110 +221,184 @@ async function seed() {
     console.log('✓ Created 8 team seasons');
 
     // =========================================================================
-    // PLAYERS
+    // PLAYERS (from CSV seed data)
     // =========================================================================
-    console.log('\n⭐ Creating NFL players...');
+    console.log('\n⭐ Importing NFL players from CSV...');
+
+    const playersCSVPath = path.join(SEED_DATA_DIR, 'players-2024.csv');
+    if (!fs.existsSync(playersCSVPath)) {
+      console.error('❌ players-2024.csv not found!');
+      console.error('Run: pnpm --filter @fantasy-platform/database generate-seed-data');
+      process.exit(1);
+    }
+
+    const playerData = parseCSV(playersCSVPath);
+    console.log(`  Found ${playerData.length} players in CSV`);
+
+    // Create players
     const createdPlayers = await db
       .insert(players)
-      .values([
-        // QBs
-        { nflId: 'mahomes', name: 'Patrick Mahomes' },
-        { nflId: 'allen', name: 'Josh Allen' },
-        { nflId: 'jackson', name: 'Lamar Jackson' },
-        { nflId: 'burrow', name: 'Joe Burrow' },
-        // RBs
-        { nflId: 'mccaffrey', name: 'Christian McCaffrey' },
-        { nflId: 'ekeler', name: 'Austin Ekeler' },
-        { nflId: 'barkley', name: 'Saquon Barkley' },
-        { nflId: 'henry', name: 'Derrick Henry' },
-        { nflId: 'chubb', name: 'Nick Chubb' },
-        { nflId: 'cook', name: 'Dalvin Cook' },
-        // WRs
-        { nflId: 'jefferson', name: 'Justin Jefferson' },
-        { nflId: 'chase', name: "Ja'Marr Chase" },
-        { nflId: 'hill', name: 'Tyreek Hill' },
-        { nflId: 'adams', name: 'Davante Adams' },
-        { nflId: 'diggs', name: 'Stefon Diggs' },
-        { nflId: 'lamb', name: 'CeeDee Lamb' },
-        // TEs
-        { nflId: 'kelce', name: 'Travis Kelce' },
-        { nflId: 'andrews', name: 'Mark Andrews' },
-        { nflId: 'kittle', name: 'George Kittle' },
-        { nflId: 'hockenson', name: 'TJ Hockenson' },
-      ])
+      .values(
+        playerData.map((p, i) => ({
+          nflId: `espn_${i + 1}`,
+          name: p.name,
+        }))
+      )
       .returning();
 
-    console.log(`✓ Created ${createdPlayers.length} NFL players`);
+    console.log(`✓ Created ${createdPlayers.length} players`);
 
-    // =========================================================================
-    // PLAYER SEASONS
-    // =========================================================================
-    console.log('\n📅 Creating player seasons (2024)...');
-    await db.insert(playerSeasons).values([
-      // QBs
-      { playerId: createdPlayers[0].id, season: 2024, nflTeam: 'KC', position: 'QB', status: 'active', jerseyNumber: 15 },
-      { playerId: createdPlayers[1].id, season: 2024, nflTeam: 'BUF', position: 'QB', status: 'active', jerseyNumber: 17 },
-      { playerId: createdPlayers[2].id, season: 2024, nflTeam: 'BAL', position: 'QB', status: 'active', jerseyNumber: 8 },
-      { playerId: createdPlayers[3].id, season: 2024, nflTeam: 'CIN', position: 'QB', status: 'active', jerseyNumber: 9 },
-      // RBs
-      { playerId: createdPlayers[4].id, season: 2024, nflTeam: 'SF', position: 'RB', status: 'active', jerseyNumber: 23 },
-      { playerId: createdPlayers[5].id, season: 2024, nflTeam: 'LAC', position: 'RB', status: 'active', jerseyNumber: 30 },
-      { playerId: createdPlayers[6].id, season: 2024, nflTeam: 'PHI', position: 'RB', status: 'active', jerseyNumber: 26 },
-      { playerId: createdPlayers[7].id, season: 2024, nflTeam: 'BAL', position: 'RB', status: 'active', jerseyNumber: 22 },
-      { playerId: createdPlayers[8].id, season: 2024, nflTeam: 'CLE', position: 'RB', status: 'active', jerseyNumber: 24 },
-      { playerId: createdPlayers[9].id, season: 2024, nflTeam: 'NYJ', position: 'RB', status: 'active', jerseyNumber: 33 },
-      // WRs
-      { playerId: createdPlayers[10].id, season: 2024, nflTeam: 'MIN', position: 'WR', status: 'active', jerseyNumber: 18 },
-      { playerId: createdPlayers[11].id, season: 2024, nflTeam: 'CIN', position: 'WR', status: 'active', jerseyNumber: 1 },
-      { playerId: createdPlayers[12].id, season: 2024, nflTeam: 'MIA', position: 'WR', status: 'active', jerseyNumber: 10 },
-      { playerId: createdPlayers[13].id, season: 2024, nflTeam: 'LV', position: 'WR', status: 'active', jerseyNumber: 17 },
-      { playerId: createdPlayers[14].id, season: 2024, nflTeam: 'BUF', position: 'WR', status: 'active', jerseyNumber: 14 },
-      { playerId: createdPlayers[15].id, season: 2024, nflTeam: 'DAL', position: 'WR', status: 'active', jerseyNumber: 88 },
-      // TEs
-      { playerId: createdPlayers[16].id, season: 2024, nflTeam: 'KC', position: 'TE', status: 'active', jerseyNumber: 87 },
-      { playerId: createdPlayers[17].id, season: 2024, nflTeam: 'BAL', position: 'TE', status: 'active', jerseyNumber: 89 },
-      { playerId: createdPlayers[18].id, season: 2024, nflTeam: 'SF', position: 'TE', status: 'active', jerseyNumber: 85 },
-      { playerId: createdPlayers[19].id, season: 2024, nflTeam: 'MIN', position: 'TE', status: 'active', jerseyNumber: 87 },
-    ]);
+    // Create player seasons
+    await db.insert(playerSeasons).values(
+      createdPlayers.map((player, i) => ({
+        playerId: player.id,
+        season: 2024,
+        nflTeam: playerData[i].team,
+        position: playerData[i].position,
+        status: 'active',
+        jerseyNumber: parseInt(playerData[i].jersey_number),
+      }))
+    );
 
-    console.log('✓ Created player seasons for 2024');
+    console.log(`✓ Created ${createdPlayers.length} player seasons (2024)`);
+
+    // Import weekly stats
+    console.log('\n📊 Importing weekly stats from CSV...');
+    const statsCSVPath = path.join(SEED_DATA_DIR, 'player-stats-2024.csv');
+
+    if (!fs.existsSync(statsCSVPath)) {
+      console.error('❌ player-stats-2024.csv not found!');
+      process.exit(1);
+    }
+
+    const statsData = parseCSV(statsCSVPath);
+    console.log(`  Found ${statsData.length} stat entries in CSV`);
+
+    // Create a map of player name -> player ID
+    const playerNameToId = new Map(
+      createdPlayers.map((p, i) => [playerData[i].name, p.id])
+    );
+
+    // Convert CSV stats to DB format
+    const weeklyStatsToInsert = statsData.map((stat) => ({
+      playerId: playerNameToId.get(stat.player_name)!,
+      season: 2024,
+      weekNumber: parseInt(stat.week_number),
+      passingYards: stat.passing_yards ? parseInt(stat.passing_yards) : null,
+      passingTds: stat.passing_tds ? parseInt(stat.passing_tds) : null,
+      passingInts: stat.passing_ints ? parseInt(stat.passing_ints) : null,
+      completions: stat.completions ? parseInt(stat.completions) : null,
+      attempts: stat.attempts ? parseInt(stat.attempts) : null,
+      rushingYards: stat.rushing_yards ? parseInt(stat.rushing_yards) : null,
+      rushingTds: stat.rushing_tds ? parseInt(stat.rushing_tds) : null,
+      rushingAttempts: stat.rushing_attempts ? parseInt(stat.rushing_attempts) : null,
+      receptions: stat.receptions ? parseInt(stat.receptions) : null,
+      receivingYards: stat.receiving_yards ? parseInt(stat.receiving_yards) : null,
+      receivingTds: stat.receiving_tds ? parseInt(stat.receiving_tds) : null,
+      targets: stat.targets ? parseInt(stat.targets) : null,
+      fumblesLost: stat.fumbles_lost ? parseInt(stat.fumbles_lost) : null,
+    }));
+
+    // Insert in chunks
+    const chunkSize = 500;
+    for (let i = 0; i < weeklyStatsToInsert.length; i += chunkSize) {
+      const chunk = weeklyStatsToInsert.slice(i, i + chunkSize);
+      await db.insert(playerWeeklyStats).values(chunk);
+      console.log(
+        `  Inserted ${Math.min(i + chunkSize, weeklyStatsToInsert.length)} / ${
+          weeklyStatsToInsert.length
+        } stats`
+      );
+    }
+
+    console.log(`✓ Created ${weeklyStatsToInsert.length} weekly stat entries`);
 
     // =========================================================================
     // ROSTERS
     // =========================================================================
     console.log('\n📋 Adding players to rosters...');
 
-    // Team 1 roster (Admin's All-Stars)
-    await db.insert(rosterPlayers).values([
-      { teamSeasonId: ts1.id, playerId: createdPlayers[0].id, slotType: 'QB' },
-      { teamSeasonId: ts1.id, playerId: createdPlayers[4].id, slotType: 'RB' },
-      { teamSeasonId: ts1.id, playerId: createdPlayers[5].id, slotType: 'RB' },
-      { teamSeasonId: ts1.id, playerId: createdPlayers[10].id, slotType: 'WR' },
-      { teamSeasonId: ts1.id, playerId: createdPlayers[11].id, slotType: 'WR' },
-      { teamSeasonId: ts1.id, playerId: createdPlayers[16].id, slotType: 'TE' },
-      { teamSeasonId: ts1.id, playerId: createdPlayers[6].id, slotType: 'FLEX' },
-    ]);
+    // Get player seasons to know positions
+    const allPlayerSeasons = await db
+      .select()
+      .from(playerSeasons)
+      .where(eq(playerSeasons.season, 2024));
 
-    // Team 2 roster (Sarah's Squad)
-    await db.insert(rosterPlayers).values([
-      { teamSeasonId: ts2.id, playerId: createdPlayers[1].id, slotType: 'QB' },
-      { teamSeasonId: ts2.id, playerId: createdPlayers[7].id, slotType: 'RB' },
-      { teamSeasonId: ts2.id, playerId: createdPlayers[8].id, slotType: 'RB' },
-      { teamSeasonId: ts2.id, playerId: createdPlayers[12].id, slotType: 'WR' },
-      { teamSeasonId: ts2.id, playerId: createdPlayers[13].id, slotType: 'WR' },
-      { teamSeasonId: ts2.id, playerId: createdPlayers[17].id, slotType: 'TE' },
-      { teamSeasonId: ts2.id, playerId: createdPlayers[14].id, slotType: 'FLEX' },
-    ]);
+    // Helper to get players by position
+    const getPlayersByPosition = (position: string, count: number) => {
+      return allPlayerSeasons
+        .filter(ps => ps.position === position)
+        .slice(0, count)
+        .map(ps => ps.playerId);
+    };
 
-    // Team 3 roster (Mike's Monsters) - smaller roster for testing
-    await db.insert(rosterPlayers).values([
-      { teamSeasonId: ts3.id, playerId: createdPlayers[2].id, slotType: 'QB' },
-      { teamSeasonId: ts3.id, playerId: createdPlayers[9].id, slotType: 'RB' },
-      { teamSeasonId: ts3.id, playerId: createdPlayers[15].id, slotType: 'WR' },
-      { teamSeasonId: ts3.id, playerId: createdPlayers[18].id, slotType: 'TE' },
-    ]);
+    // Team 1 roster (Admin's All-Stars) - full roster
+    const team1Roster = [];
+    const qbs = getPlayersByPosition('QB', 2);
+    const rbs = getPlayersByPosition('RB', 4);
+    const wrs = getPlayersByPosition('WR', 4);
+    const tes = getPlayersByPosition('TE', 2);
 
-    console.log('✓ Added players to team rosters');
+    if (qbs[0]) team1Roster.push({ teamSeasonId: ts1.id, playerId: qbs[0], slotType: 'QB' });
+    if (rbs[0]) team1Roster.push({ teamSeasonId: ts1.id, playerId: rbs[0], slotType: 'RB' });
+    if (rbs[1]) team1Roster.push({ teamSeasonId: ts1.id, playerId: rbs[1], slotType: 'RB' });
+    if (wrs[0]) team1Roster.push({ teamSeasonId: ts1.id, playerId: wrs[0], slotType: 'WR' });
+    if (wrs[1]) team1Roster.push({ teamSeasonId: ts1.id, playerId: wrs[1], slotType: 'WR' });
+    if (tes[0]) team1Roster.push({ teamSeasonId: ts1.id, playerId: tes[0], slotType: 'TE' });
+    if (rbs[2]) team1Roster.push({ teamSeasonId: ts1.id, playerId: rbs[2], slotType: 'FLEX' });
+    // Bench
+    if (qbs[1]) team1Roster.push({ teamSeasonId: ts1.id, playerId: qbs[1], slotType: 'BENCH' });
+    if (rbs[3]) team1Roster.push({ teamSeasonId: ts1.id, playerId: rbs[3], slotType: 'BENCH' });
+    if (wrs[2]) team1Roster.push({ teamSeasonId: ts1.id, playerId: wrs[2], slotType: 'BENCH' });
+    if (wrs[3]) team1Roster.push({ teamSeasonId: ts1.id, playerId: wrs[3], slotType: 'BENCH' });
+    if (tes[1]) team1Roster.push({ teamSeasonId: ts1.id, playerId: tes[1], slotType: 'BENCH' });
+
+    if (team1Roster.length > 0) {
+      await db.insert(rosterPlayers).values(team1Roster);
+    }
+
+    // Team 2 roster (Sarah's Squad) - use next set of players
+    const team2Roster = [];
+    const qbs2 = getPlayersByPosition('QB', 4).slice(2);
+    const rbs2 = getPlayersByPosition('RB', 8).slice(4);
+    const wrs2 = getPlayersByPosition('WR', 8).slice(4);
+    const tes2 = getPlayersByPosition('TE', 4).slice(2);
+
+    if (qbs2[0]) team2Roster.push({ teamSeasonId: ts2.id, playerId: qbs2[0], slotType: 'QB' });
+    if (rbs2[0]) team2Roster.push({ teamSeasonId: ts2.id, playerId: rbs2[0], slotType: 'RB' });
+    if (rbs2[1]) team2Roster.push({ teamSeasonId: ts2.id, playerId: rbs2[1], slotType: 'RB' });
+    if (wrs2[0]) team2Roster.push({ teamSeasonId: ts2.id, playerId: wrs2[0], slotType: 'WR' });
+    if (wrs2[1]) team2Roster.push({ teamSeasonId: ts2.id, playerId: wrs2[1], slotType: 'WR' });
+    if (tes2[0]) team2Roster.push({ teamSeasonId: ts2.id, playerId: tes2[0], slotType: 'TE' });
+    if (wrs2[2]) team2Roster.push({ teamSeasonId: ts2.id, playerId: wrs2[2], slotType: 'FLEX' });
+    // Bench
+    if (qbs2[1]) team2Roster.push({ teamSeasonId: ts2.id, playerId: qbs2[1], slotType: 'BENCH' });
+    if (rbs2[2]) team2Roster.push({ teamSeasonId: ts2.id, playerId: rbs2[2], slotType: 'BENCH' });
+    if (rbs2[3]) team2Roster.push({ teamSeasonId: ts2.id, playerId: rbs2[3], slotType: 'BENCH' });
+    if (wrs2[3]) team2Roster.push({ teamSeasonId: ts2.id, playerId: wrs2[3], slotType: 'BENCH' });
+    if (tes2[1]) team2Roster.push({ teamSeasonId: ts2.id, playerId: tes2[1], slotType: 'BENCH' });
+
+    if (team2Roster.length > 0) {
+      await db.insert(rosterPlayers).values(team2Roster);
+    }
+
+    // Team 3 roster (Mike's Monsters) - smaller partial roster
+    const team3Roster = [];
+    const qbs3 = getPlayersByPosition('QB', 6).slice(4);
+    const rbs3 = getPlayersByPosition('RB', 12).slice(8);
+    const wrs3 = getPlayersByPosition('WR', 12).slice(8);
+    const tes3 = getPlayersByPosition('TE', 6).slice(4);
+
+    if (qbs3[0]) team3Roster.push({ teamSeasonId: ts3.id, playerId: qbs3[0], slotType: 'QB' });
+    if (rbs3[0]) team3Roster.push({ teamSeasonId: ts3.id, playerId: rbs3[0], slotType: 'RB' });
+    if (wrs3[0]) team3Roster.push({ teamSeasonId: ts3.id, playerId: wrs3[0], slotType: 'WR' });
+    if (tes3[0]) team3Roster.push({ teamSeasonId: ts3.id, playerId: tes3[0], slotType: 'TE' });
+
+    if (team3Roster.length > 0) {
+      await db.insert(rosterPlayers).values(team3Roster);
+    }
+
+    console.log(`✓ Added players to ${team1Roster.length > 0 ? '3' : '0'} team rosters`);
 
     // =========================================================================
     // MATCHUPS (Week 1)
@@ -322,7 +439,8 @@ async function seed() {
     console.log('  - 1 league (The Championship League)');
     console.log('  - 1 season (2024, active)');
     console.log('  - 8 teams with team seasons');
-    console.log('  - 20 NFL players with 2024 data');
+    console.log(`  - ${createdPlayers.length} NFL players with 2024 data`);
+    console.log(`  - ${weeklyStatsToInsert.length} weekly stat entries (weeks 1-10)`);
     console.log('  - 3 teams with rosters');
     console.log('  - 4 Week 1 matchups');
     console.log('\n🔑 Login credentials:');
