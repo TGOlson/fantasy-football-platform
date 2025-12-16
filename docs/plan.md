@@ -535,3 +535,15 @@ These will be prioritized based on user feedback:
 - Message boards
 - Analytics dashboards
 - Native mobile apps
+
+## Open questions
+
+* Should `player_weekly_stats` have a bunch of columns of big a json blob?
+* How to represent league transactions (trades, waiver, draft), one big event log?
+* should we delete docs/schema.md in favor of the actual schema.ts file?
+* can we auto-gen docs for the api (useful for claude to reference)
+* better logging/error handling for debugging
+* protected app routes by team/league
+* get league `getById` is long with a lot of lookups. maybe sure all indexed
+* move to json router in app? is that better?
+* how is query stale time used? `staleTime: 5 * 1000, // 5 seconds`
