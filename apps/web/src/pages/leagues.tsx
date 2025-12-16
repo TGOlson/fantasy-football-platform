@@ -47,10 +47,12 @@ export function LeaguesPage() {
             >
               <Title order={3} size="h4" mb="xs">{league.name}</Title>
               <Text size="sm" c="dimmed" mb="md">
-                Season {league.season}
+                Season {league.currentSeason?.season || 'N/A'}
               </Text>
               <Group justify="space-between">
-                <Text size="sm" c="dimmed">0 teams</Text>
+                <Text size="sm" c="dimmed">
+                  {league.currentSeason?.status || 'Setup'}
+                </Text>
                 <Text size="sm" c="violet">View →</Text>
               </Group>
             </Paper>

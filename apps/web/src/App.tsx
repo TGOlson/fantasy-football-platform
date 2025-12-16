@@ -5,6 +5,8 @@ import { LoginPage } from '@/pages/login';
 import { RegisterPage } from '@/pages/register';
 import { DashboardPage } from '@/pages/dashboard';
 import { LeaguesPage } from '@/pages/leagues';
+import { LeagueDetailPage } from '@/pages/league-detail';
+import { TeamDetailPage } from '@/pages/team-detail';
 import { PlayersPage } from '@/pages/players';
 
 function App() {
@@ -30,6 +32,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <LeaguesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leagues/:leagueId"
+            element={
+              <ProtectedRoute>
+                <LeagueDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teams/:teamId"
+            element={
+              <ProtectedRoute>
+                <TeamDetailPage />
               </ProtectedRoute>
             }
           />
