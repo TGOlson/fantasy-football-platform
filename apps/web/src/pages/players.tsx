@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
-import { Title, Text, TextInput, Select, Group, Badge, Center } from '@mantine/core';
+import { Title, Text, TextInput, Select, Group, Badge } from '@mantine/core';
 import { DataTable } from 'mantine-datatable';
 
 export function PlayersPage() {
@@ -70,11 +70,7 @@ export function PlayersPage() {
             ),
           },
         ]}
-        noRecordsText={
-          <Center p="xl">
-            <Text c="dimmed">No players found</Text>
-          </Center>
-        }
+        noRecordsText="No players found"
       />
     </AppLayout>
   );

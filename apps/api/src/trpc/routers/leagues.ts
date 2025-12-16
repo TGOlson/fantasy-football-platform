@@ -69,7 +69,7 @@ export const leaguesRouter = router({
         scoringRules: z.custom<ScoringRulesJson>().optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const db = getDatabase();
 
       // Create the league
@@ -107,7 +107,7 @@ export const leaguesRouter = router({
         season: z.number().int().min(2020, 'Season must be 2020 or later').optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       const db = getDatabase();
 
       // Check if league exists

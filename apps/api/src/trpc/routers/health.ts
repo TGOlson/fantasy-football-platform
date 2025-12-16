@@ -22,7 +22,7 @@ export const healthRouter = router({
     }),
 
   // Test database connection
-  dbTest: publicProcedure.query(async ({ ctx }) => {
+  dbTest: publicProcedure.query(async () => {
     const { getDatabase, users } = await import('@fantasy-platform/database');
     const db = getDatabase();
     const allUsers = await db.select().from(users);

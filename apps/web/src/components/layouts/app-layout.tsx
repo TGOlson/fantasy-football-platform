@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AppShell, NavLink, Text, Button, Group, Stack } from '@mantine/core';
+import { AppShell, NavLink, Text, Button, Stack } from '@mantine/core';
 import { useAuth } from '@/lib/auth-context';
 
 type AppLayoutProps = {

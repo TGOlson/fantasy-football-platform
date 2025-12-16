@@ -1,6 +1,6 @@
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
-import { Title, Text, SimpleGrid, Paper, Group } from '@mantine/core';
+import { Title, Text, SimpleGrid, Paper } from '@mantine/core';
 
 export function DashboardPage() {
   const { data: leagues, isLoading } = trpc.leagues.list.useQuery();

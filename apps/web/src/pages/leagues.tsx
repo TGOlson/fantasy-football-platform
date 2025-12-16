@@ -32,8 +32,18 @@ export function LeaguesPage() {
               withBorder
               p="lg"
               radius="md"
-              style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
-              sx={{ '&:hover': { borderColor: 'var(--mantine-color-violet-6)' } }}
+              style={{
+                textDecoration: 'none',
+                color: 'inherit',
+                cursor: 'pointer',
+                transition: 'border-color 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--mantine-color-violet-6)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = '';
+              }}
             >
               <Title order={3} size="h4" mb="xs">{league.name}</Title>
               <Text size="sm" c="dimmed" mb="md">

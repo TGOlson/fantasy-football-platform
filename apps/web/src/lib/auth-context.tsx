@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 import { trpc } from './trpc';
 
 type User = {
@@ -25,8 +25,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('auth_token');
   });
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch current user if token exists
   const { data: userData, isLoading: userLoading } = trpc.auth.me.useQuery(
@@ -34,30 +32,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     {
       enabled: !!token,
       retry: false,
-      onError: () => {
-        // Token is invalid, clear it
-        setToken(null);
-        localStorage.removeItem('auth_token');
-      },
+      // TanStack Query v5: use throwOnError or handle error in component
+      throwOnError: false,
     }
   );
 
-  useEffect(() => {
-    if (userData) {
-      setUser(userData as User);
-    }
-    setIsLoading(userLoading);
-  }, [userData, userLoading]);
+  // Derive user from query data
+  const user = userData ? (userData as User) : null;
+  const isLoading = token ? userLoading : false;
 
-  const login = (newToken: string, newUser: User) => {
+  const login = (newToken: string, _newUser: User) => {
     setToken(newToken);
-    setUser(newUser);
     localStorage.setItem('auth_token', newToken);
+    // Note: user will be set by the query refetch
   };
 
   const logout = () => {
     setToken(null);
-    setUser(null);
     localStorage.removeItem('auth_token');
   };
 
