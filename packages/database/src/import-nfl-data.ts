@@ -65,7 +65,8 @@ async function fetchTopPlayers(limit = 300): Promise<ESPNPlayer[]> {
         continue;
       }
 
-      const data = await response.json();
+      // TODO: Fix this type
+      const data: any = await response.json();
 
       if (data.items) {
         const players = data.items.map((item: any) => ({
@@ -110,7 +111,8 @@ async function fetchPlayerWeeklyStats(
         continue;
       }
 
-      const data = await response.json();
+      // TODO: Fix this type
+      const data: any = await response.json();
 
       // Parse ESPN's stat format (this is simplified - ESPN's actual format is complex)
       if (data.statistics) {

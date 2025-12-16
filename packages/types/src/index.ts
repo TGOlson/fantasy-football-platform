@@ -8,8 +8,6 @@ export type {
   NewTeam,
   Player,
   NewPlayer,
-  ScoringRule,
-  NewScoringRule,
   ScoringRulesJson,
 } from '@fantasy-platform/database';
 

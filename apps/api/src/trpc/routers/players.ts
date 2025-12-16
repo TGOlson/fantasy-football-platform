@@ -8,7 +8,6 @@ import {
   eq,
   and,
   like,
-  sql,
 } from '@fantasy-platform/database';
 
 export const playersRouter = router({
