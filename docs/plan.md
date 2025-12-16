@@ -511,3 +511,27 @@ These will be prioritized based on user feedback:
 ---
 
 **Last Updated:** December 15, 2024
+
+## Note from elsewhere that I don't want to lose
+
+
+## MVP Feature Scope
+
+**Must Build (Tier 1 & 2):**
+1. Custom Scoring Engine (6-8 weeks) - CORE MOAT
+2. League Management (3-4 weeks)
+3. Live Scoring (2-3 weeks)
+4. Draft Tools (4-5 weeks)
+5. Waivers & Free Agency (3-4 weeks)
+6. Trading System (2-3 weeks)
+7. Playoff Brackets (1-2 weeks)
+8. Mobile-Responsive UI (ongoing)
+
+**Explicitly NOT Building for MVP:**
+- Dynasty/keeper features
+- Auction drafts
+- Salary caps
+- IDP (Individual Defensive Player) support
+- Message boards
+- Analytics dashboards
+- Native mobile apps

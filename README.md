@@ -16,6 +16,8 @@ fantasy-platform/
 └── docs/              # Project documentation
 ```
 
+See: [docs/tech-stack.md](./docs/tech-stack.md)
+
 ## Getting Started
 
 ### Prerequisites
@@ -120,10 +122,6 @@ docker compose up -d
 
 - [CLAUDE.md](./CLAUDE.md) - Development guide for AI assistance
 - [docs/](./docs/) - Architecture and design decisions
-
-## Tech Stack
-
-See: [docs/tech-stack.md](./docs/tech-stack.md)
 
 ## Environment Variables
 
