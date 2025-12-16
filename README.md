@@ -1,6 +1,6 @@
 # Fantasy Platform
 
-The most flexible fantasy football platform.
+The most powerful fantasy football platform.
 
 ## Project Structure
 
@@ -116,57 +116,14 @@ docker compose down -v
 docker compose up -d
 ```
 
-## Development Progress
-
-- ✅ **Milestone 1:** Project Scaffolding & Infrastructure Setup
-  - Monorepo structure with pnpm workspaces
-  - Vite + React + TypeScript frontend with Tailwind CSS
-  - Express + TypeScript backend
-  - Shared types package
-  - Both apps running and communicating
-
-- ✅ **Milestone 2:** Database & Drizzle ORM Setup
-  - PostgreSQL 16 in Docker
-  - Drizzle ORM with TypeScript-native schemas
-  - Five core tables: users, leagues, teams, players, scoring_rules
-  - Type-safe database client with lazy initialization
-  - Seed script with sample data
-  - Database connection verified from API
-
-- 🔄 **Milestone 3:** tRPC API Infrastructure (In Progress)
-  - ✅ Phase A: tRPC server setup with Express integration
-  - ✅ Phase B: Authentication (register, login, JWT, bcryptjs)
-  - ⏳ Phase C: Core CRUD procedures (leagues, teams, players)
-  - ⏳ Phase D: Frontend integration with auto-generated hooks
-
-See [plan.md](./plan.md) for the full development roadmap.
-
 ## Documentation
 
 - [CLAUDE.md](./CLAUDE.md) - Development guide for AI assistance
-- [plan.md](./plan.md) - Development plan and milestones
 - [docs/](./docs/) - Architecture and design decisions
 
 ## Tech Stack
 
-**Frontend:**
-- Vite + React + TypeScript
-- Tailwind CSS
-- shadcn/ui (to be added in Milestone 4)
-- TanStack Query & Table (to be added)
-
-**Backend:**
-- Express + TypeScript
-- PostgreSQL 16 + Drizzle ORM
-- tRPC (to be added in Milestone 3)
-
-**Database:**
-- PostgreSQL 16 (Docker)
-- Drizzle ORM (TypeScript-native)
-- 5 core tables with relations
-
-**Deployment:**
-- Railway or Render (planned)
+See: [docs/tech-stack.md](./docs/tech-stack.md)
 
 ## Environment Variables
 
@@ -178,9 +135,3 @@ Default database connection:
 ```
 DATABASE_URL=postgresql://fantasy:fantasy_dev_password@localhost:5432/fantasy_platform
 ```
-
-**Note:** `.env` files are included in the repo for local development. Do not commit production secrets.
-
-## License
-
-ISC
