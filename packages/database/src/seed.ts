@@ -155,26 +155,52 @@ async function seed() {
       tradeDeadlineWeek: 11,
       scoringRules: {
         passing: {
-          yards: { value: 0.04, per: 1 },
-          touchdowns: { value: 4 },
-          interceptions: -2,
+          yards: { type: 'base', value: 0.04 },
+          touchdowns: { type: 'base', value: 4 },
+          interceptions: { type: 'base', value: -2 },
+          bonuses: [
+            {
+              name: '300 Yard Game',
+              points: 3,
+              when: { stat: 'passingYards', operator: '>=', value: 300 },
+            },
+          ],
         },
         rushing: {
-          yards: 0.1,
-          touchdowns: 6,
-          bonuses: [{ condition: 'yards >= 100', value: 3 }],
+          yards: { type: 'base', value: 0.1 },
+          touchdowns: { type: 'base', value: 6 },
+          bonuses: [
+            {
+              name: '100 Yard Game',
+              points: 3,
+              when: { stat: 'rushingYards', operator: '>=', value: 100 },
+            },
+          ],
         },
         receiving: {
           receptions: {
-            default: 1.0,
+            type: 'position-specific',
+            default: 0.5,
             byPosition: {
               TE: 1.5, // TE Premium
+              WR: 1.0,
               RB: 0.5,
             },
           },
-          yards: 0.1,
-          touchdowns: 6,
+          yards: { type: 'base', value: 0.1 },
+          touchdowns: { type: 'base', value: 6 },
+          bonuses: [
+            {
+              name: '100 Yard Game',
+              points: 3,
+              when: { stat: 'receivingYards', operator: '>=', value: 100 },
+            },
+          ],
         },
+        fumbles: {
+          lost: { type: 'base', value: -2 },
+        },
+        twoPointConversions: { type: 'base', value: 2 },
       },
     });
 

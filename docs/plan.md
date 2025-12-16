@@ -547,3 +547,8 @@ These will be prioritized based on user feedback:
 * get league `getById` is long with a lot of lookups. maybe sure all indexed
 * move to json router in app? is that better?
 * how is query stale time used? `staleTime: 5 * 1000, // 5 seconds`
+* tests? just to make sure we don't completely break things?
+* high tech feeling data viz
+  * even if not super complex
+  * trend lines, ranges for projections, historical scatter plot, etc
+* more generic stat views per player (eg. wr can have rushes, qb can have catches, etc)

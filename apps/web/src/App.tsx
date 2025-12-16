@@ -8,6 +8,7 @@ import { LeaguesPage } from '@/pages/leagues';
 import { LeagueDetailPage } from '@/pages/league-detail';
 import { TeamDetailPage } from '@/pages/team-detail';
 import { PlayersPage } from '@/pages/players';
+import { PlayerDetailPage } from '@/pages/player-detail';
 
 function App() {
   return (
@@ -56,6 +57,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <PlayersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/players/:playerId"
+            element={
+              <ProtectedRoute>
+                <PlayerDetailPage />
               </ProtectedRoute>
             }
           />

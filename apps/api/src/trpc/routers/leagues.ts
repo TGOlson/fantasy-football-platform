@@ -151,19 +151,23 @@ export const leaguesRouter = router({
 
       const defaultScoringRules: ScoringRulesJson = {
         passing: {
-          yards: { value: 0.04, per: 1 },
-          touchdowns: { value: 4 },
-          interceptions: -2,
+          yards: { type: 'base', value: 0.04 },
+          touchdowns: { type: 'base', value: 4 },
+          interceptions: { type: 'base', value: -2 },
         },
         rushing: {
-          yards: 0.1,
-          touchdowns: 6,
+          yards: { type: 'base', value: 0.1 },
+          touchdowns: { type: 'base', value: 6 },
         },
         receiving: {
-          receptions: { default: 1.0 },
-          yards: 0.1,
-          touchdowns: 6,
+          receptions: { type: 'base', value: 1.0 },
+          yards: { type: 'base', value: 0.1 },
+          touchdowns: { type: 'base', value: 6 },
         },
+        fumbles: {
+          lost: { type: 'base', value: -2 },
+        },
+        twoPointConversions: { type: 'base', value: 2 },
       };
 
       await db.insert(leagueSettings).values({

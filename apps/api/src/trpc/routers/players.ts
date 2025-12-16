@@ -5,28 +5,29 @@ import {
   getDatabase,
   players,
   playerSeasons,
+  playerWeeklyStats,
   eq,
   and,
   like,
+  desc,
 } from '@fantasy-platform/database';
 
 export const playersRouter = router({
-  // Get all players with filtering (for current season: 2024)
+  // Get all players with filtering
   list: publicProcedure
     .input(
       z.object({
+        season: z.number().int(),
         position: z.string().optional(),
         team: z.string().optional(),
         search: z.string().optional(),
-        season: z.number().int().optional(), // Defaults to 2024
       })
     )
     .query(async ({ input }) => {
       const db = getDatabase();
-      const currentSeason = input.season || 2024;
 
       // Build where conditions dynamically
-      const conditions = [eq(playerSeasons.season, currentSeason)];
+      const conditions = [eq(playerSeasons.season, input.season)];
 
       if (input.position) {
         conditions.push(eq(playerSeasons.position, input.position));
@@ -59,17 +60,16 @@ export const playersRouter = router({
       return allPlayers;
     }),
 
-  // Get single player by ID with current season data
+  // Get single player by ID with season data
   getById: publicProcedure
     .input(
       z.object({
         id: z.string(),
-        season: z.number().int().optional(), // Defaults to 2024
+        season: z.number().int(),
       })
     )
     .query(async ({ input }) => {
       const db = getDatabase();
-      const currentSeason = input.season || 2024;
 
       const [player] = await db
         .select({
@@ -84,7 +84,7 @@ export const playersRouter = router({
         .from(players)
         .innerJoin(playerSeasons, eq(players.id, playerSeasons.playerId))
         .where(
-          and(eq(players.id, input.id), eq(playerSeasons.season, currentSeason))
+          and(eq(players.id, input.id), eq(playerSeasons.season, input.season))
         )
         .limit(1);
 
@@ -96,5 +96,30 @@ export const playersRouter = router({
       }
 
       return player;
+    }),
+
+  // Get weekly stats for a player
+  getStats: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        season: z.number().int(),
+      })
+    )
+    .query(async ({ input }) => {
+      const db = getDatabase();
+
+      const stats = await db
+        .select()
+        .from(playerWeeklyStats)
+        .where(
+          and(
+            eq(playerWeeklyStats.playerId, input.id),
+            eq(playerWeeklyStats.season, input.season)
+          )
+        )
+        .orderBy(desc(playerWeeklyStats.weekNumber));
+
+      return stats;
     }),
 });

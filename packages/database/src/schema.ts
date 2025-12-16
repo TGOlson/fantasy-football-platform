@@ -87,29 +87,11 @@ export type RosterPositionsJson = {
   DEF?: number;
 };
 
-// Type for scoring rules JSON structure
-export type ScoringRulesJson = {
-  passing?: {
-    yards?: { value: number; per?: number };
-    touchdowns?: { value: number; bonuses?: Array<{ condition: string; value: number }> };
-    interceptions?: number;
-    completions?: number;
-  };
-  rushing?: {
-    yards?: number;
-    touchdowns?: number;
-    bonuses?: Array<{ condition: string; value: number }>;
-  };
-  receiving?: {
-    receptions?: {
-      default?: number;
-      byPosition?: Record<string, number>; // e.g., { TE: 1.5, RB: 0.5 }
-    };
-    yards?: number;
-    touchdowns?: number;
-  };
-  // Add more categories as needed
-};
+// Import scoring rules type from @fantasy-platform/types
+import type { ScoringRules } from '@fantasy-platform/types';
+
+// Re-export for backward compatibility
+export type ScoringRulesJson = ScoringRules;
 
 export const leagueSettings = pgTable('league_settings', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -240,9 +222,9 @@ export const playerSeasons = pgTable('player_seasons', {
     .notNull()
     .references(() => players.id, { onDelete: 'cascade' }),
   season: integer('season').notNull(),
-  nflTeam: text('nfl_team').notNull(), // NFL team abbreviation (e.g., KC, SF)
-  position: text('position').notNull(), // QB, RB, WR, TE, K, DEF
-  status: text('status').notNull().default('active'), // active, injured_reserve, retired, practice_squad
+  nflTeam: text('nfl_team').notNull(), // One of NFL_TEAMS
+  position: text('position').notNull(), // One of POSITIONS
+  status: text('status').notNull().default('active'), // One of PLAYER_STATUSES
   jerseyNumber: integer('jersey_number'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -313,7 +295,7 @@ export const rosterPlayers = pgTable('roster_players', {
   playerId: text('player_id')
     .notNull()
     .references(() => players.id, { onDelete: 'cascade' }),
-  slotType: text('slot_type').notNull(), // QB, RB, WR, TE, FLEX, BENCH, K, DEF
+  slotType: text('slot_type').notNull(), // One of ROSTER_SLOTS
   acquiredAt: timestamp('acquired_at').defaultNow().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
