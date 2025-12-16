@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
 import { CURRENT_SEASON } from '@fantasy-platform/types';
@@ -12,11 +13,17 @@ import {
   Center,
   Button,
   SimpleGrid,
+  Modal,
+  Alert,
+  Select,
 } from '@mantine/core';
 import { DataTable } from 'mantine-datatable';
+import { ScoreBreakdown } from '@/components/score-breakdown';
 
 export function PlayerDetailPage() {
   const { playerId } = useParams<{ playerId: string }>();
+  const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+  const [selectedLeagueSeasonId, setSelectedLeagueSeasonId] = useState<string | null>(null);
 
   const { data: player, isLoading: playerLoading } = trpc.players.getById.useQuery(
     { id: playerId!, season: CURRENT_SEASON },
@@ -26,6 +33,22 @@ export function PlayerDetailPage() {
   const { data: stats, isLoading: statsLoading } = trpc.players.getStats.useQuery(
     { id: playerId!, season: CURRENT_SEASON },
     { enabled: !!playerId }
+  );
+
+  // Get user's leagues to select scoring rules
+  const { data: leagues } = trpc.leagues.list.useQuery();
+
+  // Get score breakdown for selected week
+  const { data: scoreData, isLoading: scoreLoading } = trpc.scoring.calculatePlayerScore.useQuery(
+    {
+      playerId: playerId!,
+      season: CURRENT_SEASON,
+      weekNumber: selectedWeek!,
+      leagueSeasonId: selectedLeagueSeasonId!,
+    },
+    {
+      enabled: !!playerId && !!selectedWeek && !!selectedLeagueSeasonId,
+    }
   );
 
   const isLoading = playerLoading || statsLoading;
@@ -192,10 +215,38 @@ export function PlayerDetailPage() {
           </div>
         )}
 
+        {/* Fantasy Scoring */}
+        {leagues && leagues.length > 0 && (
+          <Alert color="blue" title="Fantasy Points">
+            <Text size="sm" mb="sm">
+              Select a league to see how this player would score with your league's settings.
+              Click on a week number below to see the detailed score breakdown.
+            </Text>
+            <Select
+              label="Select League"
+              placeholder="Choose a league"
+              data={
+                leagues.map((league) => ({
+                  value: league.currentSeason?.id || '',
+                  label: `${league.name} (${league.currentSeason?.season || 'N/A'})`,
+                })) || []
+              }
+              value={selectedLeagueSeasonId}
+              onChange={setSelectedLeagueSeasonId}
+              w={300}
+            />
+          </Alert>
+        )}
+
         {/* Weekly Stats */}
         <div>
           <Title order={3} size="h4" mb="md">
             Weekly Stats
+            {selectedLeagueSeasonId && (
+              <Text span c="dimmed" size="sm" fw={400} ml="xs">
+                (Click week to see fantasy points)
+              </Text>
+            )}
           </Title>
           {stats && stats.length > 0 ? (
             <DataTable
@@ -210,7 +261,20 @@ export function PlayerDetailPage() {
                   title: 'Week',
                   width: 80,
                   render: (record) => (
-                    <Badge variant="light" color="violet">
+                    <Badge
+                      variant="light"
+                      color="violet"
+                      style={
+                        selectedLeagueSeasonId
+                          ? { cursor: 'pointer' }
+                          : undefined
+                      }
+                      onClick={() => {
+                        if (selectedLeagueSeasonId) {
+                          setSelectedWeek(record.weekNumber);
+                        }
+                      }}
+                    >
                       {record.weekNumber}
                     </Badge>
                   ),
@@ -316,6 +380,42 @@ export function PlayerDetailPage() {
           )}
         </div>
       </Stack>
+
+      {/* Score Breakdown Modal */}
+      <Modal
+        opened={selectedWeek !== null}
+        onClose={() => setSelectedWeek(null)}
+        title={
+          <Group>
+            <Text fw={700}>
+              {player?.name} - Week {selectedWeek}
+            </Text>
+            {scoreData && (
+              <Badge size="lg" variant="filled" color="violet">
+                {scoreData.totalPoints.toFixed(2)} pts
+              </Badge>
+            )}
+          </Group>
+        }
+        size="md"
+      >
+        {scoreLoading ? (
+          <Center p="xl">
+            <Stack align="center" gap="sm">
+              <Text c="dimmed">Calculating fantasy points...</Text>
+            </Stack>
+          </Center>
+        ) : scoreData ? (
+          <ScoreBreakdown
+            breakdown={scoreData.breakdown}
+            totalPoints={scoreData.totalPoints}
+          />
+        ) : (
+          <Text c="dimmed" ta="center" p="xl">
+            No data available for this week
+          </Text>
+        )}
+      </Modal>
     </AppLayout>
   );
 }

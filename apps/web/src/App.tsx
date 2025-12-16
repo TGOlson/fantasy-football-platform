@@ -9,6 +9,7 @@ import { LeagueDetailPage } from '@/pages/league-detail';
 import { TeamDetailPage } from '@/pages/team-detail';
 import { PlayersPage } from '@/pages/players';
 import { PlayerDetailPage } from '@/pages/player-detail';
+import { LeagueScoringSettingsPage } from '@/pages/league-scoring-settings';
 
 function App() {
   return (
@@ -41,6 +42,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <LeagueDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leagues/:leagueId/scoring"
+            element={
+              <ProtectedRoute>
+                <LeagueScoringSettingsPage />
               </ProtectedRoute>
             }
           />

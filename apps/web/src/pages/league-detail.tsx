@@ -61,9 +61,19 @@ export function LeagueDetailPage() {
         <div>
           <Group justify="space-between" mb="xs">
             <Title order={1}>{league.name}</Title>
-            <Badge size="lg" variant="light" color="violet">
-              {league.activeSeason?.status || 'Setup'}
-            </Badge>
+            <Group>
+              <Button
+                component={Link}
+                to={`/leagues/${leagueId}/scoring`}
+                variant="light"
+                size="sm"
+              >
+                Scoring Settings
+              </Button>
+              <Badge size="lg" variant="light" color="violet">
+                {league.activeSeason?.status || 'Setup'}
+              </Badge>
+            </Group>
           </Group>
           <Text c="dimmed">
             {league.activeSeason?.season || 'N/A'} Season • Commissioner:{' '}

@@ -6,6 +6,7 @@ import { teamsRouter } from './routers/teams.js';
 import { playersRouter } from './routers/players.js';
 import { rostersRouter } from './routers/rosters.js';
 import { matchupsRouter } from './routers/matchups.js';
+import { scoringRouter } from './routers/scoring.js';
 
 // Root app router - combines all sub-routers
 export const appRouter = router({
@@ -16,6 +17,7 @@ export const appRouter = router({
   players: playersRouter,
   rosters: rostersRouter,
   matchups: matchupsRouter,
+  scoring: scoringRouter,
 });
 
 // Export type definition of API for frontend
