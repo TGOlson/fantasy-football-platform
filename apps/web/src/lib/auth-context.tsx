@@ -38,7 +38,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 
   // Derive user from query data
-  const user = userData ? (userData as User) : null;
+  const user = userData ?? null;
   const isLoading = token ? userLoading : false;
 
   const login = (newToken: string, _newUser: User) => {

@@ -6,52 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Custom fantasy football platform with advanced scoring customization. The goal is to combine modern UX (Linear-inspired) with deep customization (MyFantasyLeague-level flexibility) to serve engaged fantasy football enthusiasts willing to pay for better tools.
 
-**Status:** Early planning phase with no implementation yet. Package manager is pnpm 10.26.0.
-
 ## Tech Stack
 
-Based on `/docs/tech-stack-decisions.md`:
-
-### Frontend
-- **Vite + React + TypeScript** (not Next.js - no SSR needed for authenticated app)
-- **shadcn/ui** - UI components (copy-paste approach, you own the code)
-- **Radix UI** - Accessible primitives
-- **Tailwind CSS** - Styling with custom Linear-inspired palette
-- **Framer Motion** - Animations and micro-interactions
-- **TanStack Query** - Data fetching and caching
-- **TanStack Table** - Data tables for player lists, standings
-- **React Router** - Client-side routing
-- **React Hook Form + Zod** - Forms and validation
-
-### Backend
-- **Express + TypeScript** (separate from frontend)
-- **PostgreSQL** - Database with JSONB for flexible scoring rules
-- **Prisma** - ORM for type-safe database access
-- **REST API** - For MVP (potential tRPC migration later)
-- **WebSockets** - For live scoring updates
-
-### Deployment
-- **Railway or Render** - Hosting (Railway recommended for MVP)
-- Managed PostgreSQL database
-- Static site hosting for frontend
-
-## Core Architecture
-
-### Monorepo Structure (Planned)
-```
-fantasy-platform/
-├── apps/
-│   ├── web/           # Vite React frontend
-│   └── api/           # Express backend
-├── packages/
-│   ├── types/         # Shared TypeScript types
-│   ├── database/      # Prisma schema and migrations
-│   └── config/        # Shared config
-```
+See: `docs/tech-stack.md`
 
 ### Critical Components
 
-**Scoring Engine** (6-8 weeks, highest complexity):
+**Scoring Engine**:
 - Core competitive moat and main engineering effort
 - Must support position-specific PPR (TE: 1.5, RB: 0.5, WR: 1.0)
 - Yardage milestone bonuses (100 rush yds = +3 pts)
@@ -71,7 +32,7 @@ NFL Stats API (FTN Data/SportsDataIO)
   → Frontend (React components)
 ```
 
-**Caching Strategy** (from `/docs/score-calculation-architecture.md`):
+**Caching Strategy** (from `/docs/initial/score-calculation-architecture.md`):
 - **Cache raw NFL stats** - Critical for cost savings and performance
   - Live games: 30s TTL
   - Completed games: Forever (stats don't change)
@@ -81,7 +42,7 @@ NFL Stats API (FTN Data/SportsDataIO)
 
 ## Development Commands
 
-See: README.md
+See: `README.md`
 
 ## Design System & UX
 
@@ -92,13 +53,6 @@ See: README.md
 - Smooth animations and transitions (Framer Motion)
 - Dark mode support
 - Information density without overwhelming users
-
-### shadcn/ui Setup
-```bash
-# When initializing frontend
-npx shadcn-ui@latest init
-npx shadcn-ui@latest add button card dialog table command badge
-```
 
 ### Key UX Patterns
 - Data tables with sorting/filtering for player lists
@@ -136,7 +90,7 @@ npx shadcn-ui@latest add button card dialog table command badge
 ## Important Architectural Decisions
 
 1. **Vite over Next.js:** No SSR needed (95% authenticated), simpler mental model, faster dev, clean backend separation
-2. **REST over GraphQL/tRPC:** Start simple for MVP, migrate to tRPC later if type safety becomes important
+2. **tRPC:** Type safety and app hooks
 3. **Mobile PWA over Native Apps:** Saves 6-9 months development, good mobile web beats competitors
 4. **On-the-fly score calculation:** With stats caching, calculation is fast enough (9ms per matchup)
 
@@ -153,7 +107,9 @@ npx shadcn-ui@latest add button card dialog table command badge
 
 ## Developer notes
 
-* Claude should never try to run services (eg. pmpm dev) or typecheck commands to verify output
+* Claude should never try to run services (eg. pmpm dev) or run typecheck commands to verify output
   * Always delegate that work to the user
 * Always prefer types (`type Foo = ...`) over interfaces (`interface Foo ...`)
 * Keep TODOs in `TODO.md` files (either in project root or located in relevant sub-dir)
+* Files in `/docs/initial` can contain outdated data, don't read them unless directly instructed to
+  * Files in the root of `/docs` should be kept up to date and can be a good reference when needed
