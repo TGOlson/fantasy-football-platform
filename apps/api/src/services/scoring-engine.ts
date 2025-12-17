@@ -3,7 +3,6 @@ import type {
   ScoringValue,
   Bonus,
   Condition,
-  ConditionGroup,
   ScoreBreakdown,
   ScoreBreakdownItem,
   Position,

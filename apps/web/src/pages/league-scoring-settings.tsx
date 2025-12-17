@@ -2,7 +2,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
-import { CURRENT_SEASON } from '@fantasy-platform/types';
 import {
   Title,
   Text,
@@ -18,14 +17,15 @@ import { notifications } from '@mantine/notifications';
 import type { ScoringRules, BaseScoringValue } from '@fantasy-platform/types';
 
 export function LeagueScoringSettingsPage() {
-  const { leagueId } = useParams<{ leagueId: string }>();
+  const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
   const navigate = useNavigate();
   const [isDirty, setIsDirty] = useState(false);
+  const season = parseInt(year || new Date().getFullYear().toString());
 
-  // Get league to find the current season
-  const { data: league } = trpc.leagues.getById.useQuery(
-    { id: leagueId! },
-    { enabled: !!leagueId }
+  // Get league to find the season
+  const { data: league } = trpc.leagues.getBySlug.useQuery(
+    { slug: leagueSlug!, season },
+    { enabled: !!leagueSlug && !!year }
   );
 
   const leagueSeasonId = league?.activeSeason?.id;
@@ -246,7 +246,7 @@ export function LeagueScoringSettingsPage() {
         <Divider />
 
         <Group justify="space-between">
-          <Button variant="subtle" onClick={() => navigate(`/leagues/${leagueId}`)}>
+          <Button variant="subtle" onClick={() => navigate(`/${leagueSlug}/${year}`)}>
             Cancel
           </Button>
           <Button onClick={handleSave} loading={updateMutation.isPending} disabled={!isDirty}>

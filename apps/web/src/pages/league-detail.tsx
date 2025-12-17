@@ -15,18 +15,20 @@ import {
 } from '@mantine/core';
 
 export function LeagueDetailPage() {
-  const { leagueId } = useParams<{ leagueId: string }>();
-  const { data: league, isLoading } = trpc.leagues.getById.useQuery(
-    { id: leagueId! },
-    { enabled: !!leagueId }
+  const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
+  const season = parseInt(year || new Date().getFullYear().toString());
+
+  const { data: league, isLoading } = trpc.leagues.getBySlug.useQuery(
+    { slug: leagueSlug!, season },
+    { enabled: !!leagueSlug && !!year }
   );
 
   const { data: matchups } = trpc.matchups.getByLeagueWeek.useQuery(
     {
-      leagueId: leagueId!,
+      leagueId: league?.leagueId!,
       weekNumber: 1,
     },
-    { enabled: !!leagueId }
+    { enabled: !!league?.leagueId }
   );
 
   if (isLoading) {
@@ -45,8 +47,8 @@ export function LeagueDetailPage() {
         <Center py={60}>
           <Stack align="center">
             <Title order={3}>League not found</Title>
-            <Button component={Link} to="/leagues">
-              Back to Leagues
+            <Button component={Link} to="/">
+              Back to Home
             </Button>
           </Stack>
         </Center>
@@ -64,7 +66,7 @@ export function LeagueDetailPage() {
             <Group>
               <Button
                 component={Link}
-                to={`/leagues/${leagueId}/scoring`}
+                to={`/${leagueSlug}/${year}/settings`}
                 variant="light"
                 size="sm"
               >
@@ -76,8 +78,7 @@ export function LeagueDetailPage() {
             </Group>
           </Group>
           <Text c="dimmed">
-            {league.activeSeason?.season || 'N/A'} Season • Commissioner:{' '}
-            {league.commissioner?.name}
+            {season} Season • Commissioner: {league.commissioner?.name}
           </Text>
         </div>
 
@@ -128,7 +129,7 @@ export function LeagueDetailPage() {
                   <Paper
                     key={team.id}
                     component={Link}
-                    to={`/teams/${team.id}`}
+                    to={`/${leagueSlug}/${year}/teams/${team.id}`}
                     withBorder
                     p="md"
                     radius="md"

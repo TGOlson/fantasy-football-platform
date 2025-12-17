@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, jsonb, boolean, decimal } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, timestamp, jsonb, boolean, decimal, unique } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // =============================================================================
@@ -10,6 +10,7 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   name: text('name').notNull(),
+  isSiteAdmin: boolean('is_site_admin').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -24,6 +25,7 @@ export type NewUser = typeof users.$inferInsert;
 export const leagues = pgTable('leagues', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
   commissionerId: text('commissioner_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
@@ -134,7 +136,10 @@ export const teams = pgTable('teams', {
   name: text('name').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  // One user can only own one team per league
+  uniqueOwnerPerLeague: unique().on(table.leagueId, table.ownerId),
+}));
 
 export const teamsRelations = relations(teams, ({ one, many }) => ({
   league: one(leagues, {

@@ -25,6 +25,9 @@ export function getDatabase() {
 // Export all schema and types
 export * from './schema.js';
 
+// Export utility functions
+export { slugify, generateUniqueSlug } from './lib/slug.js';
+
 // Re-export constants from types package
 export {
   NFL_TEAMS,

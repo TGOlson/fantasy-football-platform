@@ -17,7 +17,10 @@ import {
   rosterPlayers,
   matchups,
   eq,
+  and,
+  generateUniqueSlug,
 } from './index.js';
+import type { ScoringRules } from '@fantasy-platform/types';
 
 // Load environment variables
 dotenv.config({ path: '../../.env' });
@@ -114,10 +117,14 @@ async function seed() {
     // LEAGUE & SEASON
     // =========================================================================
     console.log('\n🏈 Creating league...');
+    const leagueName = 'The Championship League';
+    const leagueSlug = await generateUniqueSlug(leagueName);
+
     const [league] = await db
       .insert(leagues)
       .values({
-        name: 'The Championship League',
+        name: leagueName,
+        slug: leagueSlug,
         commissionerId: user1.id,
       })
       .returning();
@@ -139,6 +146,58 @@ async function seed() {
     // LEAGUE SETTINGS
     // =========================================================================
     console.log('\n⚙️  Creating league settings...');
+
+    // Define scoring rules with explicit typing to ensure type safety
+    const scoringRules: ScoringRules = {
+      passing: {
+        yards: { type: 'base', value: 0.04 },
+        touchdowns: { type: 'base', value: 4 },
+        interceptions: { type: 'base', value: -2 },
+        bonuses: [
+          {
+            name: '300 Yard Game',
+            points: 3,
+            when: { stat: 'passingYards', operator: '>=', value: 300 },
+          },
+        ],
+      },
+      rushing: {
+        yards: { type: 'base', value: 0.1 },
+        touchdowns: { type: 'base', value: 6 },
+        bonuses: [
+          {
+            name: '100 Yard Game',
+            points: 3,
+            when: { stat: 'rushingYards', operator: '>=', value: 100 },
+          },
+        ],
+      },
+      receiving: {
+        receptions: {
+          type: 'position-specific',
+          default: 0.5,
+          byPosition: {
+            TE: 1.5, // TE Premium
+            WR: 1.0,
+            RB: 0.5,
+          },
+        },
+        yards: { type: 'base', value: 0.1 },
+        touchdowns: { type: 'base', value: 6 },
+        bonuses: [
+          {
+            name: '100 Yard Game',
+            points: 3,
+            when: { stat: 'receivingYards', operator: '>=', value: 100 },
+          },
+        ],
+      },
+      fumbles: {
+        lost: { type: 'base', value: -2 },
+      },
+      twoPointConversions: { type: 'base', value: 2 },
+    };
+
     await db.insert(leagueSettings).values({
       leagueSeasonId: season2024.id,
       teamCount: 8,
@@ -153,55 +212,7 @@ async function seed() {
       playoffTeams: 4,
       playoffStartWeek: 15,
       tradeDeadlineWeek: 11,
-      scoringRules: {
-        passing: {
-          yards: { type: 'base', value: 0.04 },
-          touchdowns: { type: 'base', value: 4 },
-          interceptions: { type: 'base', value: -2 },
-          bonuses: [
-            {
-              name: '300 Yard Game',
-              points: 3,
-              when: { stat: 'passingYards', operator: '>=', value: 300 },
-            },
-          ],
-        },
-        rushing: {
-          yards: { type: 'base', value: 0.1 },
-          touchdowns: { type: 'base', value: 6 },
-          bonuses: [
-            {
-              name: '100 Yard Game',
-              points: 3,
-              when: { stat: 'rushingYards', operator: '>=', value: 100 },
-            },
-          ],
-        },
-        receiving: {
-          receptions: {
-            type: 'position-specific',
-            default: 0.5,
-            byPosition: {
-              TE: 1.5, // TE Premium
-              WR: 1.0,
-              RB: 0.5,
-            },
-          },
-          yards: { type: 'base', value: 0.1 },
-          touchdowns: { type: 'base', value: 6 },
-          bonuses: [
-            {
-              name: '100 Yard Game',
-              points: 3,
-              when: { stat: 'receivingYards', operator: '>=', value: 100 },
-            },
-          ],
-        },
-        fumbles: {
-          lost: { type: 'base', value: -2 },
-        },
-        twoPointConversions: { type: 'base', value: 2 },
-      },
+      scoringRules,
     });
 
     console.log('✓ Created league settings (TE Premium scoring)');

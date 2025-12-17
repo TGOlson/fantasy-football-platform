@@ -1,13 +1,14 @@
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
-import { Title, Text, SimpleGrid, Paper } from '@mantine/core';
+import { Title, Text, SimpleGrid, Paper, Stack, Anchor } from '@mantine/core';
+import { Link } from 'react-router-dom';
 
 export function DashboardPage() {
   const { data: leagues, isLoading } = trpc.leagues.list.useQuery();
 
   return (
     <AppLayout>
-      <Title order={1} mb="xs">Dashboard</Title>
+      <Title order={1} mb="xs">Your Leagues</Title>
       <Text c="dimmed" mb="xl">
         Welcome to your fantasy football platform
       </Text>
@@ -26,7 +27,7 @@ export function DashboardPage() {
           <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
             Active Teams
           </Text>
-          <Text size="xl" fw={700}>0</Text>
+          <Text size="xl" fw={700}>{leagues?.length || 0}</Text>
         </Paper>
 
         <Paper withBorder p="md" radius="md">
@@ -37,12 +38,40 @@ export function DashboardPage() {
         </Paper>
       </SimpleGrid>
 
-      <Title order={2} size="h3" mb="md">Recent Activity</Title>
-      <Paper withBorder p="xl" radius="md">
-        <Text c="dimmed" ta="center">
-          No recent activity
-        </Text>
-      </Paper>
+      <Title order={2} size="h3" mb="md">My Leagues</Title>
+      {isLoading ? (
+        <Paper withBorder p="xl" radius="md">
+          <Text c="dimmed" ta="center">
+            Loading leagues...
+          </Text>
+        </Paper>
+      ) : leagues && leagues.length > 0 ? (
+        <Stack gap="md">
+          {leagues.map((league) => (
+            <Paper key={league.id} withBorder p="md" radius="md">
+              <Anchor
+                component={Link}
+                to={`/${league.slug}/${league.currentSeason?.season || new Date().getFullYear()}`}
+                size="lg"
+                fw={600}
+              >
+                {league.name}
+              </Anchor>
+              <Text size="sm" c="dimmed" mt="xs">
+                {league.currentSeason?.season || 'No active season'}
+                {' • '}
+                {league.currentSeason?.status || 'setup'}
+              </Text>
+            </Paper>
+          ))}
+        </Stack>
+      ) : (
+        <Paper withBorder p="xl" radius="md">
+          <Text c="dimmed" ta="center">
+            You're not in any leagues yet. Create or join a league to get started!
+          </Text>
+        </Paper>
+      )}
     </AppLayout>
   );
 }

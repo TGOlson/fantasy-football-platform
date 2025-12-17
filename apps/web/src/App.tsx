@@ -4,7 +4,6 @@ import { ProtectedRoute } from '@/components/protected-route';
 import { LoginPage } from '@/pages/login';
 import { RegisterPage } from '@/pages/register';
 import { DashboardPage } from '@/pages/dashboard';
-import { LeaguesPage } from '@/pages/leagues';
 import { LeagueDetailPage } from '@/pages/league-detail';
 import { TeamDetailPage } from '@/pages/team-detail';
 import { PlayersPage } from '@/pages/players';
@@ -16,11 +15,11 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Auth routes */}
+          {/* Auth routes (public) */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
-          {/* Protected app routes */}
+          {/* User home - list of leagues, settings */}
           <Route
             path="/"
             element={
@@ -29,48 +28,51 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* League routes - all require league membership */}
+          {/* League home for a specific year */}
           <Route
-            path="/leagues"
-            element={
-              <ProtectedRoute>
-                <LeaguesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/leagues/:leagueId"
+            path="/:leagueSlug/:year"
             element={
               <ProtectedRoute>
                 <LeagueDetailPage />
               </ProtectedRoute>
             }
           />
+
+          {/* League settings (view for members, edit for admin) */}
           <Route
-            path="/leagues/:leagueId/scoring"
+            path="/:leagueSlug/:year/settings"
             element={
               <ProtectedRoute>
                 <LeagueScoringSettingsPage />
               </ProtectedRoute>
             }
           />
+
+          {/* Team roster (view for anyone, edit for owner) */}
           <Route
-            path="/teams/:teamId"
+            path="/:leagueSlug/:year/teams/:teamId"
             element={
               <ProtectedRoute>
                 <TeamDetailPage />
               </ProtectedRoute>
             }
           />
+
+          {/* League player list/search */}
           <Route
-            path="/players"
+            path="/:leagueSlug/:year/players"
             element={
               <ProtectedRoute>
                 <PlayersPage />
               </ProtectedRoute>
             }
           />
+
+          {/* Player detail within league context */}
           <Route
-            path="/players/:playerId"
+            path="/:leagueSlug/:year/players/:playerId"
             element={
               <ProtectedRoute>
                 <PlayerDetailPage />

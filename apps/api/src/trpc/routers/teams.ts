@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc.js';
+import { requireLeagueMembership, requireTeamOwnership } from '../../lib/auth.js';
 import {
   getDatabase,
   teams,
@@ -17,22 +18,25 @@ import {
 } from '@fantasy-platform/database';
 
 export const teamsRouter = router({
-  // Get team by ID with roster for current season
-  getById: publicProcedure
+  // Get team by ID with roster for current season (requires league membership)
+  getById: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        teamId: z.string(),
         season: z.number().int().optional(), // Defaults to most recent season
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const db = getDatabase();
+
+      // Verify league membership
+      await requireLeagueMembership(ctx.user.userId, { teamId: input.teamId });
 
       // Get the team
       const [team] = await db
         .select()
         .from(teams)
-        .where(eq(teams.id, input.id))
+        .where(eq(teams.id, input.teamId))
         .limit(1);
 
       if (!team) {
@@ -158,27 +162,8 @@ export const teamsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const db = getDatabase();
 
-      // Check if team exists
-      const [existingTeam] = await db
-        .select()
-        .from(teams)
-        .where(eq(teams.id, input.id))
-        .limit(1);
-
-      if (!existingTeam) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Team not found',
-        });
-      }
-
-      // Verify the user owns this team
-      if (existingTeam.ownerId !== ctx.user.userId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to update this team',
-        });
-      }
+      // Verify team ownership
+      await requireTeamOwnership(ctx.user.userId, input.id);
 
       // Update the team
       const [updatedTeam] = await db

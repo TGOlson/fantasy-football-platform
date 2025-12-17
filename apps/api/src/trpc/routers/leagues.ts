@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, publicProcedure, protectedProcedure } from '../trpc.js';
+import { router, protectedProcedure } from '../trpc.js';
+import { requireLeagueMembership, requireLeagueAdmin } from '../../lib/auth.js';
 import {
   getDatabase,
   leagues,
@@ -10,20 +11,39 @@ import {
   users,
   eq,
   desc,
+  and,
+  inArray,
+  generateUniqueSlug,
   type ScoringRulesJson,
   type RosterPositionsJson,
 } from '@fantasy-platform/database';
 
 export const leaguesRouter = router({
-  // Get all leagues (with their most recent season)
-  list: publicProcedure.query(async () => {
+  // Get all leagues for the current user (leagues where they own a team)
+  list: protectedProcedure.query(async ({ ctx }) => {
     const db = getDatabase();
 
-    const allLeagues = await db.select().from(leagues);
+    // Get all teams owned by this user
+    const userTeams = await db
+      .select({ leagueId: teams.leagueId })
+      .from(teams)
+      .where(eq(teams.ownerId, ctx.user.userId));
+
+    const leagueIds = userTeams.map((t) => t.leagueId);
+
+    if (leagueIds.length === 0) {
+      return [];
+    }
+
+    // Get leagues
+    const userLeagues = await db
+      .select()
+      .from(leagues)
+      .where(inArray(leagues.id, leagueIds));
 
     // For each league, get the most recent season
     const leaguesWithSeasons = await Promise.all(
-      allLeagues.map(async (league) => {
+      userLeagues.map(async (league) => {
         const [recentSeason] = await db
           .select()
           .from(leagueSeasons)
@@ -41,17 +61,103 @@ export const leaguesRouter = router({
     return leaguesWithSeasons;
   }),
 
-  // Get league by ID with teams and settings for active season
-  getById: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ input }) => {
+  // Get league by slug with teams and settings for a specific season
+  getBySlug: protectedProcedure
+    .input(
+      z.object({
+        slug: z.string(),
+        season: z.number().int(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
       const db = getDatabase();
+
+      // Get the league by slug
+      const [league] = await db
+        .select()
+        .from(leagues)
+        .where(eq(leagues.slug, input.slug))
+        .limit(1);
+
+      if (!league) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'League not found',
+        });
+      }
+
+      const leagueId = league.id;
+
+      // Verify league membership
+      await requireLeagueMembership(ctx.user.userId, { leagueId });
+
+      // Get commissioner info
+      const [commissioner] = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        })
+        .from(users)
+        .where(eq(users.id, league.commissionerId))
+        .limit(1);
+
+      // Get the specific season
+      const [season] = await db
+        .select()
+        .from(leagueSeasons)
+        .where(
+          and(
+            eq(leagueSeasons.leagueId, leagueId),
+            eq(leagueSeasons.season, input.season)
+          )
+        )
+        .limit(1);
+
+      if (!season) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `Season ${input.season} not found for this league`,
+        });
+      }
+
+      // Get settings for this season
+      const [settings] = await db
+        .select()
+        .from(leagueSettings)
+        .where(eq(leagueSettings.leagueSeasonId, season.id))
+        .limit(1);
+
+      // Get teams for this league
+      const leagueTeams = await db
+        .select()
+        .from(teams)
+        .where(eq(teams.leagueId, leagueId));
+
+      return {
+        ...league,
+        leagueId, // Include for auth purposes
+        commissioner: commissioner || null,
+        activeSeason: season,
+        settings: settings || null,
+        teams: leagueTeams,
+      };
+    }),
+
+  // Get league by ID with teams and settings for active season
+  getById: protectedProcedure
+    .input(z.object({ leagueId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const db = getDatabase();
+
+      // Verify league membership
+      await requireLeagueMembership(ctx.user.userId, { leagueId: input.leagueId });
 
       // Get the league
       const [league] = await db
         .select()
         .from(leagues)
-        .where(eq(leagues.id, input.id))
+        .where(eq(leagues.id, input.leagueId))
         .limit(1);
 
       if (!league) {
@@ -76,7 +182,7 @@ export const leaguesRouter = router({
       const [activeSeason] = await db
         .select()
         .from(leagueSeasons)
-        .where(eq(leagueSeasons.leagueId, input.id))
+        .where(eq(leagueSeasons.leagueId, input.leagueId))
         .orderBy(desc(leagueSeasons.season))
         .limit(1);
 
@@ -95,7 +201,7 @@ export const leaguesRouter = router({
       const leagueTeams = await db
         .select()
         .from(teams)
-        .where(eq(teams.leagueId, input.id));
+        .where(eq(teams.leagueId, input.leagueId));
 
       return {
         ...league,
@@ -120,11 +226,15 @@ export const leaguesRouter = router({
     .mutation(async ({ input, ctx }) => {
       const db = getDatabase();
 
+      // Generate unique slug for the league
+      const slug = await generateUniqueSlug(input.name);
+
       // Create the league (commissioner is current user)
       const [newLeague] = await db
         .insert(leagues)
         .values({
           name: input.name,
+          slug,
           commissionerId: ctx.user.userId,
         })
         .returning();
@@ -187,22 +297,25 @@ export const leaguesRouter = router({
       };
     }),
 
-  // Update league settings (protected)
+  // Update league settings (admin only)
   update: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        leagueId: z.string(),
         name: z.string().min(1, 'League name is required').optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       const db = getDatabase();
 
+      // Verify league admin
+      await requireLeagueAdmin(ctx.user.userId, { leagueId: input.leagueId });
+
       // Check if league exists
       const [existingLeague] = await db
         .select()
         .from(leagues)
-        .where(eq(leagues.id, input.id))
+        .where(eq(leagues.id, input.leagueId))
         .limit(1);
 
       if (!existingLeague) {
@@ -212,33 +325,28 @@ export const leaguesRouter = router({
         });
       }
 
-      // Verify the user is commissioner
-      if (existingLeague.commissionerId !== ctx.user.userId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Only the commissioner can update league settings',
-        });
-      }
-
       // Build update object with only provided fields
-      const updateData: { name?: string; updatedAt: Date } = {
+      const updateData: { name?: string; slug?: string; updatedAt: Date } = {
         updatedAt: new Date(),
       };
 
       if (input.name !== undefined) {
         updateData.name = input.name;
+        // Regenerate slug if name changes
+        updateData.slug = await generateUniqueSlug(input.name);
       }
 
       // Update the league
       const [updatedLeague] = await db
         .update(leagues)
         .set(updateData)
-        .where(eq(leagues.id, input.id))
+        .where(eq(leagues.id, input.leagueId))
         .returning();
 
       return {
         id: updatedLeague.id,
         name: updatedLeague.name,
+        slug: updatedLeague.slug,
         commissionerId: updatedLeague.commissionerId,
         createdAt: updatedLeague.createdAt,
         updatedAt: updatedLeague.updatedAt,

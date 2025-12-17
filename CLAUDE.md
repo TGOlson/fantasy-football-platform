@@ -46,5 +46,6 @@ Important: always read `docs/tech-stack.md` to understand the core components of
   - Always delegate that work to the user, ask the user to run these commands whenever needed
 - Always prefer types (`type Foo = ...`) over interfaces (`interface Foo ...`)
 - Keep TODOs in `TODO.md` files (either in project root or located in relevant sub-dir)
-- Top level files in [docs/](./docs/) can be useful references
+- Top level files in [docs/](./docs/) can be useful references, when needed
   - However, files in `/docs/initial` can contain outdated data, don't read them unless directly instructed to
+- Prefer to not add optional types or default values unless required. We should default to using strict, simple types first, then expand later

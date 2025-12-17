@@ -1,19 +1,22 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
-import { POSITIONS, NFL_TEAMS, CURRENT_SEASON } from '@fantasy-platform/types';
+import { POSITIONS, NFL_TEAMS } from '@fantasy-platform/types';
 import { Title, Text, TextInput, Select, Group, Badge } from '@mantine/core';
 import { DataTable } from 'mantine-datatable';
 
 export function PlayersPage() {
   const navigate = useNavigate();
+  const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
+  const season = parseInt(year || new Date().getFullYear().toString());
+
   const [search, setSearch] = useState('');
   const [position, setPosition] = useState<string | null>(null);
   const [team, setTeam] = useState<string | null>(null);
 
   const { data: players, isLoading } = trpc.players.list.useQuery({
-    season: CURRENT_SEASON,
+    season,
     search: search || undefined,
     position: position || undefined,
     team: team || undefined,
@@ -58,7 +61,7 @@ export function PlayersPage() {
         highlightOnHover
         records={players || []}
         fetching={isLoading}
-        onRowClick={({ record }) => navigate(`/players/${record.id}`)}
+        onRowClick={({ record }) => navigate(`/${leagueSlug}/${year}/players/${record.id}`)}
         style={{ cursor: 'pointer' }}
         columns={[
           {

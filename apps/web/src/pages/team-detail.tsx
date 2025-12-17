@@ -15,9 +15,15 @@ import {
 import { DataTable } from 'mantine-datatable';
 
 export function TeamDetailPage() {
-  const { teamId } = useParams<{ teamId: string }>();
+  const { leagueSlug, year, teamId } = useParams<{
+    leagueSlug: string;
+    year: string;
+    teamId: string;
+  }>();
+  const season = parseInt(year || new Date().getFullYear().toString());
+
   const { data: team, isLoading } = trpc.teams.getById.useQuery(
-    { id: teamId! },
+    { teamId: teamId!, season },
     { enabled: !!teamId }
   );
 
@@ -37,8 +43,8 @@ export function TeamDetailPage() {
         <Center py={60}>
           <Stack align="center">
             <Title order={3}>Team not found</Title>
-            <Button component={Link} to="/leagues">
-              Back to Leagues
+            <Button component={Link} to={leagueSlug && year ? `/${leagueSlug}/${year}` : '/'}>
+              Back to League
             </Button>
           </Stack>
         </Center>

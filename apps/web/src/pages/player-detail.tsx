@@ -2,7 +2,6 @@ import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
-import { CURRENT_SEASON } from '@fantasy-platform/types';
 import {
   Title,
   Text,
@@ -21,17 +20,23 @@ import { DataTable } from 'mantine-datatable';
 import { ScoreBreakdown } from '@/components/score-breakdown';
 
 export function PlayerDetailPage() {
-  const { playerId } = useParams<{ playerId: string }>();
+  const { leagueSlug, year, playerId } = useParams<{
+    leagueSlug: string;
+    year: string;
+    playerId: string;
+  }>();
+  const season = parseInt(year || new Date().getFullYear().toString());
+
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   const [selectedLeagueSeasonId, setSelectedLeagueSeasonId] = useState<string | null>(null);
 
   const { data: player, isLoading: playerLoading } = trpc.players.getById.useQuery(
-    { id: playerId!, season: CURRENT_SEASON },
+    { id: playerId!, season },
     { enabled: !!playerId }
   );
 
   const { data: stats, isLoading: statsLoading } = trpc.players.getStats.useQuery(
-    { id: playerId!, season: CURRENT_SEASON },
+    { id: playerId!, season },
     { enabled: !!playerId }
   );
 
@@ -42,7 +47,7 @@ export function PlayerDetailPage() {
   const { data: scoreData, isLoading: scoreLoading } = trpc.scoring.calculatePlayerScore.useQuery(
     {
       playerId: playerId!,
-      season: CURRENT_SEASON,
+      season,
       weekNumber: selectedWeek!,
       leagueSeasonId: selectedLeagueSeasonId!,
     },
@@ -69,7 +74,7 @@ export function PlayerDetailPage() {
         <Center py={60}>
           <Stack align="center">
             <Title order={3}>Player not found</Title>
-            <Button component={Link} to="/players">
+            <Button component={Link} to={leagueSlug && year ? `/${leagueSlug}/${year}/players` : '/'}>
               Back to Players
             </Button>
           </Stack>
@@ -79,7 +84,7 @@ export function PlayerDetailPage() {
   }
 
   // Calculate season totals
-  const totals = stats?.reduce(
+  const totals = (stats ?? []).reduce(
     (acc, week) => ({
       passingYards: acc.passingYards + (week.passingYards || 0),
       passingTds: acc.passingTds + (week.passingTds || 0),
@@ -132,7 +137,7 @@ export function PlayerDetailPage() {
         {stats && stats.length > 0 && (
           <div>
             <Title order={3} size="h4" mb="md">
-              {CURRENT_SEASON} Season Totals
+              {season} Season Totals
             </Title>
             <SimpleGrid cols={{ base: 2, sm: 4, md: 6 }}>
               {totals.passingYards > 0 && (

@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, publicProcedure } from '../trpc.js';
+import { router, protectedProcedure } from '../trpc.js';
+import { requireLeagueMembership, requireLeagueAdmin } from '../../lib/auth.js';
 import {
   getDatabase,
-  players,
   playerSeasons,
   playerWeeklyStats,
   leagueSettings,
@@ -16,7 +16,7 @@ import type { Position } from '@fantasy-platform/types';
 
 export const scoringRouter = router({
   // Calculate score for a single player in a specific week
-  calculatePlayerScore: publicProcedure
+  calculatePlayerScore: protectedProcedure
     .input(
       z.object({
         playerId: z.string(),
@@ -25,8 +25,13 @@ export const scoringRouter = router({
         leagueSeasonId: z.string(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const db = getDatabase();
+
+      // Verify league membership
+      await requireLeagueMembership(ctx.user.userId, {
+        leagueSeasonId: input.leagueSeasonId,
+      });
 
       // Get player position
       const [playerSeason] = await db
@@ -103,14 +108,19 @@ export const scoringRouter = router({
     }),
 
   // Get scoring rules for a league season
-  getScoringRules: publicProcedure
+  getScoringRules: protectedProcedure
     .input(
       z.object({
         leagueSeasonId: z.string(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const db = getDatabase();
+
+      // Verify league membership
+      await requireLeagueMembership(ctx.user.userId, {
+        leagueSeasonId: input.leagueSeasonId,
+      });
 
       const [settings] = await db
         .select({
@@ -130,16 +140,21 @@ export const scoringRouter = router({
       return settings.scoringRules;
     }),
 
-  // Update scoring rules for a league season
-  updateScoringRules: publicProcedure
+  // Update scoring rules for a league season (admin only)
+  updateScoringRules: protectedProcedure
     .input(
       z.object({
         leagueSeasonId: z.string(),
         scoringRules: z.any(), // We'll use any here since ScoringRules is complex
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = getDatabase();
+
+      // Verify league admin
+      await requireLeagueAdmin(ctx.user.userId, {
+        leagueSeasonId: input.leagueSeasonId,
+      });
 
       // Verify league season exists
       const [season] = await db
