@@ -42,7 +42,6 @@ export function calculateScore(
   let totalPoints = 0;
 
   // PASSING
-  if (rules.passing) {
     const passingPoints = calculateCategoryScore(
       stats,
       position,
@@ -57,10 +56,8 @@ export function calculateScore(
       breakdown
     );
     totalPoints += passingPoints;
-  }
 
   // RUSHING
-  if (rules.rushing) {
     const rushingPoints = calculateCategoryScore(
       stats,
       position,
@@ -74,10 +71,8 @@ export function calculateScore(
       breakdown
     );
     totalPoints += rushingPoints;
-  }
 
   // RECEIVING
-  if (rules.receiving) {
     const receivingPoints = calculateCategoryScore(
       stats,
       position,
@@ -92,39 +87,34 @@ export function calculateScore(
       breakdown
     );
     totalPoints += receivingPoints;
-  }
 
   // FUMBLES
-  if (rules.fumbles?.lost) {
     const fumblesLost = stats.fumblesLost || 0;
-    const points = fumblesLost * getScoringValue(rules.fumbles.lost, position);
+    const fumblePoints = fumblesLost * getScoringValue(rules.fumbles.lost, position);
 
     if (fumblesLost !== 0) {
       breakdown.push({
         category: 'Fumbles Lost',
         statValue: fumblesLost,
-        pointValue: roundToTwo(points),
+        pointValue: roundToTwo(fumblePoints),
       });
     }
 
-    totalPoints += points;
-  }
+    totalPoints += fumblePoints;
 
   // TWO-POINT CONVERSIONS
-  if (rules.twoPointConversions) {
     const twoPointers = stats.twoPointConversions || 0;
-    const points =
+    const conversionPoints =
       twoPointers * getScoringValue(rules.twoPointConversions, position);
 
     if (twoPointers !== 0) {
       breakdown.push({
         category: '2-Point Conversions',
         statValue: twoPointers,
-        pointValue: roundToTwo(points),
+        pointValue: roundToTwo(conversionPoints),
       });
-    }
 
-    totalPoints += points;
+    totalPoints += conversionPoints;
   }
 
   return {
@@ -203,15 +193,9 @@ function getScoringValue(scoringValue: ScoringValue, position: Position): number
 }
 
 function evaluateBonus(stats: PlayerWeeklyStat, bonus: Bonus): boolean {
-  if ('conditions' in bonus.when) {
-    // ConditionGroup (AND logic)
-    return bonus.when.conditions.every((condition: Condition) =>
-      evaluateCondition(stats, condition)
-    );
-  } else {
-    // Single Condition
-    return evaluateCondition(stats, bonus.when);
-  }
+  return bonus.when.every((condition: Condition) =>
+    evaluateCondition(stats, condition)
+  );
 }
 
 function evaluateCondition(stats: PlayerWeeklyStat, condition: Condition): boolean {
@@ -271,12 +255,6 @@ function formatStatLabel(
 }
 
 function formatBonusName(bonus: Bonus): string {
-  if ('conditions' in bonus.when) {
-    // Multiple conditions - just use generic name
-    return 'Bonus';
-  }
-
-  const condition = bonus.when as Condition;
   const statLabels: Record<string, string> = {
     passingYards: 'Pass Yards',
     passingTds: 'Pass TDs',
@@ -287,8 +265,8 @@ function formatBonusName(bonus: Bonus): string {
     receptions: 'Receptions',
   };
 
-  const statLabel = statLabels[condition.stat] || condition.stat;
-  return `${condition.value}+ ${statLabel} Bonus`;
+  const labels = bonus.when.map((c) => `${statLabels[c.stat] || c.stat} ${c.operator} ${c.value}`).join(", ")
+  return `${labels} Bonus`;
 }
 
 function roundToTwo(num: number): number {

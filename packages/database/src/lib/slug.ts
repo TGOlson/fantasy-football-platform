@@ -1,4 +1,4 @@
-import { getDatabase, leagues, eq } from '../index.js';
+import { getDatabase, leagues, eq } from '../index';
 
 /**
  * Convert a string to a URL-friendly slug

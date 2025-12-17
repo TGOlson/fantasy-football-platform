@@ -1,4 +1,4 @@
-import { router, publicProcedure } from '../trpc.js';
+import { router, publicProcedure } from '../trpc';
 
 // Simple health check router to test tRPC
 export const healthRouter = router({

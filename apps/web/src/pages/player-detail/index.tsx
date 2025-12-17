@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useLoaderData, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
@@ -10,7 +10,6 @@ import {
   Stack,
   Badge,
   Center,
-  Button,
   SimpleGrid,
   Modal,
   Alert,
@@ -18,9 +17,11 @@ import {
 } from '@mantine/core';
 import { DataTable } from 'mantine-datatable';
 import { ScoreBreakdown } from '@/components/score-breakdown';
+import { loader } from './loader';
 
 export function PlayerDetailPage() {
-  const { leagueSlug, year, playerId } = useParams<{
+  const { player } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+  const { year, playerId } = useParams<{
     leagueSlug: string;
     year: string;
     playerId: string;
@@ -30,14 +31,8 @@ export function PlayerDetailPage() {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   const [selectedLeagueSeasonId, setSelectedLeagueSeasonId] = useState<string | null>(null);
 
-  const { data: player, isLoading: playerLoading } = trpc.players.getById.useQuery(
-    { id: playerId!, season },
-    { enabled: !!playerId }
-  );
-
-  const { data: stats, isLoading: statsLoading } = trpc.players.getStats.useQuery(
-    { id: playerId!, season },
-    { enabled: !!playerId }
+  const { data: stats } = trpc.players.getStats.useQuery(
+    { id: playerId!, season }
   );
 
   // Get user's leagues to select scoring rules
@@ -55,33 +50,6 @@ export function PlayerDetailPage() {
       enabled: !!playerId && !!selectedWeek && !!selectedLeagueSeasonId,
     }
   );
-
-  const isLoading = playerLoading || statsLoading;
-
-  if (isLoading) {
-    return (
-      <AppLayout>
-        <Center py={60}>
-          <Text c="dimmed">Loading player...</Text>
-        </Center>
-      </AppLayout>
-    );
-  }
-
-  if (!player) {
-    return (
-      <AppLayout>
-        <Center py={60}>
-          <Stack align="center">
-            <Title order={3}>Player not found</Title>
-            <Button component={Link} to={leagueSlug && year ? `/${leagueSlug}/${year}/players` : '/'}>
-              Back to Players
-            </Button>
-          </Stack>
-        </Center>
-      </AppLayout>
-    );
-  }
 
   // Calculate season totals
   const totals = (stats ?? []).reduce(

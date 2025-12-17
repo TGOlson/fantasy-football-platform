@@ -1,12 +1,12 @@
-import { router } from './trpc.js';
-import { healthRouter } from './routers/health.js';
-import { authRouter } from './routers/auth.js';
-import { leaguesRouter } from './routers/leagues.js';
-import { teamsRouter } from './routers/teams.js';
-import { playersRouter } from './routers/players.js';
-import { rostersRouter } from './routers/rosters.js';
-import { matchupsRouter } from './routers/matchups.js';
-import { scoringRouter } from './routers/scoring.js';
+import { router } from './trpc';
+import { healthRouter } from './routers/health';
+import { authRouter } from './routers/auth';
+import { leaguesRouter } from './routers/leagues';
+import { teamsRouter } from './routers/teams';
+import { playersRouter } from './routers/players';
+import { rostersRouter } from './routers/rosters';
+import { matchupsRouter } from './routers/matchups';
+import { scoringRouter } from './routers/scoring';
 
 // Root app router - combines all sub-routers
 export const appRouter = router({

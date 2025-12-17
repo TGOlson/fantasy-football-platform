@@ -17,9 +17,8 @@ import {
   rosterPlayers,
   matchups,
   eq,
-  and,
   generateUniqueSlug,
-} from './index.js';
+} from './index';
 import type { ScoringRules } from '@fantasy-platform/types';
 
 // Load environment variables
@@ -153,22 +152,24 @@ async function seed() {
         yards: { type: 'base', value: 0.04 },
         touchdowns: { type: 'base', value: 4 },
         interceptions: { type: 'base', value: -2 },
+        completions: {type: 'base', value: 0},
         bonuses: [
           {
             name: '300 Yard Game',
             points: 3,
-            when: { stat: 'passingYards', operator: '>=', value: 300 },
+            when: [{ stat: 'passingYards', operator: '>=', value: 300 }],
           },
         ],
       },
       rushing: {
         yards: { type: 'base', value: 0.1 },
         touchdowns: { type: 'base', value: 6 },
+        attempts: {type: 'base', value: 0},
         bonuses: [
           {
             name: '100 Yard Game',
             points: 3,
-            when: { stat: 'rushingYards', operator: '>=', value: 100 },
+            when: [{ stat: 'rushingYards', operator: '>=', value: 100 }],
           },
         ],
       },
@@ -184,11 +185,12 @@ async function seed() {
         },
         yards: { type: 'base', value: 0.1 },
         touchdowns: { type: 'base', value: 6 },
+        targets: {type: 'base', value: 0},
         bonuses: [
           {
             name: '100 Yard Game',
             points: 3,
-            when: { stat: 'receivingYards', operator: '>=', value: 100 },
+            when: [{ stat: 'receivingYards', operator: '>=', value: 100 }],
           },
         ],
       },

@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useLoaderData, useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
 import {
@@ -10,51 +10,21 @@ import {
   Badge,
   Tabs,
   SimpleGrid,
-  Center,
   Button,
 } from '@mantine/core';
+import { loader } from './loader';
 
 export function LeagueDetailPage() {
+  const { league } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
   const season = parseInt(year || new Date().getFullYear().toString());
 
-  const { data: league, isLoading } = trpc.leagues.getBySlug.useQuery(
-    { slug: leagueSlug!, season },
-    { enabled: !!leagueSlug && !!year }
-  );
-
   const { data: matchups } = trpc.matchups.getByLeagueWeek.useQuery(
     {
-      leagueId: league?.leagueId!,
+      leagueId: league.leagueId,
       weekNumber: 1,
-    },
-    { enabled: !!league?.leagueId }
+    }
   );
-
-  if (isLoading) {
-    return (
-      <AppLayout>
-        <Center py={60}>
-          <Text c="dimmed">Loading league...</Text>
-        </Center>
-      </AppLayout>
-    );
-  }
-
-  if (!league) {
-    return (
-      <AppLayout>
-        <Center py={60}>
-          <Stack align="center">
-            <Title order={3}>League not found</Title>
-            <Button component={Link} to="/">
-              Back to Home
-            </Button>
-          </Stack>
-        </Center>
-      </AppLayout>
-    );
-  }
 
   return (
     <AppLayout>
@@ -106,11 +76,12 @@ export function LeagueDetailPage() {
             <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
               Scoring
             </Text>
-            <Text size="sm" fw={500}>
+            {/* TODO: add some preview like this back */}
+            {/* <Text size="sm" fw={500}>
               {league.settings?.scoringRules?.receiving?.receptions?.byPosition?.TE
                 ? 'TE Premium'
                 : 'Standard PPR'}
-            </Text>
+            </Text> */}
           </Paper>
         </SimpleGrid>
 

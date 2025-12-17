@@ -5,19 +5,18 @@ export {
   ROSTER_SLOTS,
   PLAYER_STATUSES,
   CURRENT_SEASON,
-} from './constants.js';
+} from './constants';
 
 export type {
   NflTeam,
   Position,
   RosterSlot,
   PlayerStatus,
-} from './constants.js';
+} from './constants';
 
 // Export scoring types
 export type {
   Condition,
-  ConditionGroup,
   Bonus,
   BaseScoringValue,
   PositionScoringValue,
@@ -25,7 +24,7 @@ export type {
   ScoringRules,
   ScoreBreakdownItem,
   ScoreBreakdown,
-} from './scoring.js';
+} from './scoring';
 
 // API-specific types will be added here
 // For example: UserPublic, LoginResponse, etc.

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, protectedProcedure } from '../trpc.js';
-import { requireLeagueMembership, requireLeagueAdmin } from '../../lib/auth.js';
+import { router, protectedProcedure } from '../trpc';
+import { requireLeagueMembership, requireLeagueAdmin } from '../../lib/auth';
 import {
   getDatabase,
   playerSeasons,
@@ -11,7 +11,7 @@ import {
   eq,
   and,
 } from '@fantasy-platform/database';
-import { calculateScore } from '../../services/scoring-engine.js';
+import { calculateScore } from '../../services/scoring-engine';
 import type { Position } from '@fantasy-platform/types';
 
 export const scoringRouter = router({

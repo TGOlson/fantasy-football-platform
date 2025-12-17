@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { calculateScore, type PlayerWeeklyStat } from './scoring-engine.js';
+import { calculateScore, type PlayerWeeklyStat } from './scoring-engine';
 import {
   STANDARD_SCORING,
   HALF_PPR_SCORING,
   FULL_PPR_SCORING,
   TE_PREMIUM_SCORING,
   STANDARD_WITH_BONUSES,
-} from './scoring-presets.js';
+} from './scoring-presets';
 import type { ScoringRules, ScoreBreakdownItem } from '@fantasy-platform/types';
 
 describe('calculateScore', () => {
@@ -354,20 +354,20 @@ describe('calculateScore', () => {
   describe('Cumulative Bonuses (AND logic)', () => {
     it('applies bonus when all conditions are met', () => {
       const rules: ScoringRules = {
+        ...STANDARD_SCORING,
         passing: {
           yards: { type: 'base', value: 0.04 },
           touchdowns: { type: 'base', value: 4 },
+          interceptions: { type: 'base', value: -2 },
+          completions: { type: 'base', value: 0 },
           bonuses: [
             {
               name: 'Big Game Bonus',
               points: 5,
-              when: {
-                operator: 'AND',
-                conditions: [
+              when: [
                   { stat: 'passingYards', operator: '>=', value: 300 },
                   { stat: 'passingTds', operator: '>=', value: 3 },
                 ],
-              },
             },
           ],
         },
@@ -400,20 +400,20 @@ describe('calculateScore', () => {
 
     it('does not apply bonus when any condition fails', () => {
       const rules: ScoringRules = {
+        ...STANDARD_SCORING,
         passing: {
           yards: { type: 'base', value: 0.04 },
           touchdowns: { type: 'base', value: 4 },
+          interceptions: { type: 'base', value: -2 },
+          completions: { type: 'base', value: 0 },
           bonuses: [
             {
               name: 'Big Game Bonus',
               points: 5,
-              when: {
-                operator: 'AND',
-                conditions: [
+              when: [
                   { stat: 'passingYards', operator: '>=', value: 300 },
                   { stat: 'passingTds', operator: '>=', value: 3 },
                 ],
-              },
             },
           ],
         },

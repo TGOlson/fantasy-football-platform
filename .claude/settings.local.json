@@ -15,7 +15,8 @@
       "Bash(curl:*)",
       "Bash(pnpm:*)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebSearch"
     ]
   }
 }

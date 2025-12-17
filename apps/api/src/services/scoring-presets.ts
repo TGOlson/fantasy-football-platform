@@ -9,15 +9,21 @@ export const STANDARD_SCORING: ScoringRules = {
     yards: { type: 'base', value: 0.04 }, // 1 point per 25 yards
     touchdowns: { type: 'base', value: 4 },
     interceptions: { type: 'base', value: -2 },
+    completions: { type: 'base', value: 0 },
+    bonuses: [],
   },
   rushing: {
     yards: { type: 'base', value: 0.1 }, // 1 point per 10 yards
     touchdowns: { type: 'base', value: 6 },
+    attempts: { type: 'base', value: 0 },
+    bonuses: [],
   },
   receiving: {
     receptions: { type: 'base', value: 0 }, // No PPR
     yards: { type: 'base', value: 0.1 },
     touchdowns: { type: 'base', value: 6 },
+    targets: { type: 'base', value: 0 },
+    bonuses: [],
   },
   fumbles: {
     lost: { type: 'base', value: -2 },
@@ -26,127 +32,81 @@ export const STANDARD_SCORING: ScoringRules = {
 };
 
 export const HALF_PPR_SCORING: ScoringRules = {
-  passing: {
-    yards: { type: 'base', value: 0.04 },
-    touchdowns: { type: 'base', value: 4 },
-    interceptions: { type: 'base', value: -2 },
-  },
-  rushing: {
-    yards: { type: 'base', value: 0.1 },
-    touchdowns: { type: 'base', value: 6 },
-  },
+  ...STANDARD_SCORING,
   receiving: {
+    ...STANDARD_SCORING.receiving,
     receptions: { type: 'base', value: 0.5 }, // Half PPR
-    yards: { type: 'base', value: 0.1 },
-    touchdowns: { type: 'base', value: 6 },
   },
-  fumbles: {
-    lost: { type: 'base', value: -2 },
-  },
-  twoPointConversions: { type: 'base', value: 2 },
 };
 
 export const FULL_PPR_SCORING: ScoringRules = {
-  passing: {
-    yards: { type: 'base', value: 0.04 },
-    touchdowns: { type: 'base', value: 4 },
-    interceptions: { type: 'base', value: -2 },
-  },
-  rushing: {
-    yards: { type: 'base', value: 0.1 },
-    touchdowns: { type: 'base', value: 6 },
-  },
+  ...STANDARD_SCORING,
   receiving: {
+    ...STANDARD_SCORING.receiving,
     receptions: { type: 'base', value: 1.0 }, // Full PPR
-    yards: { type: 'base', value: 0.1 },
-    touchdowns: { type: 'base', value: 6 },
   },
-  fumbles: {
-    lost: { type: 'base', value: -2 },
-  },
-  twoPointConversions: { type: 'base', value: 2 },
 };
 
 export const TE_PREMIUM_SCORING: ScoringRules = {
-  passing: {
-    yards: { type: 'base', value: 0.04 },
-    touchdowns: { type: 'base', value: 4 },
-    interceptions: { type: 'base', value: -2 },
-  },
-  rushing: {
-    yards: { type: 'base', value: 0.1 },
-    touchdowns: { type: 'base', value: 6 },
-  },
+  ...STANDARD_SCORING,
   receiving: {
+    ...STANDARD_SCORING.receiving,
     receptions: {
       type: 'position-specific',
       default: 0.5,
       byPosition: {
         TE: 1.5,
         WR: 1.0,
+        // TODO: this seems wrong?
         RB: 0.5,
       },
     },
-    yards: { type: 'base', value: 0.1 },
-    touchdowns: { type: 'base', value: 6 },
   },
-  fumbles: {
-    lost: { type: 'base', value: -2 },
-  },
-  twoPointConversions: { type: 'base', value: 2 },
 };
 
 // With bonuses
 export const STANDARD_WITH_BONUSES: ScoringRules = {
+  ...STANDARD_SCORING,
   passing: {
-    yards: { type: 'base', value: 0.04 },
-    touchdowns: { type: 'base', value: 4 },
-    interceptions: { type: 'base', value: -2 },
+    ...STANDARD_SCORING.passing,
     bonuses: [
       {
         name: '300 Yard Game',
         points: 3,
-        when: { stat: 'passingYards', operator: '>=', value: 300 },
+        when: [{ stat: 'passingYards', operator: '>=', value: 300 }],
       },
       {
         name: '400 Yard Game',
         points: 5,
-        when: { stat: 'passingYards', operator: '>=', value: 400 },
+        when: [{ stat: 'passingYards', operator: '>=', value: 400 }],
       },
     ],
   },
   rushing: {
-    yards: { type: 'base', value: 0.1 },
-    touchdowns: { type: 'base', value: 6 },
+    ...STANDARD_SCORING.rushing,
     bonuses: [
       {
         name: '100 Yard Game',
         points: 3,
-        when: { stat: 'rushingYards', operator: '>=', value: 100 },
+        when: [{ stat: 'rushingYards', operator: '>=', value: 100 }],
       },
       {
         name: '150 Yard Game',
         points: 5,
-        when: { stat: 'rushingYards', operator: '>=', value: 150 },
+        when: [{ stat: 'rushingYards', operator: '>=', value: 150 }],
       },
     ],
   },
   receiving: {
-    receptions: { type: 'base', value: 0.5 },
-    yards: { type: 'base', value: 0.1 },
-    touchdowns: { type: 'base', value: 6 },
+    ...STANDARD_SCORING.receiving,
     bonuses: [
       {
         name: '100 Yard Game',
         points: 3,
-        when: { stat: 'receivingYards', operator: '>=', value: 100 },
+        when: [{ stat: 'receivingYards', operator: '>=', value: 100 }],
       },
     ],
   },
-  fumbles: {
-    lost: { type: 'base', value: -2 },
-  },
-  twoPointConversions: { type: 'base', value: 2 },
 };
 
 export const PRESET_TEMPLATES = {

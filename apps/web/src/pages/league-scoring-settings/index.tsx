@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useLoaderData, useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
@@ -14,21 +14,16 @@ import {
   Alert,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import type { ScoringRules, BaseScoringValue } from '@fantasy-platform/types';
+import type { ScoringRules, BaseScoringValue, ScoringValue } from '@fantasy-platform/types';
+import { loader } from './loader';
 
 export function LeagueScoringSettingsPage() {
+  const { league } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
   const navigate = useNavigate();
   const [isDirty, setIsDirty] = useState(false);
-  const season = parseInt(year || new Date().getFullYear().toString());
 
-  // Get league to find the season
-  const { data: league } = trpc.leagues.getBySlug.useQuery(
-    { slug: leagueSlug!, season },
-    { enabled: !!leagueSlug && !!year }
-  );
-
-  const leagueSeasonId = league?.activeSeason?.id;
+  const leagueSeasonId = league.activeSeason?.id;
 
   const { data: scoringRules, isLoading } = trpc.scoring.getScoringRules.useQuery(
     { leagueSeasonId: leagueSeasonId! },
@@ -60,26 +55,24 @@ export function LeagueScoringSettingsPage() {
     setLocalRules(scoringRules);
   }
 
-  const getBaseValue = (value: any): number => {
-    if (typeof value === 'number') return value;
+  const getBaseValue = (value?: ScoringValue): number => {
     if (value?.type === 'base') return value.value;
     if (value?.type === 'position-specific') return value.default;
     return 0;
   };
 
   const updateBaseValue = (
-    category: 'passing' | 'rushing' | 'receiving' | 'fumbles',
-    stat: string,
+    category: keyof ScoringRules, // 'passing' | 'rushing' | 'receiving' | 'fumbles',
+    stat: string, // TODO: better type
     newValue: number
   ) => {
     if (!localRules) return;
 
     const updated = { ...localRules };
-    if (!updated[category]) {
-      updated[category] = {};
-    }
 
-    updated[category]![stat] = { type: 'base', value: newValue } as BaseScoringValue;
+    // TODO: better type here
+    // @ts-expect-error not a good generic type for `stat`, should make this helper better typed
+    updated[category]![stat] = { type: 'base', value: newValue } satisfies BaseScoringValue;
 
     setLocalRules(updated);
     setIsDirty(true);

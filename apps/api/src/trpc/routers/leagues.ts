@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, protectedProcedure } from '../trpc.js';
-import { requireLeagueMembership, requireLeagueAdmin } from '../../lib/auth.js';
+import { router, protectedProcedure } from '../trpc';
+import { requireLeagueMembership, requireLeagueAdmin } from '../../lib/auth';
 import {
   getDatabase,
   leagues,
@@ -17,6 +17,7 @@ import {
   type ScoringRulesJson,
   type RosterPositionsJson,
 } from '@fantasy-platform/database';
+import { STANDARD_SCORING } from '../../services/scoring-presets';
 
 export const leaguesRouter = router({
   // Get all leagues for the current user (leagues where they own a team)
@@ -259,32 +260,12 @@ export const leaguesRouter = router({
         BENCH: 6,
       };
 
-      const defaultScoringRules: ScoringRulesJson = {
-        passing: {
-          yards: { type: 'base', value: 0.04 },
-          touchdowns: { type: 'base', value: 4 },
-          interceptions: { type: 'base', value: -2 },
-        },
-        rushing: {
-          yards: { type: 'base', value: 0.1 },
-          touchdowns: { type: 'base', value: 6 },
-        },
-        receiving: {
-          receptions: { type: 'base', value: 1.0 },
-          yards: { type: 'base', value: 0.1 },
-          touchdowns: { type: 'base', value: 6 },
-        },
-        fumbles: {
-          lost: { type: 'base', value: -2 },
-        },
-        twoPointConversions: { type: 'base', value: 2 },
-      };
-
       await db.insert(leagueSettings).values({
         leagueSeasonId: newSeason.id,
         teamCount: input.teamCount || 10,
         rosterPositions: input.rosterPositions || defaultRosterPositions,
-        scoringRules: input.scoringRules || defaultScoringRules,
+        // TODO: should probably just require scoring rules as input
+        scoringRules: input.scoringRules || STANDARD_SCORING,
       });
 
       return {

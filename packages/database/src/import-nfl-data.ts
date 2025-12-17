@@ -4,7 +4,7 @@ import {
   players,
   playerSeasons,
   playerWeeklyStats,
-} from './index.js';
+} from './index';
 
 // Load environment variables
 dotenv.config({ path: '../../.env' });

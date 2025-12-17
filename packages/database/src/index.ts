@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import * as schema from './schema.js';
+import * as schema from './schema';
 
 // Lazy singleton pattern - only creates connection when first called
 let dbInstance: ReturnType<typeof drizzle<typeof schema>> | null = null;
@@ -23,10 +23,10 @@ export function getDatabase() {
 }
 
 // Export all schema and types
-export * from './schema.js';
+export * from './schema';
 
 // Export utility functions
-export { slugify, generateUniqueSlug } from './lib/slug.js';
+export { slugify, generateUniqueSlug } from './lib/slug';
 
 // Re-export constants from types package
 export {

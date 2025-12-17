@@ -1,6 +1,5 @@
-import { useParams, Link } from 'react-router-dom';
+import { useLoaderData, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
-import { trpc } from '@/lib/trpc';
 import {
   Title,
   Text,
@@ -8,50 +7,13 @@ import {
   Group,
   Stack,
   Badge,
-  Center,
-  Button,
   SimpleGrid,
 } from '@mantine/core';
 import { DataTable } from 'mantine-datatable';
+import { loader } from './loader';
 
 export function TeamDetailPage() {
-  const { leagueSlug, year, teamId } = useParams<{
-    leagueSlug: string;
-    year: string;
-    teamId: string;
-  }>();
-  const season = parseInt(year || new Date().getFullYear().toString());
-
-  const { data: team, isLoading } = trpc.teams.getById.useQuery(
-    { teamId: teamId!, season },
-    { enabled: !!teamId }
-  );
-
-  if (isLoading) {
-    return (
-      <AppLayout>
-        <Center py={60}>
-          <Text c="dimmed">Loading team...</Text>
-        </Center>
-      </AppLayout>
-    );
-  }
-
-  if (!team) {
-    return (
-      <AppLayout>
-        <Center py={60}>
-          <Stack align="center">
-            <Title order={3}>Team not found</Title>
-            <Button component={Link} to={leagueSlug && year ? `/${leagueSlug}/${year}` : '/'}>
-              Back to League
-            </Button>
-          </Stack>
-        </Center>
-      </AppLayout>
-    );
-  }
-
+  const { team } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const starters = team.roster?.filter((p) => p.slotType !== 'BENCH') || [];
   const bench = team.roster?.filter((p) => p.slotType === 'BENCH') || [];
 

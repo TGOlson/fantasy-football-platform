@@ -81,7 +81,7 @@ const { data: players } = trpc.players.list.useQuery({
 ### 1. Create Router File
 ```typescript
 // apps/api/src/trpc/routers/new-router.ts
-import { router, publicProcedure, protectedProcedure } from '../trpc.js';
+import { router, publicProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 
 export const newRouter = router({
@@ -97,7 +97,7 @@ export const newRouter = router({
 ### 2. Register in Main Router
 ```typescript
 // apps/api/src/trpc/router.ts
-import { newRouter } from './routers/new-router.js';
+import { newRouter } from './routers/new-router';
 
 export const appRouter = router({
   // ... existing routers

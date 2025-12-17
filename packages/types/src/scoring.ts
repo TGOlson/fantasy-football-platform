@@ -8,15 +8,10 @@ export type Condition = {
   value: number;
 };
 
-export type ConditionGroup = {
-  operator: 'AND';
-  conditions: Condition[];
-};
-
 export type Bonus = {
   name?: string; // Optional: "300 Yard Club" (for UI display)
   points: number; // Points to award
-  when: Condition | ConditionGroup;
+  when: Condition[]; // Always grouped by AND operator, can be a single value
 };
 
 // ============================================================================
@@ -48,30 +43,30 @@ export type ScoringValue = BaseScoringValue | PositionScoringValue;
 // ============================================================================
 
 export type ScoringRules = {
-  passing?: {
-    yards?: ScoringValue;
-    touchdowns?: ScoringValue;
-    interceptions?: ScoringValue;
-    completions?: ScoringValue;
-    bonuses?: Bonus[];
+  passing: {
+    yards: ScoringValue;
+    touchdowns: ScoringValue;
+    interceptions: ScoringValue;
+    completions: ScoringValue;
+    bonuses: Bonus[];
   };
-  rushing?: {
-    yards?: ScoringValue;
-    touchdowns?: ScoringValue;
-    attempts?: ScoringValue;
-    bonuses?: Bonus[];
+  rushing: {
+    yards: ScoringValue;
+    touchdowns: ScoringValue;
+    attempts: ScoringValue;
+    bonuses: Bonus[];
   };
-  receiving?: {
-    receptions?: ScoringValue;
-    yards?: ScoringValue;
-    touchdowns?: ScoringValue;
-    targets?: ScoringValue;
-    bonuses?: Bonus[];
+  receiving: {
+    receptions: ScoringValue;
+    yards: ScoringValue;
+    touchdowns: ScoringValue;
+    targets: ScoringValue;
+    bonuses: Bonus[];
   };
-  fumbles?: {
-    lost?: ScoringValue;
+  fumbles: {
+    lost: ScoringValue;
   };
-  twoPointConversions?: ScoringValue;
+  twoPointConversions: ScoringValue;
 };
 
 // ============================================================================

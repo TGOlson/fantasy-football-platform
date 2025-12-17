@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, publicProcedure, protectedProcedure } from '../trpc.js';
-import { requireLeagueMembership, requireTeamOwnership } from '../../lib/auth.js';
+import { router, publicProcedure, protectedProcedure } from '../trpc';
+import { requireLeagueMembership, requireTeamOwnership } from '../../lib/auth';
 import {
   getDatabase,
   teams,
