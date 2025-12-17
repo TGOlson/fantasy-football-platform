@@ -56,13 +56,6 @@
 - **PostgreSQL 16** - Running in Docker
 - **Drizzle ORM** - Schema definition and migrations
 
-**Schema**
-- `users` - User accounts
-- `leagues` - Fantasy leagues
-- `teams` - Teams in leagues
-- `players` - NFL players
-- `scoring_rules` - Custom scoring config (JSONB)
-
 **Tools**
 - `drizzle-kit` - Schema migrations
 - `tsx` - Run TypeScript seed scripts
@@ -104,19 +97,6 @@ packages/
 4. **Database returns data**: Drizzle returns type-safe objects
 5. **tRPC returns to frontend**: Types are preserved end-to-end
 6. **Mantine renders UI**: Components display data with built-in styling
-
-**Example Flow:**
-```
-User clicks "Login"
-  → React calls trpc.auth.login.useMutation()
-  → tRPC sends request to /trpc/auth.login
-  → Express routes to authRouter
-  → authRouter queries users table via Drizzle
-  → Returns JWT + user data
-  → tRPC sends typed response to frontend
-  → React updates auth context
-  → Mantine redirects to dashboard
-```
 
 ---
 

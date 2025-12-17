@@ -2,23 +2,9 @@
 
 The most powerful fantasy football platform.
 
-## Project Structure
-
-```
-fantasy-platform/
-├── apps/
-│   ├── web/           # Vite + React frontend
-│   └── api/           # Express + TypeScript backend
-├── packages/
-│   ├── types/         # Shared TypeScript types
-│   ├── database/      # Drizzle ORM schema and migrations
-│   └── config/        # Shared configuration
-└── docs/              # Project documentation
-```
+## Getting Started
 
 See: [docs/tech-stack.md](./docs/tech-stack.md)
-
-## Getting Started
 
 ### Prerequisites
 
