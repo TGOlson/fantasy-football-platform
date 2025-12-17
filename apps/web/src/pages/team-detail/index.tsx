@@ -1,114 +1,87 @@
-import { useLoaderData, Link } from 'react-router-dom';
+import { useLoaderData, useParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
-import {
-  Title,
-  Text,
-  Paper,
-  Group,
-  Stack,
-  Badge,
-  SimpleGrid,
-} from '@mantine/core';
+import { useLeague } from '@/lib/league-context';
+import { Text, Paper, Stack, Badge, SimpleGrid, Title, Group, Box } from '@mantine/core';
 import { DataTable } from 'mantine-datatable';
 import { loader } from './loader';
+import { PageHeader, StatCard, PlayerCell, PositionBadge, HistoricalBanner } from '@/components/ui';
 
 export function TeamDetailPage() {
   const { team } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+  const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
+  const { league, isHistoricalYear, mostRecentLeagueYear } = useLeague();
+
   const starters = team.roster?.filter((p) => p.slotType !== 'BENCH') || [];
   const bench = team.roster?.filter((p) => p.slotType === 'BENCH') || [];
+
+  // Build record string
+  const record = team.teamSeason
+    ? `${team.teamSeason.wins}-${team.teamSeason.losses}-${team.teamSeason.ties}`
+    : '0-0-0';
 
   return (
     <AppLayout>
       <Stack gap="lg">
-        {/* Header */}
-        <div>
-          <Group justify="space-between" mb="xs">
-            <Title order={1}>{team.name}</Title>
-            {team.teamSeason && (
-              <Badge size="lg" variant="light">
-                {team.teamSeason.wins}-{team.teamSeason.losses}-
-                {team.teamSeason.ties}
-              </Badge>
-            )}
-          </Group>
-          <Group gap="md">
-            <Text c="dimmed">Owner: {team.owner?.name}</Text>
-            {team.league && (
-              <Text c="dimmed">
-                League:{' '}
-                <Text
-                  component={Link}
-                  to={`/leagues/${team.league.id}`}
-                  span
-                  c="violet"
-                  style={{ textDecoration: 'none' }}
-                >
-                  {team.league.name}
-                </Text>
-              </Text>
-            )}
-          </Group>
-        </div>
-
-        {/* Stats */}
-        {team.teamSeason && (
-          <SimpleGrid cols={{ base: 2, sm: 4 }}>
-            <Paper withBorder p="md" radius="md">
-              <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                Points For
-              </Text>
-              <Text size="xl" fw={700}>
-                {team.teamSeason.pointsFor || '0.00'}
-              </Text>
-            </Paper>
-
-            <Paper withBorder p="md" radius="md">
-              <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                Points Against
-              </Text>
-              <Text size="xl" fw={700}>
-                {team.teamSeason.pointsAgainst || '0.00'}
-              </Text>
-            </Paper>
-
-            <Paper withBorder p="md" radius="md">
-              <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                Wins
-              </Text>
-              <Text size="xl" fw={700}>
-                {team.teamSeason.wins}
-              </Text>
-            </Paper>
-
-            <Paper withBorder p="md" radius="md">
-              <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                Losses
-              </Text>
-              <Text size="xl" fw={700}>
-                {team.teamSeason.losses}
-              </Text>
-            </Paper>
-          </SimpleGrid>
+        {isHistoricalYear && (
+          <HistoricalBanner
+            year={parseInt(year!)}
+            currentYearPath={`/${leagueSlug}/${mostRecentLeagueYear}/teams/${team.id}`}
+          />
         )}
 
+        {/* Header */}
+        <PageHeader
+          title={team.name}
+          subtitle={`Owner: ${team.owner?.name || 'Unknown'}`}
+          breadcrumbs={[
+            { label: league.name, to: `/${leagueSlug}/${year}` },
+            { label: 'Teams' },
+            { label: team.name },
+          ]}
+          badges={
+            <Badge size="lg" variant="light" color="violet">
+              {record}
+            </Badge>
+          }
+        />
+
+        {/* Stats */}
+        <SimpleGrid cols={{ base: 2, sm: 4 }}>
+          <StatCard
+            label="Points For"
+            value={team.teamSeason?.pointsFor || '0.00'}
+          />
+          <StatCard
+            label="Points Against"
+            value={team.teamSeason?.pointsAgainst || '0.00'}
+          />
+          <StatCard label="Wins" value={team.teamSeason?.wins || 0} />
+          <StatCard label="Losses" value={team.teamSeason?.losses || 0} />
+        </SimpleGrid>
+
         {/* Starting Lineup */}
-        <div>
-          <Title order={3} size="h4" mb="md">
-            Starting Lineup
-          </Title>
+        <Box>
+          <Group justify="space-between" mb="sm">
+            <Title order={3} size="h4">
+              Starting Lineup
+            </Title>
+            <Text size="sm" c="dimmed">
+              Projected: -
+            </Text>
+          </Group>
           {starters.length > 0 ? (
             <DataTable
               withTableBorder
-              borderRadius="md"
-              striped
+              borderRadius="sm"
+              highlightOnHover
               records={starters}
               columns={[
                 {
                   accessor: 'slotType',
                   title: 'Slot',
-                  width: 80,
+                  width: 70,
                   render: (record) => (
-                    <Badge variant="light" color="violet">
+                    <Badge variant="filled" color="violet" size="sm">
                       {record.slotType}
                     </Badge>
                   ),
@@ -117,89 +90,151 @@ export function TeamDetailPage() {
                   accessor: 'playerName',
                   title: 'Player',
                   render: (record) => (
-                    <div>
-                      <Text fw={500}>{record.playerName}</Text>
-                      <Text size="xs" c="dimmed">
-                        {record.position} - {record.nflTeam}
-                      </Text>
-                    </div>
+                    <PlayerCell
+                      name={record.playerName}
+                      position={record.position}
+                      team={record.nflTeam}
+                    />
                   ),
                 },
                 {
                   accessor: 'position',
-                  title: 'Position',
-                  width: 100,
-                  render: (record) => (
-                    <Badge variant="outline">{record.position}</Badge>
+                  title: 'Pos',
+                  width: 70,
+                  render: (record) => <PositionBadge position={record.position} />,
+                },
+                {
+                  accessor: 'opponent',
+                  title: 'Opp',
+                  width: 80,
+                  render: () => (
+                    <Text size="sm" c="dimmed">
+                      -
+                    </Text>
+                  ),
+                },
+                {
+                  accessor: 'projected',
+                  title: 'Proj',
+                  width: 70,
+                  textAlign: 'right',
+                  render: () => (
+                    <Text size="sm" c="dimmed">
+                      -
+                    </Text>
                   ),
                 },
                 {
                   accessor: 'score',
                   title: 'Score',
-                  width: 100,
+                  width: 70,
                   textAlign: 'right',
-                  render: () => <Text c="dimmed">-</Text>,
+                  render: () => (
+                    <Text size="sm" fw={600}>
+                      -
+                    </Text>
+                  ),
                 },
               ]}
             />
           ) : (
-            <Paper withBorder p="xl" radius="md">
+            <Paper withBorder p="xl">
               <Text c="dimmed" ta="center">
                 No starters set
               </Text>
             </Paper>
           )}
-        </div>
+        </Box>
 
         {/* Bench */}
-        <div>
-          <Title order={3} size="h4" mb="md">
-            Bench
-          </Title>
+        <Box>
+          <Group justify="space-between" mb="sm">
+            <Title order={3} size="h4">
+              Bench
+            </Title>
+            <Text size="sm" c="dimmed">
+              {bench.length} players
+            </Text>
+          </Group>
           {bench.length > 0 ? (
             <DataTable
               withTableBorder
-              borderRadius="md"
-              striped
+              borderRadius="sm"
+              highlightOnHover
               records={bench}
               columns={[
                 {
                   accessor: 'playerName',
                   title: 'Player',
                   render: (record) => (
-                    <div>
-                      <Text fw={500}>{record.playerName}</Text>
-                      <Text size="xs" c="dimmed">
-                        {record.position} - {record.nflTeam}
-                      </Text>
-                    </div>
+                    <PlayerCell
+                      name={record.playerName}
+                      position={record.position}
+                      team={record.nflTeam}
+                    />
                   ),
                 },
                 {
                   accessor: 'position',
-                  title: 'Position',
-                  width: 100,
-                  render: (record) => (
-                    <Badge variant="outline">{record.position}</Badge>
+                  title: 'Pos',
+                  width: 70,
+                  render: (record) => <PositionBadge position={record.position} />,
+                },
+                {
+                  accessor: 'opponent',
+                  title: 'Opp',
+                  width: 80,
+                  render: () => (
+                    <Text size="sm" c="dimmed">
+                      -
+                    </Text>
+                  ),
+                },
+                {
+                  accessor: 'projected',
+                  title: 'Proj',
+                  width: 70,
+                  textAlign: 'right',
+                  render: () => (
+                    <Text size="sm" c="dimmed">
+                      -
+                    </Text>
                   ),
                 },
                 {
                   accessor: 'score',
                   title: 'Score',
-                  width: 100,
+                  width: 70,
                   textAlign: 'right',
-                  render: () => <Text c="dimmed">-</Text>,
+                  render: () => (
+                    <Text size="sm" fw={600}>
+                      -
+                    </Text>
+                  ),
                 },
               ]}
             />
           ) : (
-            <Paper withBorder p="xl" radius="md">
+            <Paper withBorder p="xl">
               <Text c="dimmed" ta="center">
                 No bench players
               </Text>
             </Paper>
           )}
-        </div>
+        </Box>
+
+        {/* TODO Sections */}
+        <Paper withBorder p="md" bg="gray.0">
+          <Text size="sm" c="dimmed">
+            TODO: Recent Transactions (trades, adds, drops)
+          </Text>
+        </Paper>
+
+        <Paper withBorder p="md" bg="gray.0">
+          <Text size="sm" c="dimmed">
+            TODO: Schedule / Recent Results
+          </Text>
+        </Paper>
       </Stack>
     </AppLayout>
   );

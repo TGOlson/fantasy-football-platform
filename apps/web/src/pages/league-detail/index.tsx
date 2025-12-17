@@ -1,5 +1,6 @@
 import { useLoaderData, useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
+import { useLeague } from '@/lib/league-context';
 import { trpc } from '@/lib/trpc';
 import {
   Title,
@@ -13,11 +14,12 @@ import {
   Button,
 } from '@mantine/core';
 import { loader } from './loader';
+import { PageHeader, StatCard, HistoricalBanner } from '@/components/ui';
 
 export function LeagueDetailPage() {
   const { league } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
-  const season = parseInt(year || new Date().getFullYear().toString());
+  const { leagueSeason, isHistoricalYear, mostRecentLeagueYear } = useLeague();
 
   const { data: matchups } = trpc.matchups.getByLeagueWeek.useQuery(
     {
@@ -26,63 +28,59 @@ export function LeagueDetailPage() {
     }
   );
 
+  // Build subtitle - only show year if historical
+  const subtitleParts = [];
+  if (isHistoricalYear) {
+    subtitleParts.push(`${leagueSeason.season} Season`);
+  }
+  subtitleParts.push(`Commissioner: ${league.commissioner?.name}`);
+
   return (
     <AppLayout>
       <Stack gap="lg">
+        {isHistoricalYear && (
+          <HistoricalBanner
+            year={leagueSeason.season}
+            currentYearPath={`/${leagueSlug}/${mostRecentLeagueYear}`}
+          />
+        )}
+
         {/* Header */}
-        <div>
-          <Group justify="space-between" mb="xs">
-            <Title order={1}>{league.name}</Title>
-            <Group>
-              <Button
-                component={Link}
-                to={`/${leagueSlug}/${year}/settings`}
-                variant="light"
-                size="sm"
-              >
-                Scoring Settings
-              </Button>
-              <Badge size="lg" variant="light" color="violet">
-                {league.activeSeason?.status || 'Setup'}
-              </Badge>
-            </Group>
-          </Group>
-          <Text c="dimmed">
-            {season} Season • Commissioner: {league.commissioner?.name}
-          </Text>
-        </div>
+        <PageHeader
+          title={league.name}
+          subtitle={subtitleParts.join(' • ')}
+          actions={
+            <Button
+              component={Link}
+              to={`/${leagueSlug}/${year}/settings`}
+              variant="light"
+              size="sm"
+            >
+              Scoring Settings
+            </Button>
+          }
+          badges={
+            <Badge size="lg" variant="light" color="violet">
+              {league.activeSeason?.status || 'Setup'}
+            </Badge>
+          }
+        />
 
         {/* Stats */}
         <SimpleGrid cols={{ base: 1, sm: 3 }}>
-          <Paper withBorder p="md" radius="md">
-            <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-              Teams
-            </Text>
-            <Text size="xl" fw={700}>
-              {league.teams?.length || 0} / {league.settings?.teamCount || 10}
-            </Text>
-          </Paper>
-
-          <Paper withBorder p="md" radius="md">
-            <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-              Playoff Teams
-            </Text>
-            <Text size="xl" fw={700}>
-              {league.settings?.playoffTeams || 4}
-            </Text>
-          </Paper>
-
-          <Paper withBorder p="md" radius="md">
-            <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-              Scoring
-            </Text>
-            {/* TODO: add some preview like this back */}
-            {/* <Text size="sm" fw={500}>
-              {league.settings?.scoringRules?.receiving?.receptions?.byPosition?.TE
-                ? 'TE Premium'
-                : 'Standard PPR'}
-            </Text> */}
-          </Paper>
+          <StatCard
+            label="Teams"
+            value={`${league.teams?.length || 0} / ${league.settings?.teamCount || 10}`}
+          />
+          <StatCard
+            label="Playoff Teams"
+            value={league.settings?.playoffTeams || 4}
+          />
+          <StatCard
+            label="Scoring"
+            value="Custom"
+            info="View scoring settings for details"
+          />
         </SimpleGrid>
 
         {/* Tabs */}

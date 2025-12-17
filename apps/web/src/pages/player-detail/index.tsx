@@ -1,9 +1,9 @@
 import { useLoaderData, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/app-layout';
+import { useLeague } from '@/lib/league-context';
 import { trpc } from '@/lib/trpc';
 import {
-  Title,
   Text,
   Paper,
   Group,
@@ -12,42 +12,38 @@ import {
   Center,
   SimpleGrid,
   Modal,
-  Alert,
-  Select,
+  Title,
 } from '@mantine/core';
 import { DataTable } from 'mantine-datatable';
 import { ScoreBreakdown } from '@/components/score-breakdown';
+import { PageHeader, PositionBadge, StatCard, HistoricalBanner } from '@/components/ui';
 import { loader } from './loader';
 
 export function PlayerDetailPage() {
   const { player } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
-  const { year, playerId } = useParams<{
+  const { leagueSlug, year, playerId } = useParams<{
     leagueSlug: string;
     year: string;
     playerId: string;
   }>();
-  const season = parseInt(year || new Date().getFullYear().toString());
+  const { league, leagueSeason, isHistoricalYear, mostRecentLeagueYear } = useLeague();
 
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
-  const [selectedLeagueSeasonId, setSelectedLeagueSeasonId] = useState<string | null>(null);
 
   const { data: stats } = trpc.players.getStats.useQuery(
-    { id: playerId!, season }
+    { id: playerId!, season: leagueSeason.season }
   );
-
-  // Get user's leagues to select scoring rules
-  const { data: leagues } = trpc.leagues.list.useQuery();
 
   // Get score breakdown for selected week
   const { data: scoreData, isLoading: scoreLoading } = trpc.scoring.calculatePlayerScore.useQuery(
     {
       playerId: playerId!,
-      season,
+      season: leagueSeason.season,
       weekNumber: selectedWeek!,
-      leagueSeasonId: selectedLeagueSeasonId!,
+      leagueSeasonId: leagueSeason.id,
     },
     {
-      enabled: !!playerId && !!selectedWeek && !!selectedLeagueSeasonId,
+      enabled: !!playerId && !!selectedWeek,
     }
   );
 
@@ -75,157 +71,89 @@ export function PlayerDetailPage() {
     }
   );
 
+  // Build subtitle with status and jersey number
+  const subtitleParts = [];
+  if (player.status === 'active') {
+    subtitleParts.push('Active');
+  } else if (player.status) {
+    subtitleParts.push(player.status);
+  }
+  if (player.jerseyNumber) {
+    subtitleParts.push(`#${player.jerseyNumber}`);
+  }
+
   return (
     <AppLayout>
       <Stack gap="lg">
+        {isHistoricalYear && (
+          <HistoricalBanner
+            year={leagueSeason.season}
+            currentYearPath={`/${leagueSlug}/${mostRecentLeagueYear}/players/${playerId}`}
+          />
+        )}
+
         {/* Header */}
-        <div>
-          <Group justify="space-between" mb="xs">
-            <Title order={1}>{player.name}</Title>
-            <Group>
-              <Badge size="lg" variant="light" color="violet">
-                {player.position}
-              </Badge>
+        <PageHeader
+          title={player.name}
+          subtitle={subtitleParts.join(' • ') || undefined}
+          breadcrumbs={[
+            { label: league.name, to: `/${leagueSlug}/${year}` },
+            { label: 'Players', to: `/${leagueSlug}/${year}/players` },
+            { label: player.name },
+          ]}
+          badges={
+            <Group gap="xs">
+              <PositionBadge position={player.position} size="lg" />
               <Badge size="lg" variant="outline">
                 {player.team}
               </Badge>
             </Group>
-          </Group>
-          <Group gap="md">
-            <Text c="dimmed">
-              {player.status === 'active' ? '✓ Active' : player.status}
-            </Text>
-            {player.jerseyNumber && (
-              <Text c="dimmed">#{player.jerseyNumber}</Text>
-            )}
-          </Group>
-        </div>
+          }
+        />
 
         {/* Season Totals */}
         {stats && stats.length > 0 && (
           <div>
             <Title order={3} size="h4" mb="md">
-              {season} Season Totals
+              Season Totals
             </Title>
             <SimpleGrid cols={{ base: 2, sm: 4, md: 6 }}>
               {totals.passingYards > 0 && (
                 <>
-                  <Paper withBorder p="md" radius="md">
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                      Pass Yds
-                    </Text>
-                    <Text size="xl" fw={700}>
-                      {totals.passingYards}
-                    </Text>
-                  </Paper>
-                  <Paper withBorder p="md" radius="md">
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                      Pass TDs
-                    </Text>
-                    <Text size="xl" fw={700}>
-                      {totals.passingTds}
-                    </Text>
-                  </Paper>
-                  <Paper withBorder p="md" radius="md">
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                      INTs
-                    </Text>
-                    <Text size="xl" fw={700}>
-                      {totals.passingInts}
-                    </Text>
-                  </Paper>
+                  <StatCard label="Pass Yds" value={totals.passingYards.toLocaleString()} />
+                  <StatCard label="Pass TDs" value={totals.passingTds} />
+                  <StatCard label="INTs" value={totals.passingInts} />
                 </>
               )}
               {totals.rushingYards > 0 && (
                 <>
-                  <Paper withBorder p="md" radius="md">
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                      Rush Yds
-                    </Text>
-                    <Text size="xl" fw={700}>
-                      {totals.rushingYards}
-                    </Text>
-                  </Paper>
-                  <Paper withBorder p="md" radius="md">
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                      Rush TDs
-                    </Text>
-                    <Text size="xl" fw={700}>
-                      {totals.rushingTds}
-                    </Text>
-                  </Paper>
+                  <StatCard label="Rush Yds" value={totals.rushingYards.toLocaleString()} />
+                  <StatCard label="Rush TDs" value={totals.rushingTds} />
                 </>
               )}
               {totals.receptions > 0 && (
                 <>
-                  <Paper withBorder p="md" radius="md">
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                      Rec
-                    </Text>
-                    <Text size="xl" fw={700}>
-                      {totals.receptions}
-                    </Text>
-                  </Paper>
-                  <Paper withBorder p="md" radius="md">
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                      Rec Yds
-                    </Text>
-                    <Text size="xl" fw={700}>
-                      {totals.receivingYards}
-                    </Text>
-                  </Paper>
-                  <Paper withBorder p="md" radius="md">
-                    <Text size="xs" c="dimmed" tt="uppercase" fw={700} mb="xs">
-                      Rec TDs
-                    </Text>
-                    <Text size="xl" fw={700}>
-                      {totals.receivingTds}
-                    </Text>
-                  </Paper>
+                  <StatCard label="Rec" value={totals.receptions} />
+                  <StatCard label="Rec Yds" value={totals.receivingYards.toLocaleString()} />
+                  <StatCard label="Rec TDs" value={totals.receivingTds} />
                 </>
               )}
             </SimpleGrid>
           </div>
         )}
 
-        {/* Fantasy Scoring */}
-        {leagues && leagues.length > 0 && (
-          <Alert color="blue" title="Fantasy Points">
-            <Text size="sm" mb="sm">
-              Select a league to see how this player would score with your league's settings.
-              Click on a week number below to see the detailed score breakdown.
-            </Text>
-            <Select
-              label="Select League"
-              placeholder="Choose a league"
-              data={
-                leagues.map((league) => ({
-                  value: league.currentSeason?.id || '',
-                  label: `${league.name} (${league.currentSeason?.season || 'N/A'})`,
-                })) || []
-              }
-              value={selectedLeagueSeasonId}
-              onChange={setSelectedLeagueSeasonId}
-              w={300}
-            />
-          </Alert>
-        )}
-
         {/* Weekly Stats */}
         <div>
           <Title order={3} size="h4" mb="md">
             Weekly Stats
-            {selectedLeagueSeasonId && (
-              <Text span c="dimmed" size="sm" fw={400} ml="xs">
-                (Click week to see fantasy points)
-              </Text>
-            )}
+            <Text span c="dimmed" size="sm" fw={400} ml="xs">
+              (Click week to see fantasy points)
+            </Text>
           </Title>
           {stats && stats.length > 0 ? (
             <DataTable
               withTableBorder
-              borderRadius="md"
-              striped
+              borderRadius="sm"
               highlightOnHover
               records={stats}
               columns={[
@@ -237,16 +165,8 @@ export function PlayerDetailPage() {
                     <Badge
                       variant="light"
                       color="violet"
-                      style={
-                        selectedLeagueSeasonId
-                          ? { cursor: 'pointer' }
-                          : undefined
-                      }
-                      onClick={() => {
-                        if (selectedLeagueSeasonId) {
-                          setSelectedWeek(record.weekNumber);
-                        }
-                      }}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => setSelectedWeek(record.weekNumber)}
                     >
                       {record.weekNumber}
                     </Badge>

@@ -7,6 +7,7 @@ import { TeamDetailPage } from '@/pages/team-detail';
 import { PlayersPage } from '@/pages/players';
 import { PlayerDetailPage } from '@/pages/player-detail';
 import { LeagueScoringSettingsPage } from '@/pages/league-scoring-settings';
+import { LeagueLayout } from '@/components/layouts/league-layout';
 import { ErrorPage } from '@/components/error-page';
 
 // Import loaders from colocated files
@@ -28,43 +29,46 @@ export const router = createBrowserRouter([
     element: <RegisterPage />,
   },
 
-  // Protected routes
-  // TODO: perhaps wrap auth check for all these routes instead of embedding in the loaders
+  // Protected routes (no league context)
   {
     path: '/',
     loader: dashboardLoader,
     element: <DashboardPage />,
     errorElement: <ErrorPage />,
   },
+
+  // League routes (wrapped in LeagueLayout for context)
   {
     path: '/:leagueSlug/:year',
-    loader: leagueDetailLoader,
-    element: <LeagueDetailPage />,
+    element: <LeagueLayout />,
     errorElement: <ErrorPage />,
-  },
-  {
-    path: '/:leagueSlug/:year/settings',
-    loader: leagueScoringSettingsLoader,
-    element: <LeagueScoringSettingsPage />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    path: '/:leagueSlug/:year/teams/:teamId',
-    loader: teamDetailLoader,
-    element: <TeamDetailPage />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    path: '/:leagueSlug/:year/players',
-    loader: playersLoader,
-    element: <PlayersPage />,
-    errorElement: <ErrorPage />,
-  },
-  {
-    path: '/:leagueSlug/:year/players/:playerId',
-    loader: playerDetailLoader,
-    element: <PlayerDetailPage />,
-    errorElement: <ErrorPage />,
+    children: [
+      {
+        index: true,
+        loader: leagueDetailLoader,
+        element: <LeagueDetailPage />,
+      },
+      {
+        path: 'settings',
+        loader: leagueScoringSettingsLoader,
+        element: <LeagueScoringSettingsPage />,
+      },
+      {
+        path: 'teams/:teamId',
+        loader: teamDetailLoader,
+        element: <TeamDetailPage />,
+      },
+      {
+        path: 'players',
+        loader: playersLoader,
+        element: <PlayersPage />,
+      },
+      {
+        path: 'players/:playerId',
+        loader: playerDetailLoader,
+        element: <PlayerDetailPage />,
+      },
+    ],
   },
 
   // Catch all
