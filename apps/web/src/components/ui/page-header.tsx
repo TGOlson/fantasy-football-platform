@@ -1,4 +1,12 @@
-import { Breadcrumbs, Anchor, Title, Text, Group, Stack, Box } from '@mantine/core';
+import {
+  Breadcrumbs,
+  Anchor,
+  Title,
+  Text,
+  Group,
+  Stack,
+  Box,
+} from '@mantine/core';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { IconChevronRight } from '@tabler/icons-react';
@@ -27,7 +35,9 @@ export function PageHeader({
     <Stack gap="sm">
       {breadcrumbs && breadcrumbs.length > 0 && (
         <Breadcrumbs
-          separator={<IconChevronRight size={14} color="var(--mantine-color-gray-5)" />}
+          separator={
+            <IconChevronRight size={14} color="var(--mantine-color-gray-5)" />
+          }
           styles={{
             separator: { marginLeft: 6, marginRight: 6 },
           }}
@@ -43,7 +53,7 @@ export function PageHeader({
                 fw={500}
                 style={{
                   textDecoration: 'none',
-                  '&:hover': { textDecoration: 'underline' }
+                  '&:hover': { textDecoration: 'underline' },
                 }}
               >
                 {item.label}

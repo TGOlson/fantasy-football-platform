@@ -119,17 +119,27 @@ export function AppLayout({ children }: AppLayoutProps) {
                     transition: 'all 150ms ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--mantine-color-violet-4)';
-                    e.currentTarget.style.backgroundColor = 'var(--mantine-color-violet-0)';
+                    e.currentTarget.style.borderColor =
+                      'var(--mantine-color-violet-4)';
+                    e.currentTarget.style.backgroundColor =
+                      'var(--mantine-color-violet-0)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--mantine-color-gray-3)';
-                    e.currentTarget.style.backgroundColor = 'var(--mantine-color-slate-0)';
+                    e.currentTarget.style.borderColor =
+                      'var(--mantine-color-gray-3)';
+                    e.currentTarget.style.backgroundColor =
+                      'var(--mantine-color-slate-0)';
                   }}
                 >
                   <Group justify="space-between" wrap="nowrap">
                     <Stack gap={2}>
-                      <Text size="xs" c="dimmed" fw={600} tt="uppercase" style={{ letterSpacing: '0.5px' }}>
+                      <Text
+                        size="xs"
+                        c="dimmed"
+                        fw={600}
+                        tt="uppercase"
+                        style={{ letterSpacing: '0.5px' }}
+                      >
                         League
                       </Text>
                       <Text size="sm" fw={600} lineClamp={1}>
@@ -181,7 +191,15 @@ export function AppLayout({ children }: AppLayoutProps) {
             {/* League-specific navigation (when in league context) */}
             {leagueBase && (
               <>
-                <Text size="xs" c="dimmed" fw={600} tt="uppercase" mt="md" mb={4} style={{ letterSpacing: '0.5px' }}>
+                <Text
+                  size="xs"
+                  c="dimmed"
+                  fw={600}
+                  tt="uppercase"
+                  mt="md"
+                  mb={4}
+                  style={{ letterSpacing: '0.5px' }}
+                >
                   League
                 </Text>
                 <NavLink
@@ -232,7 +250,15 @@ export function AppLayout({ children }: AppLayoutProps) {
                   c="dimmed"
                 />
 
-                <Text size="xs" c="dimmed" fw={600} tt="uppercase" mt="md" mb={4} style={{ letterSpacing: '0.5px' }}>
+                <Text
+                  size="xs"
+                  c="dimmed"
+                  fw={600}
+                  tt="uppercase"
+                  mt="md"
+                  mb={4}
+                  style={{ letterSpacing: '0.5px' }}
+                >
                   Settings
                 </Text>
                 <NavLink
