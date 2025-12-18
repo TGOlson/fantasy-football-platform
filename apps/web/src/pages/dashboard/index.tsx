@@ -51,14 +51,14 @@ export function DashboardPage() {
             <Paper key={league.id} withBorder p="md" radius="md">
               <Anchor
                 component={Link}
-                to={`/${league.slug}/${league.currentSeason?.season || new Date().getFullYear()}`}
+                to={`/${league.slug}/${league.currentSeason?.year || new Date().getFullYear()}`}
                 size="lg"
                 fw={600}
               >
                 {league.name}
               </Anchor>
               <Text size="sm" c="dimmed" mt="xs">
-                {league.currentSeason?.season || 'No active season'}
+                {league.currentSeason?.year || 'No active season'}
                 {' • '}
                 {league.currentSeason?.status || 'setup'}
               </Text>

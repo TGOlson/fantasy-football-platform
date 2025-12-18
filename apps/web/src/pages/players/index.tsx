@@ -19,7 +19,7 @@ export function PlayersPage() {
   const [team, setTeam] = useState<string | null>(null);
 
   const { data: players, isLoading } = trpc.players.list.useQuery({
-    season: leagueSeason.season,
+    season: leagueSeason.year,
     search: search || undefined,
     position: position || undefined,
     team: team || undefined,
@@ -30,7 +30,7 @@ export function PlayersPage() {
       <Stack gap="md">
         {isHistoricalYear && (
           <HistoricalBanner
-            year={leagueSeason.season}
+            year={leagueSeason.year}
             currentYearPath={`/${leagueSlug}/${mostRecentLeagueYear}/players`}
           />
         )}

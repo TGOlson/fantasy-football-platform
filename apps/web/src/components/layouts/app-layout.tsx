@@ -45,7 +45,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   // Use context for current league info, or find from list
   const currentLeagueName = leagueContext?.league.name || leagues?.find((l) => l.slug === leagueSlug)?.name;
-  const myTeam = leagueContext?.myTeam;
+  const myTeam = leagueContext?.myFranchise;
 
   const handleLogout = () => {
     logout();
@@ -107,7 +107,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     key={league.id}
                     onClick={() =>
                       navigate(
-                        `/${league.slug}/${league.currentSeason?.season || new Date().getFullYear()}`
+                        `/${league.slug}/${league.currentSeason?.year || new Date().getFullYear()}`
                       )
                     }
                   >
@@ -145,10 +145,10 @@ export function AppLayout({ children }: AppLayoutProps) {
                 {myTeam ? (
                   <NavLink
                     component={Link}
-                    to={`${leagueBase}/teams/${myTeam.id}`}
+                    to={`${leagueBase}/franchises/${myTeam.id}`}
                     label="My Team"
                     leftSection={<IconUser size={18} />}
-                    active={isActivePrefix(`${leagueBase}/teams/${myTeam.id}`)}
+                    active={isActivePrefix(`${leagueBase}/franchises/${myTeam.id}`)}
                   />
                 ) : (
                   <NavLink

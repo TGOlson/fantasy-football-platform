@@ -47,7 +47,7 @@ export function LeaguesPage() {
             >
               <Title order={3} size="h4" mb="xs">{league.name}</Title>
               <Text size="sm" c="dimmed" mb="md">
-                Season {league.currentSeason?.season || 'N/A'}
+                Season {league.currentSeason?.year || 'N/A'}
               </Text>
               <Group justify="space-between">
                 <Text size="sm" c="dimmed">

@@ -127,6 +127,7 @@ export function LeagueDetailPage() {
                         <Table.Tr
                           key={franchise.franchiseSeasonId}
                           component={Link}
+                          // @ts-expect-error deal with this later
                           to={`/${leagueSlug}/${year}/franchises/${franchise.franchiseId}`}
                           style={{ textDecoration: 'none', cursor: 'pointer' }}
                         >

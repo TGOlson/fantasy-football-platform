@@ -31,14 +31,14 @@ export function PlayerDetailPage() {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
   const { data: stats } = trpc.players.getStats.useQuery(
-    { id: playerId!, season: leagueSeason.season }
+    { id: playerId!, season: leagueSeason.year }
   );
 
   // Get score breakdown for selected week
   const { data: scoreData, isLoading: scoreLoading } = trpc.scoring.calculatePlayerScore.useQuery(
     {
       playerId: playerId!,
-      season: leagueSeason.season,
+      season: leagueSeason.year,
       weekNumber: selectedWeek!,
       leagueSeasonId: leagueSeason.id,
     },
@@ -87,7 +87,7 @@ export function PlayerDetailPage() {
       <Stack gap="lg">
         {isHistoricalYear && (
           <HistoricalBanner
-            year={leagueSeason.season}
+            year={leagueSeason.year}
             currentYearPath={`/${leagueSlug}/${mostRecentLeagueYear}/players/${playerId}`}
           />
         )}

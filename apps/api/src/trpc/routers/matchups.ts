@@ -5,7 +5,6 @@ import {
   getDatabase,
   matchups,
   leagueSeasons,
-  leagues,
   franchiseSeasons,
   franchises,
   users,
