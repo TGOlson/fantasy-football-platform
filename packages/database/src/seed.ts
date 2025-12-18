@@ -98,14 +98,46 @@ async function seed() {
     const [user1, user2, user3, user4, user5, user6, user7, user8] = await db
       .insert(users)
       .values([
-        { email: 'admin@example.com', passwordHash: adminPasswordHash, name: 'Admin' },
-        { email: 'sarah@example.com', passwordHash: 'hashed_password', name: 'Sarah' },
-        { email: 'mike@example.com', passwordHash: 'hashed_password', name: 'Mike' },
-        { email: 'jessica@example.com', passwordHash: 'hashed_password', name: 'Jessica' },
-        { email: 'chris@example.com', passwordHash: 'hashed_password', name: 'Chris' },
-        { email: 'amanda@example.com', passwordHash: 'hashed_password', name: 'Amanda' },
-        { email: 'david@example.com', passwordHash: 'hashed_password', name: 'David' },
-        { email: 'emily@example.com', passwordHash: 'hashed_password', name: 'Emily' },
+        {
+          email: 'admin@example.com',
+          passwordHash: adminPasswordHash,
+          name: 'Admin',
+        },
+        {
+          email: 'sarah@example.com',
+          passwordHash: 'hashed_password',
+          name: 'Sarah',
+        },
+        {
+          email: 'mike@example.com',
+          passwordHash: 'hashed_password',
+          name: 'Mike',
+        },
+        {
+          email: 'jessica@example.com',
+          passwordHash: 'hashed_password',
+          name: 'Jessica',
+        },
+        {
+          email: 'chris@example.com',
+          passwordHash: 'hashed_password',
+          name: 'Chris',
+        },
+        {
+          email: 'amanda@example.com',
+          passwordHash: 'hashed_password',
+          name: 'Amanda',
+        },
+        {
+          email: 'david@example.com',
+          passwordHash: 'hashed_password',
+          name: 'David',
+        },
+        {
+          email: 'emily@example.com',
+          passwordHash: 'hashed_password',
+          name: 'Emily',
+        },
       ])
       .returning();
 
@@ -146,7 +178,7 @@ async function seed() {
 
     const createdFranchises = await db
       .insert(franchises)
-      .values(franchiseNames.map(name => ({ leagueId: league.id, name })))
+      .values(franchiseNames.map((name) => ({ leagueId: league.id, name })))
       .returning();
 
     console.log(`✓ Created ${createdFranchises.length} franchises`);
@@ -250,7 +282,9 @@ async function seed() {
       )
       .returning();
 
-    console.log(`✓ Created ${createdFranchiseSeasons.length} franchise seasons`);
+    console.log(
+      `✓ Created ${createdFranchiseSeasons.length} franchise seasons`
+    );
 
     // =========================================================================
     // PLAYERS (from CSV seed data)
@@ -260,7 +294,9 @@ async function seed() {
     const playersCSVPath = path.join(SEED_DATA_DIR, 'players-2024.csv');
     if (!fs.existsSync(playersCSVPath)) {
       console.error('❌ players-2024.csv not found!');
-      console.error('Run: pnpm --filter @fantasy-platform/database generate-seed-data');
+      console.error(
+        'Run: pnpm --filter @fantasy-platform/database generate-seed-data'
+      );
       process.exit(1);
     }
 
@@ -269,7 +305,9 @@ async function seed() {
 
     const createdPlayers = await db
       .insert(players)
-      .values(playerData.map((p, i) => ({ nflId: `espn_${i + 1}`, name: p.name })))
+      .values(
+        playerData.map((p, i) => ({ nflId: `espn_${i + 1}`, name: p.name }))
+      )
       .returning();
 
     console.log(`✓ Created ${createdPlayers.length} players`);
@@ -301,7 +339,9 @@ async function seed() {
     const statsData = parseCSV(statsCSVPath);
     console.log(`  Found ${statsData.length} stat entries in CSV`);
 
-    const playerNameToId = new Map(createdPlayers.map((p, i) => [playerData[i].name, p.id]));
+    const playerNameToId = new Map(
+      createdPlayers.map((p, i) => [playerData[i].name, p.id])
+    );
 
     const weeklyStatsToInsert = statsData.map((stat) => ({
       playerId: playerNameToId.get(stat.player_name)!,
@@ -314,9 +354,13 @@ async function seed() {
       attempts: stat.attempts ? parseInt(stat.attempts) : null,
       rushingYards: stat.rushing_yards ? parseInt(stat.rushing_yards) : null,
       rushingTds: stat.rushing_tds ? parseInt(stat.rushing_tds) : null,
-      rushingAttempts: stat.rushing_attempts ? parseInt(stat.rushing_attempts) : null,
+      rushingAttempts: stat.rushing_attempts
+        ? parseInt(stat.rushing_attempts)
+        : null,
       receptions: stat.receptions ? parseInt(stat.receptions) : null,
-      receivingYards: stat.receiving_yards ? parseInt(stat.receiving_yards) : null,
+      receivingYards: stat.receiving_yards
+        ? parseInt(stat.receiving_yards)
+        : null,
       receivingTds: stat.receiving_tds ? parseInt(stat.receiving_tds) : null,
       targets: stat.targets ? parseInt(stat.targets) : null,
       fumblesLost: stat.fumbles_lost ? parseInt(stat.fumbles_lost) : null,
@@ -335,10 +379,48 @@ async function seed() {
     // =========================================================================
     console.log('\n🏟️  Creating NFL game schedule...');
 
-    const nflTeams = ['KC', 'BUF', 'BAL', 'CIN', 'MIA', 'NYJ', 'NE', 'LV', 'DEN', 'LAC', 'HOU', 'JAX', 'IND', 'TEN', 'CLE', 'PIT',
-                      'PHI', 'DAL', 'NYG', 'WAS', 'SF', 'SEA', 'LAR', 'ARI', 'GB', 'MIN', 'DET', 'CHI', 'TB', 'NO', 'ATL', 'CAR'];
+    const nflTeams = [
+      'KC',
+      'BUF',
+      'BAL',
+      'CIN',
+      'MIA',
+      'NYJ',
+      'NE',
+      'LV',
+      'DEN',
+      'LAC',
+      'HOU',
+      'JAX',
+      'IND',
+      'TEN',
+      'CLE',
+      'PIT',
+      'PHI',
+      'DAL',
+      'NYG',
+      'WAS',
+      'SF',
+      'SEA',
+      'LAR',
+      'ARI',
+      'GB',
+      'MIN',
+      'DET',
+      'CHI',
+      'TB',
+      'NO',
+      'ATL',
+      'CAR',
+    ];
 
-    const nflGamesToInsert: { season: number; weekNumber: number; homeTeam: string; awayTeam: string; kickoffAt: Date }[] = [];
+    const nflGamesToInsert: {
+      season: number;
+      weekNumber: number;
+      homeTeam: string;
+      awayTeam: string;
+      kickoffAt: Date;
+    }[] = [];
 
     for (let week = 1; week <= 10; week++) {
       // Create 16 games per week (32 teams / 2)
@@ -349,14 +431,42 @@ async function seed() {
         // Stagger kickoff times: Thursday (1), Sunday early (8), Sunday late (4), Sunday night (1), Monday (2)
         let dayOffset = 0;
         let hour = 13;
-        if (i === 0) { dayOffset = -3; hour = 20; } // Thursday night
-        else if (i < 9) { dayOffset = 0; hour = 13; } // Sunday 1pm
-        else if (i < 13) { dayOffset = 0; hour = 16; } // Sunday 4pm
-        else if (i === 13) { dayOffset = 0; hour = 20; } // Sunday night
-        else { dayOffset = 1; hour = 20; } // Monday night
+        if (i === 0) {
+          dayOffset = -3;
+          hour = 20;
+        } // Thursday night
+        else if (i < 9) {
+          dayOffset = 0;
+          hour = 13;
+        } // Sunday 1pm
+        else if (i < 13) {
+          dayOffset = 0;
+          hour = 16;
+        } // Sunday 4pm
+        else if (i === 13) {
+          dayOffset = 0;
+          hour = 20;
+        } // Sunday night
+        else {
+          dayOffset = 1;
+          hour = 20;
+        } // Monday night
 
-        const kickoffAt = new Date(2024, 8 + Math.floor(week / 5), (week % 4) * 7 + 8 + dayOffset, hour, 0, 0);
-        nflGamesToInsert.push({ season: 2024, weekNumber: week, homeTeam, awayTeam, kickoffAt });
+        const kickoffAt = new Date(
+          2024,
+          8 + Math.floor(week / 5),
+          (week % 4) * 7 + 8 + dayOffset,
+          hour,
+          0,
+          0
+        );
+        nflGamesToInsert.push({
+          season: 2024,
+          weekNumber: week,
+          homeTeam,
+          awayTeam,
+          kickoffAt,
+        });
       }
     }
 
@@ -373,7 +483,12 @@ async function seed() {
       .from(playerSeasons)
       .where(eq(playerSeasons.season, 2024));
 
-    const playersByPosition: Record<string, string[]> = { QB: [], RB: [], WR: [], TE: [] };
+    const playersByPosition: Record<string, string[]> = {
+      QB: [],
+      RB: [],
+      WR: [],
+      TE: [],
+    };
     for (const ps of allPlayerSeasons) {
       if (playersByPosition[ps.position]) {
         playersByPosition[ps.position].push(ps.playerId);
@@ -381,10 +496,18 @@ async function seed() {
     }
 
     const regularSeasonWeeks = 10;
-    const allLineupEntries: { franchiseSeasonId: string; weekNumber: number; playerId: string; slotType: string }[] = [];
+    const allLineupEntries: {
+      franchiseSeasonId: string;
+      weekNumber: number;
+      playerId: string;
+      slotType: string;
+    }[] = [];
 
     // Assign players to franchises (each franchise gets unique players)
-    let qbIdx = 0, rbIdx = 0, wrIdx = 0, teIdx = 0;
+    let qbIdx = 0,
+      rbIdx = 0,
+      wrIdx = 0,
+      teIdx = 0;
 
     for (const fs of createdFranchiseSeasons) {
       const rosterPlayerIds: string[] = [];
@@ -406,19 +529,91 @@ async function seed() {
       // Create lineup for each week (same lineup each week for simplicity)
       for (let week = 1; week <= regularSeasonWeeks; week++) {
         // Starters
-        if (qb1) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: qb1, slotType: 'QB' });
-        if (rb1) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: rb1, slotType: 'RB' });
-        if (rb2) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: rb2, slotType: 'RB' });
-        if (wr1) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: wr1, slotType: 'WR' });
-        if (wr2) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: wr2, slotType: 'WR' });
-        if (te1) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: te1, slotType: 'TE' });
-        if (rb3) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: rb3, slotType: 'FLEX' });
+        if (qb1)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: qb1,
+            slotType: 'QB',
+          });
+        if (rb1)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: rb1,
+            slotType: 'RB',
+          });
+        if (rb2)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: rb2,
+            slotType: 'RB',
+          });
+        if (wr1)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: wr1,
+            slotType: 'WR',
+          });
+        if (wr2)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: wr2,
+            slotType: 'WR',
+          });
+        if (te1)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: te1,
+            slotType: 'TE',
+          });
+        if (rb3)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: rb3,
+            slotType: 'FLEX',
+          });
         // Bench
-        if (qb2) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: qb2, slotType: 'BENCH' });
-        if (rb4) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: rb4, slotType: 'BENCH' });
-        if (wr3) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: wr3, slotType: 'BENCH' });
-        if (wr4) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: wr4, slotType: 'BENCH' });
-        if (te2) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: te2, slotType: 'BENCH' });
+        if (qb2)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: qb2,
+            slotType: 'BENCH',
+          });
+        if (rb4)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: rb4,
+            slotType: 'BENCH',
+          });
+        if (wr3)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: wr3,
+            slotType: 'BENCH',
+          });
+        if (wr4)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: wr4,
+            slotType: 'BENCH',
+          });
+        if (te2)
+          allLineupEntries.push({
+            franchiseSeasonId: fs.id,
+            weekNumber: week,
+            playerId: te2,
+            slotType: 'BENCH',
+          });
       }
     }
 
@@ -435,7 +630,9 @@ async function seed() {
     // =========================================================================
     console.log('\n🗓️  Generating matchup schedule...');
 
-    function generateRoundRobin(ids: string[]): { home: string; away: string }[][] {
+    function generateRoundRobin(
+      ids: string[]
+    ): { home: string; away: string }[][] {
       const teams = [...ids];
       const numTeams = teams.length;
       const schedule: { home: string; away: string }[][] = [];
@@ -452,7 +649,7 @@ async function seed() {
       return schedule;
     }
 
-    const franchiseSeasonIds = createdFranchiseSeasons.map(fs => fs.id);
+    const franchiseSeasonIds = createdFranchiseSeasons.map((fs) => fs.id);
     const baseSchedule = generateRoundRobin(franchiseSeasonIds);
 
     const fullSchedule: { home: string; away: string }[][] = [];
@@ -461,7 +658,7 @@ async function seed() {
       for (const week of baseSchedule) {
         if (fullSchedule.length >= regularSeasonWeeks) break;
         if (iteration % 2 === 1) {
-          fullSchedule.push(week.map(m => ({ home: m.away, away: m.home })));
+          fullSchedule.push(week.map((m) => ({ home: m.away, away: m.home })));
         } else {
           fullSchedule.push([...week]);
         }
@@ -470,7 +667,7 @@ async function seed() {
     }
 
     const matchupsToInsert = fullSchedule.flatMap((weekMatchups, weekIndex) =>
-      weekMatchups.map(m => ({
+      weekMatchups.map((m) => ({
         leagueSeasonId: season2024.id,
         weekNumber: weekIndex + 1,
         homeFranchiseSeasonId: m.home,
@@ -479,7 +676,9 @@ async function seed() {
     );
 
     await db.insert(matchups).values(matchupsToInsert);
-    console.log(`✓ Created ${matchupsToInsert.length} matchups for ${regularSeasonWeeks} weeks`);
+    console.log(
+      `✓ Created ${matchupsToInsert.length} matchups for ${regularSeasonWeeks} weeks`
+    );
 
     // =========================================================================
     // SCORE MATCHUPS
@@ -487,9 +686,17 @@ async function seed() {
     console.log('\n🎯 Calculating matchup scores...');
 
     function calculatePlayerScore(
-      stats: { passingYards: number | null; passingTds: number | null; passingInts: number | null;
-               rushingYards: number | null; rushingTds: number | null; receptions: number | null;
-               receivingYards: number | null; receivingTds: number | null; fumblesLost: number | null },
+      stats: {
+        passingYards: number | null;
+        passingTds: number | null;
+        passingInts: number | null;
+        rushingYards: number | null;
+        rushingTds: number | null;
+        receptions: number | null;
+        receivingYards: number | null;
+        receivingTds: number | null;
+        fumblesLost: number | null;
+      },
       position: string
     ): number {
       let score = 0;
@@ -512,9 +719,15 @@ async function seed() {
       return Math.round(score * 100) / 100;
     }
 
-    const allMatchups = await db.select().from(matchups).where(eq(matchups.leagueSeasonId, season2024.id));
+    const allMatchups = await db
+      .select()
+      .from(matchups)
+      .where(eq(matchups.leagueSeasonId, season2024.id));
     const allLineups = await db.select().from(weeklyLineups);
-    const allStats = await db.select().from(playerWeeklyStats).where(eq(playerWeeklyStats.season, 2024));
+    const allStats = await db
+      .select()
+      .from(playerWeeklyStats)
+      .where(eq(playerWeeklyStats.season, 2024));
 
     const lineupsByFranchiseWeek = new Map<string, typeof allLineups>();
     for (const l of allLineups) {
@@ -523,7 +736,7 @@ async function seed() {
       lineupsByFranchiseWeek.get(key)!.push(l);
     }
 
-    const statsByPlayerWeek = new Map<string, typeof allStats[0]>();
+    const statsByPlayerWeek = new Map<string, (typeof allStats)[0]>();
     for (const s of allStats) {
       statsByPlayerWeek.set(`${s.playerId}-${s.weekNumber}`, s);
     }
@@ -535,9 +748,13 @@ async function seed() {
 
     const STARTER_SLOTS = ['QB', 'RB', 'WR', 'TE', 'FLEX'];
 
-    function getFranchiseScore(franchiseSeasonId: string, week: number): number {
-      const lineup = lineupsByFranchiseWeek.get(`${franchiseSeasonId}-${week}`) || [];
-      const starters = lineup.filter(l => STARTER_SLOTS.includes(l.slotType));
+    function getFranchiseScore(
+      franchiseSeasonId: string,
+      week: number
+    ): number {
+      const lineup =
+        lineupsByFranchiseWeek.get(`${franchiseSeasonId}-${week}`) || [];
+      const starters = lineup.filter((l) => STARTER_SLOTS.includes(l.slotType));
       let total = 0;
       for (const starter of starters) {
         const stats = statsByPlayerWeek.get(`${starter.playerId}-${week}`);
@@ -548,12 +765,16 @@ async function seed() {
     }
 
     for (const matchup of allMatchups) {
-      const homeScore = getFranchiseScore(matchup.homeFranchiseSeasonId, matchup.weekNumber);
+      const homeScore = getFranchiseScore(
+        matchup.homeFranchiseSeasonId,
+        matchup.weekNumber
+      );
       const awayScore = matchup.awayFranchiseSeasonId
         ? getFranchiseScore(matchup.awayFranchiseSeasonId, matchup.weekNumber)
         : null;
 
-      await db.update(matchups)
+      await db
+        .update(matchups)
         .set({
           homeScore: homeScore.toString(),
           awayScore: awayScore?.toString() || null,
@@ -570,11 +791,29 @@ async function seed() {
     // =========================================================================
     console.log('\n📊 Calculating standings...');
 
-    const scoredMatchups = await db.select().from(matchups).where(eq(matchups.leagueSeasonId, season2024.id));
+    const scoredMatchups = await db
+      .select()
+      .from(matchups)
+      .where(eq(matchups.leagueSeasonId, season2024.id));
 
-    const franchiseStats = new Map<string, { wins: number; losses: number; ties: number; pointsFor: number; pointsAgainst: number }>();
+    const franchiseStats = new Map<
+      string,
+      {
+        wins: number;
+        losses: number;
+        ties: number;
+        pointsFor: number;
+        pointsAgainst: number;
+      }
+    >();
     for (const fs of createdFranchiseSeasons) {
-      franchiseStats.set(fs.id, { wins: 0, losses: 0, ties: 0, pointsFor: 0, pointsAgainst: 0 });
+      franchiseStats.set(fs.id, {
+        wins: 0,
+        losses: 0,
+        ties: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+      });
     }
 
     for (const m of scoredMatchups) {
@@ -582,7 +821,9 @@ async function seed() {
       const awayScore = m.awayScore ? parseFloat(m.awayScore) : 0;
 
       const homeStats = franchiseStats.get(m.homeFranchiseSeasonId)!;
-      const awayStats = m.awayFranchiseSeasonId ? franchiseStats.get(m.awayFranchiseSeasonId) : null;
+      const awayStats = m.awayFranchiseSeasonId
+        ? franchiseStats.get(m.awayFranchiseSeasonId)
+        : null;
 
       homeStats.pointsFor += homeScore;
       if (awayStats) {
@@ -604,7 +845,8 @@ async function seed() {
     }
 
     for (const [fsId, stats] of franchiseStats) {
-      await db.update(franchiseSeasons)
+      await db
+        .update(franchiseSeasons)
         .set({
           wins: stats.wins,
           losses: stats.losses,
@@ -618,12 +860,16 @@ async function seed() {
 
     const standingsList = Array.from(franchiseStats.entries())
       .map(([fsId, stats]) => ({ fsId, ...stats }))
-      .sort((a, b) => b.wins !== a.wins ? b.wins - a.wins : b.pointsFor - a.pointsFor);
+      .sort((a, b) =>
+        b.wins !== a.wins ? b.wins - a.wins : b.pointsFor - a.pointsFor
+      );
 
     console.log('✓ Standings calculated');
     console.log('\n  Standings:');
     standingsList.forEach((s, i) => {
-      console.log(`    ${i + 1}. ${s.wins}-${s.losses}-${s.ties} (${s.pointsFor.toFixed(1)} PF)`);
+      console.log(
+        `    ${i + 1}. ${s.wins}-${s.losses}-${s.ties} (${s.pointsFor.toFixed(1)} PF)`
+      );
     });
 
     // =========================================================================

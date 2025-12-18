@@ -7,12 +7,15 @@
 ---
 
 ## Tier 1: ABSOLUTE DEALBREAKERS
-### *Without these, you have nothing. Build these first.*
+
+### _Without these, you have nothing. Build these first._
 
 ### 🎯 **Custom Scoring Engine** (Your Moat)
+
 **Why it's critical:** This is literally the only reason someone pays for your platform over free alternatives.
 
 **Must support:**
+
 - ✅ Position-specific PPR (TE: 1.5, RB: 0.5, WR: 1.0)
 - ✅ Yardage milestone bonuses (100 rush yds = +3 pts)
 - ✅ Conditional scoring (QB completion % bonus if 20+ attempts)
@@ -22,6 +25,7 @@
 - ✅ Import/export scoring configs
 
 **Can skip initially:**
+
 - ❌ IDP (individual defensive players) scoring
 - ❌ Kicker/Punter customization beyond basics
 - ❌ Team offense positions
@@ -32,9 +36,11 @@
 ---
 
 ### 📋 **Basic League Management**
+
 **Why it's critical:** Without this, it's not a league platform.
 
 **Must have:**
+
 - ✅ League creation and settings
 - ✅ Roster management (8-20 teams)
 - ✅ Standard roster positions (QB, RB, WR, TE, FLEX, K, DEF)
@@ -45,6 +51,7 @@
 - ✅ Basic league rules page
 
 **Can skip initially:**
+
 - ❌ Divisions/conferences
 - ❌ Custom roster positions beyond standard
 - ❌ "Play the median" double matchups
@@ -56,17 +63,20 @@
 ---
 
 ### 🏈 **Live Stats & Scoring**
+
 **Why it's critical:** Users need to see points accumulate during games.
 
 **Controversial take:** You can launch with **next-day scoring** for first 50 beta leagues, but you NEED live scoring before asking people to pay.
 
 **Must have:**
+
 - ✅ Live scoring during NFL games (15-30 second delay acceptable)
 - ✅ Player stats display
 - ✅ Score breakdowns (show how points were earned)
 - ✅ Week-by-week historical scores
 
 **Can skip initially:**
+
 - ❌ Real-time play-by-play updates
 - ❌ Audio announcements
 - ❌ Projected scores during games
@@ -77,15 +87,18 @@
 ---
 
 ### 📱 **Mobile-Responsive Interface**
+
 **Why it's critical:** MFL's mobile experience is terrible. This is a key differentiator.
 
 **Must have:**
+
 - ✅ Works perfectly on mobile browsers
 - ✅ Set lineups on mobile
 - ✅ View scores on mobile
 - ✅ Accept/reject trades on mobile
 
 **Can skip initially:**
+
 - ❌ Native iOS/Android apps
 - ❌ Push notifications
 - ❌ Offline mode
@@ -95,12 +108,15 @@
 ---
 
 ## Tier 2: MUST-HAVE BEFORE CHARGING
-### *Not dealbreakers for beta, but required before asking $50/league*
+
+### _Not dealbreakers for beta, but required before asking $50/league_
 
 ### 🎲 **Draft Tools**
+
 **Why it matters:** Leagues can't start without a draft. This must work flawlessly.
 
 **Must have:**
+
 - ✅ Snake draft (live, online)
 - ✅ Draft board showing all picks
 - ✅ Player search/filter during draft
@@ -109,6 +125,7 @@
 - ✅ Draft recap/results page
 
 **Can skip initially:**
+
 - ❌ Auction drafts (only 20-30% of leagues use these)
 - ❌ Email/offline drafts
 - ❌ Integration with third-party draft tools
@@ -120,9 +137,11 @@
 ---
 
 ### 🔄 **Waivers & Free Agency**
+
 **Why it matters:** League management requires roster moves throughout season.
 
 **Must have:**
+
 - ✅ FAAB (blind bidding) waivers
 - ✅ Waiver priority system (rolling or reset)
 - ✅ Free agent pickups (first-come-first-served)
@@ -130,6 +149,7 @@
 - ✅ Waiver processing schedule
 
 **Can skip initially:**
+
 - ❌ Hybrid waiver systems (FAAB + FCFS)
 - ❌ Custom lockout periods for dropped players
 - ❌ "No waiver" time windows
@@ -140,9 +160,11 @@
 ---
 
 ### 🤝 **Trading System**
+
 **Why it matters:** Trading is core to fantasy football. But it doesn't need to be fancy.
 
 **Must have:**
+
 - ✅ Propose trades (players for players)
 - ✅ View/accept/reject trade offers
 - ✅ Commissioner can push through trades
@@ -151,6 +173,7 @@
 - ✅ Trade history/log
 
 **Can skip initially:**
+
 - ❌ Future draft pick trades (dynasty feature)
 - ❌ Multi-team trades (3+ teams)
 - ❌ FAAB dollar trades
@@ -162,15 +185,18 @@
 ---
 
 ### 🏆 **Playoff System**
+
 **Why it matters:** Need to crown a champion. But this is end-of-season, so you have time.
 
 **Must have:**
+
 - ✅ Playoff bracket (4 or 6 teams)
 - ✅ Configurable playoff weeks
 - ✅ Playoff seeding based on standings
 - ✅ Playoff matchup scoring
 
 **Can skip initially:**
+
 - ❌ Toilet bowl bracket
 - ❌ Custom playoff formats
 - ❌ Reseeding between rounds
@@ -181,12 +207,15 @@
 ---
 
 ## Tier 3: IMPORTANT BUT NOT FOR 500 LEAGUES
-### *Build these in Year 2-3 as you scale*
+
+### _Build these in Year 2-3 as you scale_
 
 ### 👑 **Dynasty/Keeper Features**
+
 **Why it's not critical initially:** Focus on redraft leagues first, add dynasty later.
 
 **What you're skipping:**
+
 - ❌ Multi-year rosters
 - ❌ Keeper selection interface
 - ❌ Rookie drafts
@@ -201,9 +230,11 @@
 ---
 
 ### 💰 **Salary Cap & Contracts**
+
 **Why it's not critical initially:** Only used by ~10% of leagues.
 
 **What you're skipping:**
+
 - ❌ Player salaries
 - ❌ Salary cap management
 - ❌ Contract length/escalation
@@ -214,9 +245,11 @@
 ---
 
 ### 📊 **Advanced Analytics**
+
 **Why it's not critical initially:** Nice-to-have, not need-to-have.
 
 **What you're skipping:**
+
 - ❌ Strength of schedule
 - ❌ Points against analysis
 - ❌ Power rankings
@@ -229,9 +262,11 @@
 ---
 
 ### 💬 **Communication Features**
+
 **Why it's not critical initially:** Leagues use GroupMe, Slack, Discord already.
 
 **What you're skipping:**
+
 - ❌ League message boards
 - ❌ Chat functionality
 - ❌ League polls
@@ -245,9 +280,11 @@
 ---
 
 ### 🛠️ **Commissioner Power Tools**
+
 **Why it's not critical initially:** Basic commissioner controls are enough for MVP.
 
 **What you're skipping:**
+
 - ❌ Manual score adjustments
 - ❌ Accounting/dues tracking
 - ❌ Franchise ownership transfer tools
@@ -260,7 +297,8 @@
 ---
 
 ## Tier 4: NEVER BUILD (Unless Proven Demand)
-### *Let other platforms handle these*
+
+### _Let other platforms handle these_
 
 - ❌ **IDP "True Position" scoring** - Too niche, very complex
 - ❌ **Team offense positions** - Almost nobody uses this
@@ -275,23 +313,23 @@
 
 ## The MVP Feature Matrix
 
-| Feature | Build for Beta (50 leagues) | Build for Launch (500 leagues) | Build Year 2+ |
-|---------|----------------------------|--------------------------------|---------------|
-| **Custom Scoring Engine** | ✅ CRITICAL | ✅ Enhanced | ✅ Refine |
-| **League Management** | ✅ CRITICAL | ✅ Polish | ✅ Add divisions |
-| **Next-Day Scoring** | ✅ OK for beta | ❌ | ❌ |
-| **Live Scoring** | ❌ Can wait | ✅ REQUIRED | ✅ Optimize |
-| **Mobile Responsive** | ✅ CRITICAL | ✅ CRITICAL | ✅ CRITICAL |
-| **Snake Draft** | ✅ CRITICAL | ✅ CRITICAL | ✅ CRITICAL |
-| **Auction Draft** | ❌ | ❌ | ✅ Add Year 2 |
-| **FAAB Waivers** | ✅ REQUIRED | ✅ REQUIRED | ✅ REQUIRED |
-| **Trading** | ✅ Basic only | ✅ Full featured | ✅ Add pick trading |
-| **Playoffs** | ⚠️ Can build during season | ✅ REQUIRED | ✅ Add options |
-| **Dynasty Features** | ❌ | ❌ | ✅ Build Year 2 |
-| **Salary Cap** | ❌ | ❌ | ✅ Build Year 3 |
-| **Analytics** | ❌ | ❌ | ✅ Partner or build |
-| **Message Boards** | ❌ | ❌ | ⚠️ Maybe Year 2 |
-| **IDP Support** | ❌ | ❌ | ⚠️ If demanded |
+| Feature                   | Build for Beta (50 leagues) | Build for Launch (500 leagues) | Build Year 2+       |
+| ------------------------- | --------------------------- | ------------------------------ | ------------------- |
+| **Custom Scoring Engine** | ✅ CRITICAL                 | ✅ Enhanced                    | ✅ Refine           |
+| **League Management**     | ✅ CRITICAL                 | ✅ Polish                      | ✅ Add divisions    |
+| **Next-Day Scoring**      | ✅ OK for beta              | ❌                             | ❌                  |
+| **Live Scoring**          | ❌ Can wait                 | ✅ REQUIRED                    | ✅ Optimize         |
+| **Mobile Responsive**     | ✅ CRITICAL                 | ✅ CRITICAL                    | ✅ CRITICAL         |
+| **Snake Draft**           | ✅ CRITICAL                 | ✅ CRITICAL                    | ✅ CRITICAL         |
+| **Auction Draft**         | ❌                          | ❌                             | ✅ Add Year 2       |
+| **FAAB Waivers**          | ✅ REQUIRED                 | ✅ REQUIRED                    | ✅ REQUIRED         |
+| **Trading**               | ✅ Basic only               | ✅ Full featured               | ✅ Add pick trading |
+| **Playoffs**              | ⚠️ Can build during season  | ✅ REQUIRED                    | ✅ Add options      |
+| **Dynasty Features**      | ❌                          | ❌                             | ✅ Build Year 2     |
+| **Salary Cap**            | ❌                          | ❌                             | ✅ Build Year 3     |
+| **Analytics**             | ❌                          | ❌                             | ✅ Partner or build |
+| **Message Boards**        | ❌                          | ❌                             | ⚠️ Maybe Year 2     |
+| **IDP Support**           | ❌                          | ❌                             | ⚠️ If demanded      |
 
 ---
 
@@ -364,9 +402,11 @@
 ## Validation Strategy: Getting to 500 Leagues
 
 ### Phase 1: Beta (Leagues 1-50)
+
 **Target:** MFL power users who will tolerate rough edges
 
 **What you need:**
+
 - Custom scoring engine ✅
 - Basic league management ✅
 - Next-day scoring (live scoring can wait)
@@ -375,6 +415,7 @@
 - Basic trades ✅
 
 **How to recruit:**
+
 - r/DynastyFF posts
 - Tweet at fantasy football podcasts
 - Direct outreach to MFL frustrated users
@@ -385,15 +426,18 @@
 ---
 
 ### Phase 2: Early Adopters (Leagues 51-200)
+
 **Target:** Commissioners looking for better UX, willing to switch
 
 **What you need:**
+
 - Everything from Phase 1 ✅
 - Live scoring ✅ (REQUIRED)
 - Polish on all features
 - Playoff brackets ✅
 
 **How to recruit:**
+
 - Word-of-mouth from beta users
 - Content marketing ("How to build perfect TE Premium league")
 - Reddit sponsorship posts
@@ -404,9 +448,11 @@
 ---
 
 ### Phase 3: Growth (Leagues 201-500)
+
 **Target:** Broader "engaged enthusiast" segment
 
 **What you need:**
+
 - Everything from Phase 2 ✅
 - Rock-solid reliability
 - Fast customer support
@@ -414,6 +460,7 @@
 - Maybe dynasty features if demanded
 
 **How to recruit:**
+
 - SEO ("best fantasy football platform with custom scoring")
 - Podcast sponsorships
 - Comparison pages (vs MFL, vs Sleeper)
@@ -430,6 +477,7 @@
 You're building ~15 features in 6 months.
 
 That's 15% of their feature count, but it will deliver 80%+ of the value because:
+
 1. Your scoring engine is better (modern, visual, intuitive)
 2. Your UX is 10x better (mobile-first, fast, beautiful)
 3. Your core features actually work well (vs MFL's clunky everything)
@@ -443,23 +491,27 @@ That's 15% of their feature count, but it will deliver 80%+ of the value because
 When users ask "Can you add [feature X]?", use this framework:
 
 ### ✅ Build it if:
+
 - It's blocking a paid conversion
 - 30%+ of users request it
 - It's table stakes (everyone expects it)
 - It differentiates you from competitors
 
 ### ⏸️ Defer it if:
+
 - <10% of users need it
 - Workarounds exist
 - It's complex and niche
 - Other platforms do it well
 
 ### ❌ Never build if:
+
 - <3% of users need it
 - It pulls you away from core value prop
 - Maintenance burden is high
 
 **Example applications:**
+
 - "Add auction drafts" → ⏸️ Defer (20% need it, but big effort)
 - "Add TE Premium template" → ✅ Build it (quick win, high demand)
 - "Add IDP True Position scoring" → ❌ Never (tiny niche, huge complexity)
@@ -471,6 +523,7 @@ When users ask "Can you add [feature X]?", use this framework:
 **Your MVP is 4-6 months of full-time development work.**
 
 Build these 8 things really well:
+
 1. Custom scoring engine
 2. League management basics
 3. Live scoring

@@ -9,6 +9,7 @@ Complete database schema for the fantasy football platform.
 ## Core Tables
 
 ### users
+
 **Purpose:** User accounts for platform authentication and ownership
 | Column | Type | Notes |
 |--------|------|-------|
@@ -20,6 +21,7 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 ### leagues
+
 **Purpose:** Stable league "franchises" that persist across seasons
 | Column | Type | Notes |
 |--------|------|-------|
@@ -30,11 +32,13 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 **Notes:**
+
 - This is the stable league identity
 - URL: `/leagues/abc-123` shows all seasons
 - Commissioner can change ownership
 
 ### league_seasons
+
 **Purpose:** Yearly instances of a league
 | Column | Type | Notes |
 |--------|------|-------|
@@ -46,14 +50,17 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 **Indexes:**
+
 - `league_id, season` (unique) - one season per year per league
 
 **Notes:**
+
 - Status lifecycle: setup → active → completed → archived
 - URL: `/leagues/abc-123/seasons/2024`
 - Most queries will be against the active season
 
 ### teams
+
 **Purpose:** Stable team "franchises" within a league
 | Column | Type | Notes |
 |--------|------|-------|
@@ -65,11 +72,13 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 **Notes:**
+
 - Stable team identity within a league
 - Owner can change between seasons (trades/takeovers)
 - Team belongs to parent league, participates in seasons via team_seasons
 
 ### team_seasons
+
 **Purpose:** Team participation in a specific season
 | Column | Type | Notes |
 |--------|------|-------|
@@ -87,15 +96,18 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 **Indexes:**
+
 - `team_id, league_season_id` (unique) - team participates once per season
 - `league_season_id` - for standings queries
 
 **Notes:**
+
 - Tracks season-specific performance
 - `is_active = false` for teams that sat out a season
 - Stats denormalized here for fast standings queries
 
 ### players
+
 **Purpose:** Core NFL player identities (season-agnostic)
 | Column | Type | Notes |
 |--------|------|-------|
@@ -106,6 +118,7 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 **Notes:**
+
 - Stable player identity
 - Position and NFL team are season-specific (see `player_seasons`)
 
@@ -114,6 +127,7 @@ Complete database schema for the fantasy football platform.
 ## League Configuration
 
 ### league_settings
+
 **Purpose:** All league configuration per season (roster config + scoring rules)
 | Column | Type | Notes |
 |--------|------|-------|
@@ -129,6 +143,7 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 **Notes:**
+
 - One settings config per season (can change year to year)
 - Settings can be copied from previous season
 - JSONB allows flexible structure
@@ -138,6 +153,7 @@ Complete database schema for the fantasy football platform.
 ## Player Data
 
 ### player_seasons
+
 **Purpose:** Season-specific player data (NFL team, position, status)
 | Column | Type | Notes |
 |--------|------|-------|
@@ -152,14 +168,17 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 **Indexes:**
+
 - `player_id, season` (unique) - one entry per player per season
 
 **Notes:**
+
 - Position can change year-to-year (e.g., Taysom Hill)
 - NFL team changes via trades/free agency
 - Status tracks availability
 
 ### player_weekly_stats
+
 **Purpose:** Weekly NFL stats for score calculations
 | Column | Type | Notes |
 |--------|------|-------|
@@ -185,10 +204,12 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 **Indexes:**
+
 - `player_id, season, week_number` (unique) - one stat line per player per week
 - `season, week_number` - for bulk week queries
 
 **Notes:**
+
 - All stat columns nullable (not all positions use all stats)
 - Data sourced from FTN Data or SportsDataIO API
 - Cache strategy: completed weeks never change, live weeks have 30s TTL
@@ -198,6 +219,7 @@ Complete database schema for the fantasy football platform.
 ## Rosters & Matchups
 
 ### roster_players
+
 **Purpose:** Which NFL players are on which team's roster for a specific season
 | Column | Type | Notes |
 |--------|------|-------|
@@ -210,16 +232,19 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 **Indexes:**
+
 - `team_season_id, player_id` (unique) - player rostered once per team per season
 - `team_season_id` - for fetching team rosters
 
 **Notes:**
+
 - Tied to team_season (rosters are season-specific)
 - Slot type determines lineup position
 - BENCH = not starting, anything else = starting
 - Players can be on multiple teams across different leagues/seasons
 
 ### matchups
+
 **Purpose:** Weekly head-to-head matchups between teams
 | Column | Type | Notes |
 |--------|------|-------|
@@ -234,10 +259,12 @@ Complete database schema for the fantasy football platform.
 | updated_at | timestamp | Auto-set |
 
 **Indexes:**
+
 - `league_season_id, week_number` - for fetching weekly matchups
 - `team1_season_id, team2_season_id` - for team schedule views
 
 **Notes:**
+
 - Scores calculated on-the-fly from player stats and cached here
 - `team2_season_id` nullable supports BYE weeks (odd number of teams)
 - Commissioner can manually adjust scores if needed
@@ -295,6 +322,7 @@ players (core identity)
 ## Example Queries
 
 ### Get all seasons for a league
+
 ```sql
 SELECT * FROM league_seasons
 WHERE league_id = 'abc-123'
@@ -302,6 +330,7 @@ ORDER BY season DESC;
 ```
 
 ### Get current season's teams
+
 ```sql
 SELECT teams.*, team_seasons.wins, team_seasons.losses
 FROM teams
@@ -312,6 +341,7 @@ ORDER BY team_seasons.wins DESC;
 ```
 
 ### Get team's history across all seasons
+
 ```sql
 SELECT
   ls.season,
@@ -326,6 +356,7 @@ ORDER BY ls.season DESC;
 ```
 
 ### Get player's roster history
+
 ```sql
 SELECT
   ls.season,
@@ -368,20 +399,24 @@ ORDER BY ls.season DESC, rp.acquired_at DESC;
 ## UX Implications
 
 **League Homepage** (`/leagues/abc-123`):
+
 - Shows all seasons with tabs/dropdown
 - Quick stats: years active, all-time champion, etc.
 - Defaults to current/most recent active season
 
 **Season View** (`/leagues/abc-123/seasons/2024`):
+
 - Matchups, standings, rosters for this specific season
 - Can navigate between seasons
 
 **Team Profile** (`/teams/xyz-456`):
+
 - Shows team history across all seasons
 - Season-by-season stats
 - All-time record
 
 **Benefits:**
+
 - Stable URLs for sharing
 - League history and rivalries preserved
 - Easy to copy settings from previous season

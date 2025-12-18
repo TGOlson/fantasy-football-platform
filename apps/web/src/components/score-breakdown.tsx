@@ -6,7 +6,10 @@ type ScoreBreakdownProps = {
   totalPoints: number;
 };
 
-export function ScoreBreakdown({ breakdown, totalPoints }: ScoreBreakdownProps) {
+export function ScoreBreakdown({
+  breakdown,
+  totalPoints,
+}: ScoreBreakdownProps) {
   return (
     <Paper p="md" withBorder radius="md" bg="gray.0">
       <Stack gap="xs">
@@ -31,7 +34,13 @@ export function ScoreBreakdown({ breakdown, totalPoints }: ScoreBreakdownProps) 
             <Text
               size="sm"
               fw={500}
-              c={item.pointValue > 0 ? 'green' : item.pointValue < 0 ? 'red' : 'dimmed'}
+              c={
+                item.pointValue > 0
+                  ? 'green'
+                  : item.pointValue < 0
+                    ? 'red'
+                    : 'dimmed'
+              }
             >
               {item.pointValue > 0 ? '+' : ''}
               {item.pointValue.toFixed(2)}

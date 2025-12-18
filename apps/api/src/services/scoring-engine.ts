@@ -42,77 +42,78 @@ export function calculateScore(
   let totalPoints = 0;
 
   // PASSING
-    const passingPoints = calculateCategoryScore(
-      stats,
-      position,
-      rules.passing,
-      'passing',
-      {
-        yards: stats.passingYards,
-        touchdowns: stats.passingTds,
-        interceptions: stats.passingInts,
-        completions: stats.completions,
-      },
-      breakdown
-    );
-    totalPoints += passingPoints;
+  const passingPoints = calculateCategoryScore(
+    stats,
+    position,
+    rules.passing,
+    'passing',
+    {
+      yards: stats.passingYards,
+      touchdowns: stats.passingTds,
+      interceptions: stats.passingInts,
+      completions: stats.completions,
+    },
+    breakdown
+  );
+  totalPoints += passingPoints;
 
   // RUSHING
-    const rushingPoints = calculateCategoryScore(
-      stats,
-      position,
-      rules.rushing,
-      'rushing',
-      {
-        yards: stats.rushingYards,
-        touchdowns: stats.rushingTds,
-        attempts: stats.rushingAttempts,
-      },
-      breakdown
-    );
-    totalPoints += rushingPoints;
+  const rushingPoints = calculateCategoryScore(
+    stats,
+    position,
+    rules.rushing,
+    'rushing',
+    {
+      yards: stats.rushingYards,
+      touchdowns: stats.rushingTds,
+      attempts: stats.rushingAttempts,
+    },
+    breakdown
+  );
+  totalPoints += rushingPoints;
 
   // RECEIVING
-    const receivingPoints = calculateCategoryScore(
-      stats,
-      position,
-      rules.receiving,
-      'receiving',
-      {
-        receptions: stats.receptions,
-        yards: stats.receivingYards,
-        touchdowns: stats.receivingTds,
-        targets: stats.targets,
-      },
-      breakdown
-    );
-    totalPoints += receivingPoints;
+  const receivingPoints = calculateCategoryScore(
+    stats,
+    position,
+    rules.receiving,
+    'receiving',
+    {
+      receptions: stats.receptions,
+      yards: stats.receivingYards,
+      touchdowns: stats.receivingTds,
+      targets: stats.targets,
+    },
+    breakdown
+  );
+  totalPoints += receivingPoints;
 
   // FUMBLES
-    const fumblesLost = stats.fumblesLost || 0;
-    const fumblePoints = fumblesLost * getScoringValue(rules.fumbles.lost, position);
+  const fumblesLost = stats.fumblesLost || 0;
+  const fumblePoints =
+    fumblesLost * getScoringValue(rules.fumbles.lost, position);
 
-    if (fumblesLost !== 0) {
-      breakdown.push({
-        category: 'Fumbles Lost',
-        statValue: fumblesLost,
-        pointValue: roundToTwo(fumblePoints),
-      });
-    }
+  if (fumblesLost !== 0) {
+    breakdown.push({
+      category: 'Fumbles Lost',
+      statValue: fumblesLost,
+      pointValue: roundToTwo(fumblePoints),
+    });
+  }
 
-    totalPoints += fumblePoints;
+  totalPoints += fumblePoints;
 
   // TWO-POINT CONVERSIONS
-    const twoPointers = stats.twoPointConversions || 0;
-    const conversionPoints =
-      twoPointers * getScoringValue(rules.twoPointConversions, position);
+  const twoPointers = stats.twoPointConversions || 0;
+  const conversionPoints =
+    twoPointers * getScoringValue(rules.twoPointConversions, position);
 
-    if (twoPointers !== 0) {
-      breakdown.push({
-        category: '2-Point Conversions',
-        statValue: twoPointers,
-        pointValue: roundToTwo(conversionPoints),
-      });
+  if (twoPointers !== 0) {
+    breakdown.push({
+      category: '2-Point Conversions',
+      statValue: twoPointers,
+      pointValue: roundToTwo(conversionPoints),
+    });
 
     totalPoints += conversionPoints;
   }
@@ -142,10 +143,16 @@ function calculateCategoryScore(
     if (statKey === 'bonuses') continue; // Handle bonuses separately
 
     const statValue = statValues[statKey] || 0;
-    const points = statValue * getScoringValue(scoringValue as ScoringValue, position);
+    const points =
+      statValue * getScoringValue(scoringValue as ScoringValue, position);
 
     if (statValue !== 0) {
-      const label = formatStatLabel(categoryName, statKey, position, scoringValue as ScoringValue);
+      const label = formatStatLabel(
+        categoryName,
+        statKey,
+        position,
+        scoringValue as ScoringValue
+      );
       breakdown.push({
         category: label,
         statValue,
@@ -180,7 +187,10 @@ function calculateCategoryScore(
 // HELPER FUNCTIONS
 // ============================================================================
 
-function getScoringValue(scoringValue: ScoringValue, position: Position): number {
+function getScoringValue(
+  scoringValue: ScoringValue,
+  position: Position
+): number {
   if (scoringValue.type === 'base') {
     return scoringValue.value;
   }
@@ -198,7 +208,10 @@ function evaluateBonus(stats: PlayerWeeklyStat, bonus: Bonus): boolean {
   );
 }
 
-function evaluateCondition(stats: PlayerWeeklyStat, condition: Condition): boolean {
+function evaluateCondition(
+  stats: PlayerWeeklyStat,
+  condition: Condition
+): boolean {
   const statValue = (stats as any)[condition.stat] || 0;
 
   switch (condition.operator) {
@@ -245,7 +258,8 @@ function formatStatLabel(
     statKey === 'receptions' &&
     scoringValue.type === 'position-specific'
   ) {
-    const positionValue = scoringValue.byPosition?.[position] ?? scoringValue.default;
+    const positionValue =
+      scoringValue.byPosition?.[position] ?? scoringValue.default;
     if (positionValue !== scoringValue.default) {
       return `${label} (${position} ${positionValue} PPR)`;
     }
@@ -265,7 +279,9 @@ function formatBonusName(bonus: Bonus): string {
     receptions: 'Receptions',
   };
 
-  const labels = bonus.when.map((c) => `${statLabels[c.stat] || c.stat} ${c.operator} ${c.value}`).join(", ")
+  const labels = bonus.when
+    .map((c) => `${statLabels[c.stat] || c.stat} ${c.operator} ${c.value}`)
+    .join(', ');
   return `${labels} Bonus`;
 }
 

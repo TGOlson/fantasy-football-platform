@@ -11,7 +11,10 @@ type HistoricalBannerProps = {
  * Banner shown when viewing a historical season.
  * Parent component should control visibility via isHistoricalYear from LeagueContext.
  */
-export function HistoricalBanner({ year, currentYearPath }: HistoricalBannerProps) {
+export function HistoricalBanner({
+  year,
+  currentYearPath,
+}: HistoricalBannerProps) {
   return (
     <Alert
       variant="light"
@@ -21,7 +24,11 @@ export function HistoricalBanner({ year, currentYearPath }: HistoricalBannerProp
     >
       <Group justify="space-between">
         <Text size="sm">
-          You're viewing the <Text span fw={600}>{year}</Text> season.
+          You're viewing the{' '}
+          <Text span fw={600}>
+            {year}
+          </Text>{' '}
+          season.
         </Text>
         <Anchor component={Link} to={currentYearPath} size="sm">
           View current season

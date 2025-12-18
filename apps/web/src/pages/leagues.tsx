@@ -1,7 +1,16 @@
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/lib/trpc';
-import { Button, Title, Text, SimpleGrid, Paper, Group, Center, Stack } from '@mantine/core';
+import {
+  Button,
+  Title,
+  Text,
+  SimpleGrid,
+  Paper,
+  Group,
+  Center,
+  Stack,
+} from '@mantine/core';
 
 export function LeaguesPage() {
   const { data: leagues, isLoading } = trpc.leagues.list.useQuery();
@@ -10,10 +19,10 @@ export function LeaguesPage() {
     <AppLayout>
       <Group justify="space-between" mb="xl">
         <div>
-          <Title order={1} mb="xs">Leagues</Title>
-          <Text c="dimmed">
-            Manage your fantasy football leagues
-          </Text>
+          <Title order={1} mb="xs">
+            Leagues
+          </Title>
+          <Text c="dimmed">Manage your fantasy football leagues</Text>
         </div>
         <Button>Create League</Button>
       </Group>
@@ -39,13 +48,16 @@ export function LeaguesPage() {
                 transition: 'border-color 0.2s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--mantine-color-violet-6)';
+                e.currentTarget.style.borderColor =
+                  'var(--mantine-color-violet-6)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = '';
               }}
             >
-              <Title order={3} size="h4" mb="xs">{league.name}</Title>
+              <Title order={3} size="h4" mb="xs">
+                {league.name}
+              </Title>
               <Text size="sm" c="dimmed" mb="md">
                 Season {league.currentSeason?.year || 'N/A'}
               </Text>
@@ -53,7 +65,9 @@ export function LeaguesPage() {
                 <Text size="sm" c="dimmed">
                   {league.currentSeason?.status || 'Setup'}
                 </Text>
-                <Text size="sm" c="violet">View →</Text>
+                <Text size="sm" c="violet">
+                  View →
+                </Text>
               </Group>
             </Paper>
           ))}
@@ -61,7 +75,9 @@ export function LeaguesPage() {
       ) : (
         <Paper withBorder p={60} radius="md">
           <Stack align="center" gap="md">
-            <Title order={3} size="h4">No leagues yet</Title>
+            <Title order={3} size="h4">
+              No leagues yet
+            </Title>
             <Text c="dimmed" mb="md">
               Create your first league to get started
             </Text>

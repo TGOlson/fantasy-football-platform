@@ -3,6 +3,7 @@
 ## The Data is Clear: Mobile is Critical
 
 **Key Statistics:**
+
 - **85% of Yahoo Fantasy users** use the mobile app (and 2/3 use it daily)
 - **76.7% of fantasy sports user activity** happens on mobile (2024)
 - **70%+ of fantasy players** use mobile devices primarily
@@ -17,7 +18,9 @@
 ## The Critical Insight: What Users Do Where
 
 ### Desktop/Laptop Activities (10-20% of time)
+
 **Complex, Infrequent Tasks:**
+
 - 🖥️ **League setup** (one time per season)
 - 🖥️ **Scoring configuration** (one time, maybe tweaked once)
 - 🖥️ **Draft preparation** (research, rankings)
@@ -29,7 +32,9 @@
 ---
 
 ### Mobile Activities (80-90% of time)
+
 **Quick, Frequent, Time-Sensitive Tasks:**
+
 - 📱 **Setting weekly lineups** (Sunday morning panic)
 - 📱 **Checking scores during games** (every 30 seconds on Sunday)
 - 📱 **Waiver claims** (Tuesday/Wednesday night)
@@ -50,6 +55,7 @@
 #### 1. **You're Competing with MFL, Not Sleeper**
 
 **MFL users' bar for mobile:**
+
 - Currently using a terrible mobile web experience
 - Many don't even use mobile, just desktop
 - Any modern mobile experience will feel like magic
@@ -61,12 +67,14 @@
 #### 2. **Your Differentiation is Desktop-First Anyway**
 
 Your killer feature (custom scoring configuration) is naturally a desktop experience:
+
 - Complex form inputs
 - Conditional logic builders
 - Testing/previewing scenarios
 - Importing/exporting configs
 
 **This is totally fine.** Think about it like:
+
 - **Stripe Dashboard:** Do complex payment setup on desktop
 - **Shopify:** Configure your store on desktop
 - **QuickBooks:** Setup books on desktop
@@ -74,6 +82,7 @@ Your killer feature (custom scoring configuration) is naturally a desktop experi
 But day-to-day operations work great on mobile.
 
 **Fantasy football should be the same:**
+
 - **Setup league & scoring** → Desktop (August, one time)
 - **Draft** → Ideally desktop, but mobile works
 - **Weekly lineup management** → Mobile (September-December, 17 weeks)
@@ -84,21 +93,23 @@ But day-to-day operations work great on mobile.
 
 **Time to build MVPs:**
 
-| Approach | Timeline | Maintenance |
-|----------|----------|-------------|
-| **Responsive web only** | 4-6 months | 1x codebase |
-| **Responsive web + React Native** | 6-9 months | 1.5x codebase |
-| **Responsive web + Native iOS/Android** | 8-12 months | 3x codebases |
+| Approach                                | Timeline    | Maintenance   |
+| --------------------------------------- | ----------- | ------------- |
+| **Responsive web only**                 | 4-6 months  | 1x codebase   |
+| **Responsive web + React Native**       | 6-9 months  | 1.5x codebase |
+| **Responsive web + Native iOS/Android** | 8-12 months | 3x codebases  |
 
 **For your first 500 leagues, speed beats perfection.**
 
 You need to:
+
 - Ship quickly
 - Iterate based on feedback
 - Pivot if needed
 - Add features fast
 
 Native apps mean:
+
 - ❌ Slower iteration (app store approval takes days)
 - ❌ Can't hotfix bugs instantly
 - ❌ Need iOS + Android expertise
@@ -109,6 +120,7 @@ Native apps mean:
 #### 4. **PWAs Are "Good Enough" in 2024**
 
 **Modern PWAs can do:**
+
 - ✅ Add to home screen (looks like native app)
 - ✅ Push notifications (yes, even on iOS now!)
 - ✅ Offline mode (cache recent data)
@@ -116,11 +128,13 @@ Native apps mean:
 - ✅ Access device features (camera, location)
 
 **What PWAs can't match:**
+
 - ❌ Slightly slower than true native
 - ❌ No app store discovery
 - ❌ Some advanced device features harder
 
 **But here's the thing:** Your users aren't discovering you via app store anyway. They're discovering you via:
+
 - Reddit posts
 - Word-of-mouth from league mates
 - Google searches
@@ -133,20 +147,24 @@ Native apps mean:
 ## The Recommended Strategy
 
 ### Phase 1: MVP (Leagues 1-500)
+
 **Build:** Mobile-responsive web app using modern stack
 
 **Tech approach:**
+
 - Next.js or similar (React-based)
 - Tailwind CSS for responsive design
 - Mobile-first design philosophy
 - PWA capabilities (service workers, manifest)
 
 **Design principles:**
+
 - Desktop: Optimized for complex tasks (scoring config, league setup)
 - Mobile: Optimized for frequent tasks (lineups, scores, waivers)
 - Tablet: Best of both worlds
 
 **What you're explicitly NOT building:**
+
 - ❌ Native iOS app
 - ❌ Native Android app
 - ❌ React Native app
@@ -154,9 +172,11 @@ Native apps mean:
 ---
 
 ### Phase 2: Polish (Leagues 500-2,000)
+
 **Goal:** Make mobile experience excellent, not just good
 
 **Improvements:**
+
 - PWA installation prompts ("Add to home screen")
 - Push notifications for important events
 - Offline mode for viewing rosters/scores
@@ -168,6 +188,7 @@ Native apps mean:
 ---
 
 ### Phase 3: Consider Native (Leagues 2,000+)
+
 **Only build native apps if:**
 
 1. ✅ Users are explicitly asking for them ("I wish this was a real app")
@@ -185,9 +206,11 @@ Native apps mean:
 **Don't apologize for desktop-optimized admin.** Market it as a feature:
 
 ### Marketing Message:
+
 > "Configure your league like a pro on desktop. Manage it like a boss on mobile."
 
 ### UX Flow:
+
 1. **Commissioner logs in on desktop** (August)
    - Spends 30 minutes building perfect scoring system
    - Uses visual rule builder, tests with last year's data
@@ -209,12 +232,12 @@ Native apps mean:
 
 ## Competitive Comparison
 
-| Platform | Mobile Strategy | Your Position |
-|----------|----------------|---------------|
-| **ESPN** | Native apps, good mobile | You need to match their mobile quality |
-| **Yahoo** | Native apps, 85% mobile usage | You need to match their mobile quality |
-| **Sleeper** | Native apps, mobile-first, excellent | You DON'T need to beat them |
-| **MFL** | Terrible mobile web | You need to be 10x better (easy) |
+| Platform    | Mobile Strategy                      | Your Position                          |
+| ----------- | ------------------------------------ | -------------------------------------- |
+| **ESPN**    | Native apps, good mobile             | You need to match their mobile quality |
+| **Yahoo**   | Native apps, 85% mobile usage        | You need to match their mobile quality |
+| **Sleeper** | Native apps, mobile-first, excellent | You DON'T need to beat them            |
+| **MFL**     | Terrible mobile web                  | You need to be 10x better (easy)       |
 
 **Target bar:** Be as good as ESPN/Yahoo mobile, but with MFL customization. That's a winning combo.
 
@@ -225,10 +248,12 @@ Native apps mean:
 ### Development Cost Comparison
 
 **Responsive Web App:**
+
 - Initial build: $30-50K (or 4-6 months solo)
 - Ongoing: $5-10K/month (or 1 developer)
 
 **+ Native iOS & Android:**
+
 - Initial build: +$80-120K (or +6-9 months)
 - Ongoing: +$15-25K/month (or +1.5 developers)
 
@@ -236,6 +261,7 @@ Native apps mean:
 **Saved time:** 6-9 months
 
 **That saved capital/time buys you:**
+
 - Better scoring engine
 - More polish on core features
 - Marketing budget
@@ -267,12 +293,12 @@ Native apps mean:
 
 **You're not competing with Sleeper.** Here's why:
 
-| Dimension | Sleeper | Your Platform |
-|-----------|---------|---------------|
-| **Target user** | Casual to engaged, dynasty | Engaged to hardcore, customization-seekers |
-| **Value prop** | Best mobile UX, social features | Maximum scoring flexibility |
-| **Price** | Free | $49-99/year |
-| **Mobile priority** | 100% mobile-first | 80% mobile, 20% desktop admin |
+| Dimension           | Sleeper                         | Your Platform                              |
+| ------------------- | ------------------------------- | ------------------------------------------ |
+| **Target user**     | Casual to engaged, dynasty      | Engaged to hardcore, customization-seekers |
+| **Value prop**      | Best mobile UX, social features | Maximum scoring flexibility                |
+| **Price**           | Free                            | $49-99/year                                |
+| **Mobile priority** | 100% mobile-first               | 80% mobile, 20% desktop admin              |
 
 **Sleeper users who want more customization will come to you despite not having native apps**, because you offer something they can't get anywhere else.
 
@@ -284,12 +310,12 @@ Native apps mean:
 
 **Think about your platform like B2B SaaS, not a consumer app:**
 
-| Consumer App | B2B SaaS | Your Platform |
-|--------------|----------|---------------|
-| TikTok, Instagram | Salesforce, HubSpot | Fantasy Football Platform |
-| Must be native | Web app is fine | **Web app is fine** |
-| Mobile-only | Desktop for admin, mobile for usage | **Desktop for admin, mobile for usage** |
-| Discovery via app store | Discovery via search, referrals | **Discovery via search, referrals** |
+| Consumer App            | B2B SaaS                            | Your Platform                           |
+| ----------------------- | ----------------------------------- | --------------------------------------- |
+| TikTok, Instagram       | Salesforce, HubSpot                 | Fantasy Football Platform               |
+| Must be native          | Web app is fine                     | **Web app is fine**                     |
+| Mobile-only             | Desktop for admin, mobile for usage | **Desktop for admin, mobile for usage** |
+| Discovery via app store | Discovery via search, referrals     | **Discovery via search, referrals**     |
 
 **Your commissioner is like a B2B admin.** They want power tools on desktop. Your league members are like B2B end-users. They want mobile convenience.
 
@@ -300,6 +326,7 @@ Native apps mean:
 ## Recommended Tech Stack
 
 ### Frontend
+
 ```
 Next.js 14+ (React)
 ├── Responsive design (Tailwind CSS)
@@ -309,6 +336,7 @@ Next.js 14+ (React)
 ```
 
 ### Mobile Optimization
+
 ```
 PWA Features
 ├── Service workers (offline mode)
@@ -318,6 +346,7 @@ PWA Features
 ```
 
 ### No Native Required
+
 - ❌ React Native
 - ❌ Swift/iOS
 - ❌ Kotlin/Android
@@ -364,6 +393,7 @@ PWA Features
 A **excellent PWA beats mediocre native apps** every time. And mediocre native apps are what you'll get if you split focus.
 
 **Your 500-league milestone requires:**
+
 - World-class scoring engine ← Desktop-first, complex
 - Excellent mobile experience for day-to-day usage ← PWA is perfect
 - Fast iteration based on feedback ← Web app wins

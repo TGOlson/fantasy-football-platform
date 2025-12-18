@@ -10,5 +10,6 @@
 - [ ] **2FA support** - Two-factor authentication for security
 
 ## Notes
+
 - Current implementation: Password-based auth with bcrypt + JWT
 - Keep password auth as fallback even after adding OAuth

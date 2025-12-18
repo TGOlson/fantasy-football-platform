@@ -14,21 +14,29 @@ import {
   Alert,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import type { ScoringRules, BaseScoringValue, ScoringValue } from '@fantasy-platform/types';
+import type {
+  ScoringRules,
+  BaseScoringValue,
+  ScoringValue,
+} from '@fantasy-platform/types';
 import { loader } from './loader';
 
 export function LeagueScoringSettingsPage() {
   const { league } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
-  const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
+  const { leagueSlug, year } = useParams<{
+    leagueSlug: string;
+    year: string;
+  }>();
   const navigate = useNavigate();
   const [isDirty, setIsDirty] = useState(false);
 
   const leagueSeasonId = league.activeSeason?.id;
 
-  const { data: scoringRules, isLoading } = trpc.scoring.getScoringRules.useQuery(
-    { leagueSeasonId: leagueSeasonId! },
-    { enabled: !!leagueSeasonId }
-  );
+  const { data: scoringRules, isLoading } =
+    trpc.scoring.getScoringRules.useQuery(
+      { leagueSeasonId: leagueSeasonId! },
+      { enabled: !!leagueSeasonId }
+    );
 
   const updateMutation = trpc.scoring.updateScoringRules.useMutation({
     onSuccess: () => {
@@ -72,7 +80,10 @@ export function LeagueScoringSettingsPage() {
 
     // TODO: better type here
     // @ts-expect-error not a good generic type for `stat`, should make this helper better typed
-    updated[category]![stat] = { type: 'base', value: newValue } satisfies BaseScoringValue;
+    updated[category]![stat] = {
+      type: 'base',
+      value: newValue,
+    } satisfies BaseScoringValue;
 
     setLocalRules(updated);
     setIsDirty(true);
@@ -82,7 +93,10 @@ export function LeagueScoringSettingsPage() {
     if (!localRules) return;
     setLocalRules({
       ...localRules,
-      twoPointConversions: { type: 'base', value: newValue } as BaseScoringValue,
+      twoPointConversions: {
+        type: 'base',
+        value: newValue,
+      } as BaseScoringValue,
     });
     setIsDirty(true);
   };
@@ -111,7 +125,9 @@ export function LeagueScoringSettingsPage() {
           <Title order={1} mb="xs">
             Scoring Settings
           </Title>
-          <Text c="dimmed">Configure how players earn points in your league</Text>
+          <Text c="dimmed">
+            Configure how players earn points in your league
+          </Text>
         </div>
 
         {isDirty && (
@@ -129,7 +145,9 @@ export function LeagueScoringSettingsPage() {
               label="Yards (points per yard)"
               description="Typically 0.04 (1 point per 25 yards)"
               value={getBaseValue(localRules.passing?.yards)}
-              onChange={(val) => updateBaseValue('passing', 'yards', Number(val))}
+              onChange={(val) =>
+                updateBaseValue('passing', 'yards', Number(val))
+              }
               step={0.01}
               decimalScale={2}
               min={-10}
@@ -138,7 +156,9 @@ export function LeagueScoringSettingsPage() {
             <NumberInput
               label="Touchdowns (points)"
               value={getBaseValue(localRules.passing?.touchdowns)}
-              onChange={(val) => updateBaseValue('passing', 'touchdowns', Number(val))}
+              onChange={(val) =>
+                updateBaseValue('passing', 'touchdowns', Number(val))
+              }
               min={-10}
               max={20}
             />
@@ -146,7 +166,9 @@ export function LeagueScoringSettingsPage() {
               label="Interceptions (points)"
               description="Usually negative (e.g., -2)"
               value={getBaseValue(localRules.passing?.interceptions)}
-              onChange={(val) => updateBaseValue('passing', 'interceptions', Number(val))}
+              onChange={(val) =>
+                updateBaseValue('passing', 'interceptions', Number(val))
+              }
               min={-10}
               max={10}
             />
@@ -162,7 +184,9 @@ export function LeagueScoringSettingsPage() {
               label="Yards (points per yard)"
               description="Typically 0.1 (1 point per 10 yards)"
               value={getBaseValue(localRules.rushing?.yards)}
-              onChange={(val) => updateBaseValue('rushing', 'yards', Number(val))}
+              onChange={(val) =>
+                updateBaseValue('rushing', 'yards', Number(val))
+              }
               step={0.01}
               decimalScale={2}
               min={-10}
@@ -171,7 +195,9 @@ export function LeagueScoringSettingsPage() {
             <NumberInput
               label="Touchdowns (points)"
               value={getBaseValue(localRules.rushing?.touchdowns)}
-              onChange={(val) => updateBaseValue('rushing', 'touchdowns', Number(val))}
+              onChange={(val) =>
+                updateBaseValue('rushing', 'touchdowns', Number(val))
+              }
               min={-10}
               max={20}
             />
@@ -187,7 +213,9 @@ export function LeagueScoringSettingsPage() {
               label="Receptions / PPR (points per reception)"
               description="0 = Standard, 0.5 = Half PPR, 1.0 = Full PPR"
               value={getBaseValue(localRules.receiving?.receptions)}
-              onChange={(val) => updateBaseValue('receiving', 'receptions', Number(val))}
+              onChange={(val) =>
+                updateBaseValue('receiving', 'receptions', Number(val))
+              }
               step={0.1}
               decimalScale={1}
               min={0}
@@ -197,7 +225,9 @@ export function LeagueScoringSettingsPage() {
               label="Yards (points per yard)"
               description="Typically 0.1 (1 point per 10 yards)"
               value={getBaseValue(localRules.receiving?.yards)}
-              onChange={(val) => updateBaseValue('receiving', 'yards', Number(val))}
+              onChange={(val) =>
+                updateBaseValue('receiving', 'yards', Number(val))
+              }
               step={0.01}
               decimalScale={2}
               min={-10}
@@ -206,7 +236,9 @@ export function LeagueScoringSettingsPage() {
             <NumberInput
               label="Touchdowns (points)"
               value={getBaseValue(localRules.receiving?.touchdowns)}
-              onChange={(val) => updateBaseValue('receiving', 'touchdowns', Number(val))}
+              onChange={(val) =>
+                updateBaseValue('receiving', 'touchdowns', Number(val))
+              }
               min={-10}
               max={20}
             />
@@ -222,7 +254,9 @@ export function LeagueScoringSettingsPage() {
               label="Fumbles Lost (points)"
               description="Usually negative (e.g., -2)"
               value={getBaseValue(localRules.fumbles?.lost)}
-              onChange={(val) => updateBaseValue('fumbles', 'lost', Number(val))}
+              onChange={(val) =>
+                updateBaseValue('fumbles', 'lost', Number(val))
+              }
               min={-10}
               max={10}
             />
@@ -239,10 +273,17 @@ export function LeagueScoringSettingsPage() {
         <Divider />
 
         <Group justify="space-between">
-          <Button variant="subtle" onClick={() => navigate(`/${leagueSlug}/${year}`)}>
+          <Button
+            variant="subtle"
+            onClick={() => navigate(`/${leagueSlug}/${year}`)}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} loading={updateMutation.isPending} disabled={!isDirty}>
+          <Button
+            onClick={handleSave}
+            loading={updateMutation.isPending}
+            disabled={!isDirty}
+          >
             Save Changes
           </Button>
         </Group>

@@ -7,12 +7,7 @@ export {
   CURRENT_SEASON,
 } from './constants';
 
-export type {
-  NflTeam,
-  Position,
-  RosterSlot,
-  PlayerStatus,
-} from './constants';
+export type { NflTeam, Position, RosterSlot, PlayerStatus } from './constants';
 
 // Export scoring types
 export type {

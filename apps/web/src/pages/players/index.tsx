@@ -7,12 +7,21 @@ import { POSITIONS, NFL_TEAMS } from '@fantasy-platform/types';
 import { TextInput, Select, Group, Text, Stack, Paper } from '@mantine/core';
 import { IconSearch } from '@tabler/icons-react';
 import { DataTable } from 'mantine-datatable';
-import { PageHeader, PlayerCell, PositionBadge, HistoricalBanner } from '@/components/ui';
+import {
+  PageHeader,
+  PlayerCell,
+  PositionBadge,
+  HistoricalBanner,
+} from '@/components/ui';
 
 export function PlayersPage() {
   const navigate = useNavigate();
-  const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
-  const { league, leagueSeason, isHistoricalYear, mostRecentLeagueYear } = useLeague();
+  const { leagueSlug, year } = useParams<{
+    leagueSlug: string;
+    year: string;
+  }>();
+  const { league, leagueSeason, isHistoricalYear, mostRecentLeagueYear } =
+    useLeague();
 
   const [search, setSearch] = useState('');
   const [position, setPosition] = useState<string | null>(null);

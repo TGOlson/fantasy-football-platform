@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TextInput, PasswordInput, Button, Paper, Title, Text, Container, Alert } from '@mantine/core';
+import {
+  TextInput,
+  PasswordInput,
+  Button,
+  Paper,
+  Title,
+  Text,
+  Container,
+  Alert,
+} from '@mantine/core';
 import { useAuth } from '@/lib/auth-context';
 import { trpc } from '@/lib/trpc';
 
@@ -66,18 +75,17 @@ export function LoginPage() {
             </Alert>
           )}
 
-          <Button
-            type="submit"
-            fullWidth
-            loading={loginMutation.isPending}
-          >
+          <Button type="submit" fullWidth loading={loginMutation.isPending}>
             Sign in
           </Button>
         </form>
 
         <Text c="dimmed" size="sm" ta="center" mt="md">
           Don't have an account?{' '}
-          <Link to="/register" style={{ color: 'var(--mantine-color-violet-6)' }}>
+          <Link
+            to="/register"
+            style={{ color: 'var(--mantine-color-violet-6)' }}
+          >
             Sign up
           </Link>
         </Text>

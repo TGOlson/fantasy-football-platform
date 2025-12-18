@@ -32,11 +32,18 @@ type LeagueProviderProps = {
 
 export function LeagueProvider({ children }: LeagueProviderProps) {
   const { user } = useAuth();
-  const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
+  const { leagueSlug, year } = useParams<{
+    leagueSlug: string;
+    year: string;
+  }>();
   const season = year ? parseInt(year) : undefined;
 
   // Fetch current league/season data
-  const { data: leagueData, isLoading, error } = trpc.leagues.getBySlug.useQuery(
+  const {
+    data: leagueData,
+    isLoading,
+    error,
+  } = trpc.leagues.getBySlug.useQuery(
     { slug: leagueSlug!, season: season! },
     { enabled: !!leagueSlug && !!season }
   );
@@ -44,7 +51,10 @@ export function LeagueProvider({ children }: LeagueProviderProps) {
   // Fetch all seasons to determine most recent year
   const { data: leagues } = trpc.leagues.list.useQuery();
   const currentLeagueFromList = leagues?.find((l) => l.slug === leagueSlug);
-  const mostRecentLeagueYear = currentLeagueFromList?.currentSeason?.year ?? season ?? new Date().getFullYear();
+  const mostRecentLeagueYear =
+    currentLeagueFromList?.currentSeason?.year ??
+    season ??
+    new Date().getFullYear();
 
   if (!leagueSlug || !season) {
     return (
@@ -59,7 +69,9 @@ export function LeagueProvider({ children }: LeagueProviderProps) {
       <Center h="100vh">
         <Stack align="center" gap="sm">
           <Loader color="violet" />
-          <Text c="dimmed" size="sm">Loading league...</Text>
+          <Text c="dimmed" size="sm">
+            Loading league...
+          </Text>
         </Stack>
       </Center>
     );
@@ -89,16 +101,16 @@ export function LeagueProvider({ children }: LeagueProviderProps) {
       year: leagueData.activeSeason!.year,
       status: leagueData.activeSeason!.status,
     },
-    myFranchise: myFranchise ? { id: myFranchise.id, name: myFranchise.name } : null,
+    myFranchise: myFranchise
+      ? { id: myFranchise.id, name: myFranchise.name }
+      : null,
     isCommissioner: leagueData.commissioner?.id === user?.id,
     isHistoricalYear: season < mostRecentLeagueYear,
     mostRecentLeagueYear,
   };
 
   return (
-    <LeagueContext.Provider value={value}>
-      {children}
-    </LeagueContext.Provider>
+    <LeagueContext.Provider value={value}>{children}</LeagueContext.Provider>
   );
 }
 

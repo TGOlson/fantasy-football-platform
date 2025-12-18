@@ -5,6 +5,7 @@
 **Goal**: A clean, modern, data-dense interface that feels polished and professional. Inspired by Linear, Vercel, and Raycast - apps that handle complex information elegantly.
 
 **Core Principles**:
+
 - Compact without feeling cramped
 - Data-heavy without overwhelming
 - Subtle color accents for status/state
@@ -16,12 +17,14 @@
 ## Current State Assessment
 
 ### What's Working
+
 - Violet primary color (good starting point)
 - Consistent use of `Paper`, `Badge`, `Stack`, `Group`
 - `mantine-datatable` for data tables
 - Basic responsive grid layouts
 
 ### Gaps to Address
+
 - Sidebar: Plain text links, no icons, minimal hierarchy
 - Tables: No row actions, limited visual density
 - Headers: Missing breadcrumbs, context actions
@@ -36,6 +39,7 @@
 ### 1. App Layout / Navigation
 
 **Sidebar Structure**:
+
 ```
 ┌─────────────────────┐
 │ Logo + App Name     │ ← Compact header (40px)
@@ -58,6 +62,7 @@
 ```
 
 **Key Changes**:
+
 - Add icons to all nav items (use `@tabler/icons-react`)
 - League selector dropdown at top when in league context
 - Collapsible sidebar option
@@ -66,6 +71,7 @@
 - Header: Remove full-width header, integrate into sidebar or use minimal top bar
 
 **Mantine Components**:
+
 - `AppShell` with `navbar.width: 220`
 - `NavLink` with `leftSection` for icons
 - `Select` or `Menu` for league selector
@@ -75,6 +81,7 @@
 ### 2. Page Headers
 
 **Pattern**:
+
 ```
 ┌────────────────────────────────────────────────┐
 │ Breadcrumb (dimmed): League > Teams > Team X   │
@@ -84,6 +91,7 @@
 ```
 
 **Mantine Components**:
+
 - `Breadcrumbs` with `separator="›"`
 - `Group` for title row
 - `ActionIcon` for header actions
@@ -93,6 +101,7 @@
 
 **Current**: Paper with label + large number
 **Enhanced**:
+
 ```
 ┌─────────────────┐
 │ Label      [i]  │  ← Optional info tooltip
@@ -102,12 +111,14 @@
 ```
 
 **Styling**:
+
 - Subtle border (`borderColor: 'gray.2'`)
 - No heavy shadows
 - Compact padding (`p="sm"`)
 - Trend colors: green for positive, red for negative
 
 **Mantine Components**:
+
 - `Paper` with `withBorder`
 - `Tooltip` for info icons
 - `ThemeIcon` for trend indicators
@@ -115,12 +126,14 @@
 ### 4. Data Tables (Player List, Roster)
 
 **Column Types**:
+
 - **Player Cell**: Avatar + Name + Team/Position badge
 - **Stat Cell**: Right-aligned numbers, monospace optional
 - **Status Cell**: Colored badge (active/injured/bye)
 - **Action Cell**: Hover-reveal action icons
 
 **Table Styling**:
+
 ```tsx
 <DataTable
   withTableBorder
@@ -128,12 +141,13 @@
   horizontalSpacing="sm"
   verticalSpacing="xs"
   highlightOnHover
-  striped={false}  // Prefer hover over stripes
+  striped={false} // Prefer hover over stripes
   rowStyle={{ cursor: 'pointer' }}
 />
 ```
 
 **Player Cell Component**:
+
 ```
 ┌────────────────────────────────┐
 │ [Av] Player Name      QB • KC │
@@ -144,6 +158,7 @@
 ### 5. Position Badges
 
 **Color Mapping** (use Mantine colors):
+
 ```
 QB  → violet
 RB  → blue
@@ -154,13 +169,17 @@ DEF → red
 ```
 
 **Badge Style**:
+
 ```tsx
-<Badge variant="light" size="sm" radius="sm">QB</Badge>
+<Badge variant="light" size="sm" radius="sm">
+  QB
+</Badge>
 ```
 
 ### 6. Status Indicators
 
 **Player Status**:
+
 - Active: no badge (clean default)
 - Questionable: yellow badge "Q"
 - Doubtful: orange badge "D"
@@ -169,6 +188,7 @@ DEF → red
 - Bye: gray badge "BYE"
 
 **League/Season Status**:
+
 - Setup: gray
 - Drafting: blue
 - In Progress: green
@@ -318,18 +338,21 @@ export const theme = createTheme({
 URLs include year (`/:leagueSlug/:year/...`) but we don't clutter the UI with year badges for the current season.
 
 **Rules:**
+
 - Year is always in the URL for deep linking
 - Current year: No year badge, no special treatment
 - Historical year: Show `HistoricalBanner` at top of page with link to current season
 - Subtitles may include year only for historical views
 
 **HistoricalBanner Component:**
+
 ```tsx
 <HistoricalBanner
   year={season}
   currentYearPath={`/${leagueSlug}/${currentYear}/players`}
 />
 ```
+
 - Returns `null` if year >= current year
 - Gray alert with history icon
 - Shows "You're viewing the 2023 season" + link to current
@@ -340,23 +363,23 @@ URLs include year (`/:leagueSlug/:year/...`) but we don't clutter the UI with ye
 
 ### Core UI Components (`components/ui/`)
 
-| Component | Status | Description |
-|-----------|--------|-------------|
-| `PositionBadge` | Done | Color-coded position badge (QB=violet, RB=blue, etc.) |
-| `StatusBadge` | Done | Player injury status (Q, D, O, IR, BYE) |
-| `PlayerCell` | Done | Avatar + name + position/team for tables |
-| `StatCard` | Done | Stat display with optional trend and info tooltip |
-| `PageHeader` | Done | Breadcrumbs + title + badges + actions |
-| `HistoricalBanner` | Done | Historical year alert banner |
+| Component          | Status | Description                                           |
+| ------------------ | ------ | ----------------------------------------------------- |
+| `PositionBadge`    | Done   | Color-coded position badge (QB=violet, RB=blue, etc.) |
+| `StatusBadge`      | Done   | Player injury status (Q, D, O, IR, BYE)               |
+| `PlayerCell`       | Done   | Avatar + name + position/team for tables              |
+| `StatCard`         | Done   | Stat display with optional trend and info tooltip     |
+| `PageHeader`       | Done   | Breadcrumbs + title + badges + actions                |
+| `HistoricalBanner` | Done   | Historical year alert banner                          |
 
 ### Future Components
 
-| Component | Description |
-|-----------|-------------|
-| `MatchupCard` | Head-to-head matchup display |
-| `RosterSlot` | Draggable roster position |
-| `EmptyState` | Consistent empty state pattern |
-| `LoadingSkeleton` | Skeleton loading states |
+| Component         | Description                    |
+| ----------------- | ------------------------------ |
+| `MatchupCard`     | Head-to-head matchup display   |
+| `RosterSlot`      | Draggable roster position      |
+| `EmptyState`      | Consistent empty state pattern |
+| `LoadingSkeleton` | Skeleton loading states        |
 
 ---
 

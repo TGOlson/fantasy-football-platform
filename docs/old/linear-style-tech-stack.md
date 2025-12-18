@@ -1,4 +1,5 @@
 # Building a Linear-Style Fantasy Platform
+
 ## Tech Stack & Design System for Fast, Scalable MVP
 
 ---
@@ -6,6 +7,7 @@
 ## The Linear Aesthetic: What Makes It Work
 
 **Linear's design principles:**
+
 - ✨ **Obsessive attention to detail** (micro-interactions, transitions)
 - ⚡ **Feels fast** (optimistic updates, instant feedback)
 - 🎯 **Information density without clutter** (smart use of space, typography)
@@ -14,6 +16,7 @@
 - 📱 **Responsive but desktop-optimized** (power users work on desktop)
 
 **For fantasy football, this translates to:**
+
 - Clean roster/lineup views with lots of data
 - Smooth transitions between views
 - Instant feedback when setting lineups
@@ -26,6 +29,7 @@
 ## The Recommended Tech Stack
 
 ### Core Framework
+
 ```
 Next.js 14+ (App Router)
 ├── React 18+ with Server Components
@@ -39,6 +43,7 @@ Next.js 14+ (App Router)
 ---
 
 ### UI & Styling Layer
+
 ```
 shadcn/ui + Tailwind CSS
 ├── shadcn/ui (copy-paste components)
@@ -51,6 +56,7 @@ shadcn/ui + Tailwind CSS
 **Why this is the secret weapon:**
 
 **shadcn/ui** is NOT a component library you install. Instead:
+
 1. You run CLI commands to copy components into your codebase
 2. Components live in your `/components/ui` folder
 3. You fully own and can customize every component
@@ -58,12 +64,14 @@ shadcn/ui + Tailwind CSS
 5. Styled with Tailwind (easy to customize)
 
 **This gives you:**
+
 - ✅ Linear-quality components out of the box
 - ✅ Full control to customize
 - ✅ No black box dependencies
 - ✅ Amazing DX (developer experience)
 
 **Linear-like components you get immediately:**
+
 - Dropdown menus
 - Dialogs/modals
 - Command palette (⌘K)
@@ -76,6 +84,7 @@ shadcn/ui + Tailwind CSS
 ---
 
 ### Animation & Motion
+
 ```
 Framer Motion
 ├── Page transitions
@@ -87,6 +96,7 @@ Framer Motion
 **Why:** Linear's polish comes from animations. Framer Motion makes this easy.
 
 **Key animations to implement:**
+
 - ✅ Smooth page transitions
 - ✅ Staggered list animations (roster loading)
 - ✅ Drag-and-drop for lineup management
@@ -96,6 +106,7 @@ Framer Motion
 ---
 
 ### Data Tables & Visualization
+
 ```
 TanStack Table (formerly React Table)
 ├── Powerful table primitives
@@ -110,6 +121,7 @@ TanStack Table (formerly React Table)
 **Why:** Fantasy football is data-heavy. You need sophisticated tables. TanStack Table is the gold standard.
 
 **Use cases:**
+
 - Player lists with filters
 - Season stats tables
 - League standings
@@ -118,6 +130,7 @@ TanStack Table (formerly React Table)
 ---
 
 ### State Management
+
 ```
 Start simple, scale up:
 
@@ -137,6 +150,7 @@ Phase 2 (Scale): Add Zustand if needed
 ---
 
 ### Forms & Validation
+
 ```
 React Hook Form + Zod
 ├── React Hook Form (performant forms)
@@ -149,6 +163,7 @@ React Hook Form + Zod
 ---
 
 ### Database & Backend
+
 ```
 PostgreSQL + Prisma
 ├── PostgreSQL (relational data, JSONB for flex)
@@ -161,6 +176,7 @@ PostgreSQL + Prisma
 ---
 
 ### Deployment & Hosting
+
 ```
 Vercel (recommended) or Railway
 ├── Vercel: Zero-config Next.js deployment
@@ -172,19 +188,19 @@ Vercel (recommended) or Railway
 
 ## The Complete Stack at a Glance
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| **Framework** | Next.js 14+ (App Router) | SSR, performance, scales |
-| **Language** | TypeScript | Type safety for data-heavy app |
-| **UI Components** | shadcn/ui | Linear-quality, fully customizable |
-| **Primitives** | Radix UI | Accessible, headless components |
-| **Styling** | Tailwind CSS | Utility-first, rapid iteration |
-| **Animations** | Framer Motion | Smooth, Linear-like polish |
-| **Data Tables** | TanStack Table | Powerful, flexible tables |
-| **Forms** | React Hook Form + Zod | Clean forms, validation |
-| **State** | Server Components → Zustand | Start simple, scale up |
-| **Database** | PostgreSQL + Prisma | Type-safe, relational |
-| **Deployment** | Vercel | Zero-config, great DX |
+| Layer             | Technology                  | Why                                |
+| ----------------- | --------------------------- | ---------------------------------- |
+| **Framework**     | Next.js 14+ (App Router)    | SSR, performance, scales           |
+| **Language**      | TypeScript                  | Type safety for data-heavy app     |
+| **UI Components** | shadcn/ui                   | Linear-quality, fully customizable |
+| **Primitives**    | Radix UI                    | Accessible, headless components    |
+| **Styling**       | Tailwind CSS                | Utility-first, rapid iteration     |
+| **Animations**    | Framer Motion               | Smooth, Linear-like polish         |
+| **Data Tables**   | TanStack Table              | Powerful, flexible tables          |
+| **Forms**         | React Hook Form + Zod       | Clean forms, validation            |
+| **State**         | Server Components → Zustand | Start simple, scale up             |
+| **Database**      | PostgreSQL + Prisma         | Type-safe, relational              |
+| **Deployment**    | Vercel                      | Zero-config, great DX              |
 
 ---
 
@@ -210,6 +226,7 @@ npx shadcn-ui@latest init
 ```
 
 This creates:
+
 - `components/ui/` folder for components
 - `lib/utils.ts` for utilities
 - `tailwind.config.js` with proper setup
@@ -303,72 +320,72 @@ src/
 Update `tailwind.config.ts`:
 
 ```typescript
-import type { Config } from 'tailwindcss'
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  darkMode: ["class"],
-  content: ["./src/**/*.{ts,tsx}"],
+  darkMode: ['class'],
+  content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
         // Linear-inspired palette
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
         },
         // Fantasy-specific colors
-        win: "hsl(142, 76%, 36%)",
-        loss: "hsl(0, 84%, 60%)",
+        win: 'hsl(142, 76%, 36%)',
+        loss: 'hsl(0, 84%, 60%)',
         roster: {
-          qb: "hsl(262, 83%, 58%)",
-          rb: "hsl(142, 71%, 45%)",
-          wr: "hsl(199, 89%, 48%)",
-          te: "hsl(41, 96%, 56%)",
-          k: "hsl(330, 81%, 60%)",
-          def: "hsl(24, 95%, 53%)",
-        }
+          qb: 'hsl(262, 83%, 58%)',
+          rb: 'hsl(142, 71%, 45%)',
+          wr: 'hsl(199, 89%, 48%)',
+          te: 'hsl(41, 96%, 56%)',
+          k: 'hsl(330, 81%, 60%)',
+          def: 'hsl(24, 95%, 53%)',
+        },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        mono: ["var(--font-jetbrains)", "monospace"],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-jetbrains)', 'monospace'],
       },
       keyframes: {
-        "slide-in": {
-          "0%": { transform: "translateX(-100%)" },
-          "100%": { transform: "translateX(0)" },
+        'slide-in': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' },
         },
-        "fade-in": {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
       },
       animation: {
-        "slide-in": "slide-in 0.2s ease-out",
-        "fade-in": "fade-in 0.15s ease-out",
+        'slide-in': 'slide-in 0.2s ease-out',
+        'fade-in': 'fade-in 0.15s ease-out',
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
-}
+  plugins: [require('tailwindcss-animate')],
+};
 
-export default config
+export default config;
 ```
 
 ### CSS Variables (`globals.css`)
@@ -419,7 +436,9 @@ export default config
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
   }
 }
 ```
@@ -432,18 +451,18 @@ export default config
 
 ```tsx
 // components/fantasy/player-card.tsx
-import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-import { motion } from "framer-motion"
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { motion } from 'framer-motion';
 
 interface PlayerCardProps {
   player: {
-    name: string
-    position: string
-    team: string
-    status: "active" | "injured" | "bye"
-    points: number
-  }
+    name: string;
+    position: string;
+    team: string;
+    status: 'active' | 'injured' | 'bye';
+    points: number;
+  };
 }
 
 export function PlayerCard({ player }: PlayerCardProps) {
@@ -457,20 +476,20 @@ export function PlayerCard({ player }: PlayerCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Position badge */}
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className="bg-roster-qb/10 text-roster-qb border-roster-qb/20"
             >
               {player.position}
             </Badge>
-            
+
             {/* Player info */}
             <div>
               <p className="font-medium">{player.name}</p>
               <p className="text-sm text-muted-foreground">{player.team}</p>
             </div>
           </div>
-          
+
           {/* Points */}
           <div className="text-right">
             <p className="text-2xl font-semibold">{player.points}</p>
@@ -479,7 +498,7 @@ export function PlayerCard({ player }: PlayerCardProps) {
         </div>
       </Card>
     </motion.div>
-  )
+  );
 }
 ```
 
@@ -494,22 +513,22 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
-import { useEffect, useState } from "react"
+} from '@/components/ui/command';
+import { useEffect, useState } from 'react';
 
 export function CommandPalette() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen((open) => !open)
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen((open) => !open);
       }
-    }
-    document.addEventListener("keydown", down)
-    return () => document.removeEventListener("keydown", down)
-  }, [])
+    };
+    document.addEventListener('keydown', down);
+    return () => document.removeEventListener('keydown', down);
+  }, []);
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
@@ -528,7 +547,7 @@ export function CommandPalette() {
         </CommandGroup>
       </CommandList>
     </CommandDialog>
-  )
+  );
 }
 ```
 
@@ -543,19 +562,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 export function PlayerTable({ players }) {
   return (
     <div className="space-y-4">
       {/* Filter controls */}
       <div className="flex gap-2">
-        <Input 
-          placeholder="Search players..." 
-          className="max-w-xs"
-        />
+        <Input placeholder="Search players..." className="max-w-xs" />
         <Badge variant="outline">QB</Badge>
         <Badge variant="outline">RB</Badge>
         <Badge variant="outline">WR</Badge>
@@ -576,23 +592,19 @@ export function PlayerTable({ players }) {
           <TableBody>
             {players.map((player) => (
               <TableRow key={player.id} className="hover:bg-muted/50">
-                <TableCell className="font-medium">
-                  {player.name}
-                </TableCell>
+                <TableCell className="font-medium">{player.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{player.position}</Badge>
                 </TableCell>
                 <TableCell>{player.team}</TableCell>
-                <TableCell className="text-right">
-                  {player.points}
-                </TableCell>
+                <TableCell className="text-right">{player.points}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
     </div>
-  )
+  );
 }
 ```
 
@@ -605,29 +617,29 @@ export function PlayerTable({ players }) {
 shadcn/ui uses `class-variance-authority` for variants:
 
 ```tsx
-import { cva, type VariantProps } from "class-variance-authority"
+import { cva, type VariantProps } from 'class-variance-authority';
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors",
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors',
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        outline: "border border-input hover:bg-accent",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        outline: 'border border-input hover:bg-accent',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 rounded-md px-3',
+        lg: 'h-11 rounded-md px-8',
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: 'default',
+      size: 'default',
     },
   }
-)
+);
 ```
 
 **Use this pattern for all your fantasy components.**
@@ -638,24 +650,24 @@ const buttonVariants = cva(
 // components/ui/typography.tsx
 export function H1({ children, className, ...props }) {
   return (
-    <h1 
-      className={cn("text-4xl font-bold tracking-tight", className)}
+    <h1
+      className={cn('text-4xl font-bold tracking-tight', className)}
       {...props}
     >
       {children}
     </h1>
-  )
+  );
 }
 
 export function H2({ children, className, ...props }) {
   return (
-    <h2 
-      className={cn("text-3xl font-semibold tracking-tight", className)}
+    <h2
+      className={cn('text-3xl font-semibold tracking-tight', className)}
       {...props}
     >
       {children}
     </h2>
-  )
+  );
 }
 
 // Use throughout app for consistency
@@ -698,6 +710,7 @@ export const staggerChildren = {
 ## The "Linear Feel" Checklist
 
 ### ✅ Visual Polish
+
 - [ ] Consistent spacing (use Tailwind's spacing scale)
 - [ ] Subtle borders and shadows
 - [ ] Proper contrast ratios (WCAG AA)
@@ -706,6 +719,7 @@ export const staggerChildren = {
 - [ ] Focus states (keyboard navigation)
 
 ### ✅ Motion & Animation
+
 - [ ] Page transitions (Framer Motion)
 - [ ] Loading skeletons (not spinners)
 - [ ] Staggered list animations
@@ -713,6 +727,7 @@ export const staggerChildren = {
 - [ ] Optimistic UI updates
 
 ### ✅ Interaction Patterns
+
 - [ ] Command palette (⌘K)
 - [ ] Keyboard shortcuts
 - [ ] Inline editing
@@ -720,6 +735,7 @@ export const staggerChildren = {
 - [ ] Toast notifications (not alerts)
 
 ### ✅ Information Architecture
+
 - [ ] Clear visual hierarchy
 - [ ] Scannable data tables
 - [ ] Smart defaults (pre-filled forms)
@@ -727,6 +743,7 @@ export const staggerChildren = {
 - [ ] Breadcrumbs for navigation
 
 ### ✅ Performance
+
 - [ ] Sub-2-second page loads
 - [ ] Instant client-side navigation
 - [ ] Optimistic updates
@@ -738,6 +755,7 @@ export const staggerChildren = {
 ## Development Workflow
 
 ### Phase 1: Design System Foundation (Week 1)
+
 1. Setup Next.js + shadcn/ui
 2. Configure Tailwind with custom palette
 3. Build core layout components (sidebar, navbar)
@@ -746,6 +764,7 @@ export const staggerChildren = {
 6. Test responsive breakpoints
 
 ### Phase 2: Core Components (Week 2-3)
+
 1. Player card component
 2. Lineup slot component
 3. Data table with sorting/filtering
@@ -754,6 +773,7 @@ export const staggerChildren = {
 6. Toast notifications
 
 ### Phase 3: Pages & Features (Week 4-8)
+
 1. League dashboard
 2. Roster management
 3. Matchup view
@@ -762,6 +782,7 @@ export const staggerChildren = {
 6. Settings pages
 
 ### Phase 4: Polish (Week 9-12)
+
 1. Animations and transitions
 2. Loading states
 3. Error handling
@@ -774,21 +795,25 @@ export const staggerChildren = {
 ## Why This Stack Wins
 
 ### Speed to MVP
+
 - **shadcn/ui:** Linear-quality components in minutes, not weeks
 - **Tailwind:** Rapid iteration without CSS files
 - **Next.js:** Full-stack in one framework
 
 ### Scalability
+
 - **You own the components:** No vendor lock-in
 - **Type safety:** TypeScript + Prisma catch errors early
 - **Design tokens:** Easy to rebrand or adjust
 
 ### DX (Developer Experience)
+
 - **Hot reload:** See changes instantly
 - **Type checking:** Catch bugs before runtime
 - **Component library:** Don't rebuild from scratch
 
 ### Maintainability
+
 - **Single codebase:** No separate mobile apps
 - **Clear patterns:** shadcn/ui establishes conventions
 - **Great docs:** Everything is well-documented
@@ -798,18 +823,22 @@ export const staggerChildren = {
 ## Resources to Study
 
 ### Linear-Inspired Examples
+
 - **shadcn/ui docs:** https://ui.shadcn.com/ (study the examples)
 - **Taxonomy:** https://tx.shadcn.com/ (Next.js + shadcn starter)
 - **Lucide Icons:** https://lucide.dev/ (Linear uses these)
 
 ### Inspiration Sites
+
 - **Linear.app** (obviously)
 - **Height.app** (similar aesthetic)
 - **Raycast.com** (clean, fast, keyboard-first)
 - **Vercel Dashboard** (shadcn/ui user)
 
 ### Learn by Cloning
+
 Build these mini-projects to master the stack:
+
 1. **Command palette** (⌘K search)
 2. **Data table with filters** (player list)
 3. **Form with validation** (scoring config)
@@ -820,11 +849,13 @@ Build these mini-projects to master the stack:
 ## Final Tips
 
 ### Don't Overthink It
+
 - Start with shadcn/ui defaults
 - Customize gradually as you understand your needs
 - Linear took years to get this polished - your MVP doesn't need to be perfect
 
 ### Focus on Micro-Interactions
+
 - Hover states
 - Loading indicators
 - Success/error feedback
@@ -833,6 +864,7 @@ Build these mini-projects to master the stack:
 **These small details create the "feels fast, feels premium" impression.**
 
 ### Use What Linear Uses
+
 - **Inter font** (or similar - SF Pro, -apple-system)
 - **Subtle shadows** (not heavy drop shadows)
 - **Muted color palette** (grays with accent colors)

@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TextInput, PasswordInput, Button, Paper, Title, Text, Container, Alert } from '@mantine/core';
+import {
+  TextInput,
+  PasswordInput,
+  Button,
+  Paper,
+  Title,
+  Text,
+  Container,
+  Alert,
+} from '@mantine/core';
 import { useAuth } from '@/lib/auth-context';
 import { trpc } from '@/lib/trpc';
 
@@ -77,11 +86,7 @@ export function RegisterPage() {
             </Alert>
           )}
 
-          <Button
-            type="submit"
-            fullWidth
-            loading={registerMutation.isPending}
-          >
+          <Button type="submit" fullWidth loading={registerMutation.isPending}>
             Create account
           </Button>
         </form>

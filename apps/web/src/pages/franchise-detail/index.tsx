@@ -1,17 +1,36 @@
 import { useLoaderData, useParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { useLeague } from '@/lib/league-context';
-import { Text, Paper, Stack, Badge, SimpleGrid, Title, Group, Box } from '@mantine/core';
+import {
+  Text,
+  Paper,
+  Stack,
+  Badge,
+  SimpleGrid,
+  Title,
+  Group,
+  Box,
+} from '@mantine/core';
 import { DataTable } from 'mantine-datatable';
 import { loader } from './loader';
-import { PageHeader, StatCard, PlayerCell, PositionBadge, HistoricalBanner } from '@/components/ui';
+import {
+  PageHeader,
+  StatCard,
+  PlayerCell,
+  PositionBadge,
+  HistoricalBanner,
+} from '@/components/ui';
 
 export function FranchiseDetailPage() {
   const { franchise } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
-  const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
+  const { leagueSlug, year } = useParams<{
+    leagueSlug: string;
+    year: string;
+  }>();
   const { league, isHistoricalYear, mostRecentLeagueYear } = useLeague();
 
-  const starters = franchise.lineup?.filter((p) => p.slotType !== 'BENCH') || [];
+  const starters =
+    franchise.lineup?.filter((p) => p.slotType !== 'BENCH') || [];
   const bench = franchise.lineup?.filter((p) => p.slotType === 'BENCH') || [];
 
   // Build record string
@@ -56,7 +75,10 @@ export function FranchiseDetailPage() {
             value={franchise.franchiseSeason?.pointsAgainst || '0.00'}
           />
           <StatCard label="Wins" value={franchise.franchiseSeason?.wins || 0} />
-          <StatCard label="Losses" value={franchise.franchiseSeason?.losses || 0} />
+          <StatCard
+            label="Losses"
+            value={franchise.franchiseSeason?.losses || 0}
+          />
         </SimpleGrid>
 
         {/* Starting Lineup */}
@@ -101,7 +123,9 @@ export function FranchiseDetailPage() {
                   accessor: 'position',
                   title: 'Pos',
                   width: 70,
-                  render: (record) => <PositionBadge position={record.position} />,
+                  render: (record) => (
+                    <PositionBadge position={record.position} />
+                  ),
                 },
                 {
                   accessor: 'opponent',
@@ -178,7 +202,9 @@ export function FranchiseDetailPage() {
                   accessor: 'position',
                   title: 'Pos',
                   width: 70,
-                  render: (record) => <PositionBadge position={record.position} />,
+                  render: (record) => (
+                    <PositionBadge position={record.position} />
+                  ),
                 },
                 {
                   accessor: 'opponent',

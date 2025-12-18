@@ -11,11 +11,12 @@ Custom fantasy football platform with advanced scoring customization. The goal i
 - [README.md](./README.md) gives an overview of the project and useful developer commands
 - [docs/tech-stack.md](./docs/tech-stack.md) give an overview of the tech stack and project structure
 
-Important: always read `docs/tech-stack.md` to understand the core components of the system. 
+Important: always read `docs/tech-stack.md` to understand the core components of the system.
 
 ## Design System & UX
 
 ### Visual Principles (Linear-Inspired)
+
 - Clean, minimal, professional aesthetic
 - Subtle color palette (grays with accent colors)
 - Lots of whitespace, no clutter
@@ -23,6 +24,7 @@ Important: always read `docs/tech-stack.md` to understand the core components of
 - Information density without overwhelming users
 
 ### Key UX Patterns
+
 - Data tables with sorting/filtering for player lists
 - Inline editing where possible
 - Toast notifications (not alerts)

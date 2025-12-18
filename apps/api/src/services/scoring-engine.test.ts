@@ -38,10 +38,26 @@ describe('calculateScore', () => {
       // 300 * 0.04 = 12, 2 * 4 = 8, 1 * -2 = -2, 20 * 0.1 = 2
       expect(result.totalPoints).toBe(20);
       expect(result.breakdown).toHaveLength(4);
-      expect(result.breakdown.find((b: ScoreBreakdownItem) => b.category === 'Passing Yards')?.pointValue).toBe(12);
-      expect(result.breakdown.find((b: ScoreBreakdownItem) => b.category === 'Passing TDs')?.pointValue).toBe(8);
-      expect(result.breakdown.find((b: ScoreBreakdownItem) => b.category === 'Interceptions')?.pointValue).toBe(-2);
-      expect(result.breakdown.find((b: ScoreBreakdownItem) => b.category === 'Rushing Yards')?.pointValue).toBe(2);
+      expect(
+        result.breakdown.find(
+          (b: ScoreBreakdownItem) => b.category === 'Passing Yards'
+        )?.pointValue
+      ).toBe(12);
+      expect(
+        result.breakdown.find(
+          (b: ScoreBreakdownItem) => b.category === 'Passing TDs'
+        )?.pointValue
+      ).toBe(8);
+      expect(
+        result.breakdown.find(
+          (b: ScoreBreakdownItem) => b.category === 'Interceptions'
+        )?.pointValue
+      ).toBe(-2);
+      expect(
+        result.breakdown.find(
+          (b: ScoreBreakdownItem) => b.category === 'Rushing Yards'
+        )?.pointValue
+      ).toBe(2);
     });
 
     it('calculates RB performance correctly', () => {
@@ -140,8 +156,16 @@ describe('calculateScore', () => {
 
       // 200 * 0.04 = 8, 2 * 4 = 8, 1 * -2 = -2, 1 * 2 = 2
       expect(result.totalPoints).toBe(16);
-      expect(result.breakdown.find((b: ScoreBreakdownItem) => b.category === 'Fumbles Lost')?.pointValue).toBe(-2);
-      expect(result.breakdown.find((b: ScoreBreakdownItem) => b.category === '2-Point Conversions')?.pointValue).toBe(2);
+      expect(
+        result.breakdown.find(
+          (b: ScoreBreakdownItem) => b.category === 'Fumbles Lost'
+        )?.pointValue
+      ).toBe(-2);
+      expect(
+        result.breakdown.find(
+          (b: ScoreBreakdownItem) => b.category === '2-Point Conversions'
+        )?.pointValue
+      ).toBe(2);
     });
   });
 
@@ -254,7 +278,9 @@ describe('calculateScore', () => {
       };
 
       const result = calculateScore(stats, 'TE', TE_PREMIUM_SCORING);
-      const receptionBreakdown = result.breakdown.find((b: ScoreBreakdownItem) => b.category.includes('Receptions'));
+      const receptionBreakdown = result.breakdown.find(
+        (b: ScoreBreakdownItem) => b.category.includes('Receptions')
+      );
 
       expect(receptionBreakdown?.category).toContain('TE');
       expect(receptionBreakdown?.category).toContain('1.5');
@@ -315,9 +341,13 @@ describe('calculateScore', () => {
 
       // 425 * 0.04 = 17, 3 * 4 = 12, 300 bonus = 3, 400 bonus = 5
       expect(result.totalPoints).toBe(37);
-      const bonuses = result.breakdown.filter((b: ScoreBreakdownItem) => b.isBonus);
+      const bonuses = result.breakdown.filter(
+        (b: ScoreBreakdownItem) => b.isBonus
+      );
       expect(bonuses).toHaveLength(2);
-      expect(bonuses.map((b: ScoreBreakdownItem) => b.pointValue).sort()).toEqual([3, 5]);
+      expect(
+        bonuses.map((b: ScoreBreakdownItem) => b.pointValue).sort()
+      ).toEqual([3, 5]);
     });
 
     it('does not apply bonus below threshold', () => {
@@ -342,7 +372,9 @@ describe('calculateScore', () => {
 
       // 299 * 0.04 = 11.96, 2 * 4 = 8, no bonus
       expect(result.totalPoints).toBe(19.96);
-      const bonuses = result.breakdown.filter((b: ScoreBreakdownItem) => b.isBonus);
+      const bonuses = result.breakdown.filter(
+        (b: ScoreBreakdownItem) => b.isBonus
+      );
       expect(bonuses).toHaveLength(0);
     });
   });
@@ -365,9 +397,9 @@ describe('calculateScore', () => {
               name: 'Big Game Bonus',
               points: 5,
               when: [
-                  { stat: 'passingYards', operator: '>=', value: 300 },
-                  { stat: 'passingTds', operator: '>=', value: 3 },
-                ],
+                { stat: 'passingYards', operator: '>=', value: 300 },
+                { stat: 'passingTds', operator: '>=', value: 3 },
+              ],
             },
           ],
         },
@@ -394,7 +426,9 @@ describe('calculateScore', () => {
 
       // 350 * 0.04 = 14, 3 * 4 = 12, bonus = 5
       expect(result.totalPoints).toBe(31);
-      const bonus = result.breakdown.find((b: ScoreBreakdownItem) => b.category === 'Big Game Bonus');
+      const bonus = result.breakdown.find(
+        (b: ScoreBreakdownItem) => b.category === 'Big Game Bonus'
+      );
       expect(bonus?.pointValue).toBe(5);
     });
 
@@ -411,9 +445,9 @@ describe('calculateScore', () => {
               name: 'Big Game Bonus',
               points: 5,
               when: [
-                  { stat: 'passingYards', operator: '>=', value: 300 },
-                  { stat: 'passingTds', operator: '>=', value: 3 },
-                ],
+                { stat: 'passingYards', operator: '>=', value: 300 },
+                { stat: 'passingTds', operator: '>=', value: 3 },
+              ],
             },
           ],
         },
@@ -440,7 +474,9 @@ describe('calculateScore', () => {
 
       // 350 * 0.04 = 14, 2 * 4 = 8, no bonus
       expect(result.totalPoints).toBe(22);
-      const bonuses = result.breakdown.filter((b: ScoreBreakdownItem) => b.isBonus);
+      const bonuses = result.breakdown.filter(
+        (b: ScoreBreakdownItem) => b.isBonus
+      );
       expect(bonuses).toHaveLength(0);
     });
   });

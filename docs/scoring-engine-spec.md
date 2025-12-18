@@ -12,54 +12,57 @@
 
 ```typescript
 type Bonus = {
-  threshold: number;        // Stat threshold (e.g., 100 for "100 yards")
-  points: number;           // Bonus points awarded (e.g., 3)
+  threshold: number; // Stat threshold (e.g., 100 for "100 yards")
+  points: number; // Bonus points awarded (e.g., 3)
   statType: 'yards' | 'touchdowns' | 'receptions' | 'attempts' | 'completions';
 };
 
 type ConditionalScoring = {
-  points: number;           // Points to award
+  points: number; // Points to award
   condition: {
-    stat: string;           // Stat to check (e.g., "attempts")
+    stat: string; // Stat to check (e.g., "attempts")
     operator: '>=' | '>' | '<=' | '<' | '=';
-    value: number;          // Threshold value (e.g., 20)
+    value: number; // Threshold value (e.g., 20)
   };
-  appliesTo?: string;       // Optional: which stat this modifies (e.g., "completionPercentage")
+  appliesTo?: string; // Optional: which stat this modifies (e.g., "completionPercentage")
 };
 
 type ScoringRules = {
   passing?: {
-    yards?: number;         // Points per yard (e.g., 0.04 = 1pt per 25 yards)
-    touchdowns?: number;    // Points per TD (e.g., 4)
+    yards?: number; // Points per yard (e.g., 0.04 = 1pt per 25 yards)
+    touchdowns?: number; // Points per TD (e.g., 4)
     interceptions?: number; // Points per INT (e.g., -2)
-    completions?: number;   // Points per completion (e.g., 0)
-    bonuses?: Bonus[];      // Milestone bonuses (e.g., 300 yards = +3 pts)
+    completions?: number; // Points per completion (e.g., 0)
+    bonuses?: Bonus[]; // Milestone bonuses (e.g., 300 yards = +3 pts)
     conditionalScoring?: ConditionalScoring[]; // e.g., completion % bonus if attempts >= 20
   };
   rushing?: {
-    yards?: number;         // Points per yard (e.g., 0.1 = 1pt per 10 yards)
-    touchdowns?: number;    // Points per TD (e.g., 6)
-    attempts?: number;      // Points per attempt (rare)
-    bonuses?: Bonus[];      // e.g., 100 yards = +3 pts, 150 yards = +5 pts
+    yards?: number; // Points per yard (e.g., 0.1 = 1pt per 10 yards)
+    touchdowns?: number; // Points per TD (e.g., 6)
+    attempts?: number; // Points per attempt (rare)
+    bonuses?: Bonus[]; // e.g., 100 yards = +3 pts, 150 yards = +5 pts
   };
   receiving?: {
     // Position-specific PPR support
-    receptions?: {
-      default?: number;     // Default PPR (e.g., 0.5 for half PPR)
-      byPosition?: {        // Override for specific positions
-        QB?: number;        // QBs rarely catch, but just in case
-        RB?: number;        // e.g., 0.5 for RBs
-        WR?: number;        // e.g., 1.0 for WRs
-        TE?: number;        // e.g., 1.5 for TE Premium
-      };
-    } | number;             // Can also be simple number for uniform PPR
-    yards?: number;         // Points per yard (e.g., 0.1)
-    touchdowns?: number;    // Points per TD (e.g., 6)
-    targets?: number;       // Points per target (rare)
-    bonuses?: Bonus[];      // e.g., 100 yards = +3 pts
+    receptions?:
+      | {
+          default?: number; // Default PPR (e.g., 0.5 for half PPR)
+          byPosition?: {
+            // Override for specific positions
+            QB?: number; // QBs rarely catch, but just in case
+            RB?: number; // e.g., 0.5 for RBs
+            WR?: number; // e.g., 1.0 for WRs
+            TE?: number; // e.g., 1.5 for TE Premium
+          };
+        }
+      | number; // Can also be simple number for uniform PPR
+    yards?: number; // Points per yard (e.g., 0.1)
+    touchdowns?: number; // Points per TD (e.g., 6)
+    targets?: number; // Points per target (rare)
+    bonuses?: Bonus[]; // e.g., 100 yards = +3 pts
   };
   fumbles?: {
-    lost?: number;          // Points per fumble lost (e.g., -2)
+    lost?: number; // Points per fumble lost (e.g., -2)
   };
   twoPointConversions?: number; // Points per 2PT conversion (e.g., 2)
 };
@@ -122,9 +125,7 @@ type ScoringRules = {
     },
     "yards": 0.1,
     "touchdowns": 6,
-    "bonuses": [
-      { "threshold": 100, "points": 3, "statType": "yards" }
-    ]
+    "bonuses": [{ "threshold": 100, "points": 3, "statType": "yards" }]
   },
   "fumbles": {
     "lost": -2
@@ -175,6 +176,7 @@ type ScoringRules = {
 ### Input: Player Weekly Stats + Position
 
 From `player_weekly_stats` table + player position:
+
 ```typescript
 type PlayerWeeklyStat = {
   passingYards: number | null;
@@ -210,7 +212,8 @@ function calculateScore(
   if (rules.passing) {
     totalPoints += (stats.passingYards || 0) * (rules.passing.yards || 0);
     totalPoints += (stats.passingTds || 0) * (rules.passing.touchdowns || 0);
-    totalPoints += (stats.passingInts || 0) * (rules.passing.interceptions || 0);
+    totalPoints +=
+      (stats.passingInts || 0) * (rules.passing.interceptions || 0);
     totalPoints += (stats.completions || 0) * (rules.passing.completions || 0);
 
     // Passing bonuses (e.g., 300 yards = +3 pts)
@@ -257,14 +260,16 @@ function calculateScore(
     if (typeof rules.receiving.receptions === 'number') {
       pprValue = rules.receiving.receptions;
     } else if (rules.receiving.receptions) {
-      pprValue = rules.receiving.receptions.byPosition?.[position]
-                 ?? rules.receiving.receptions.default
-                 ?? 0;
+      pprValue =
+        rules.receiving.receptions.byPosition?.[position] ??
+        rules.receiving.receptions.default ??
+        0;
     }
     totalPoints += (stats.receptions || 0) * pprValue;
 
     totalPoints += (stats.receivingYards || 0) * (rules.receiving.yards || 0);
-    totalPoints += (stats.receivingTds || 0) * (rules.receiving.touchdowns || 0);
+    totalPoints +=
+      (stats.receivingTds || 0) * (rules.receiving.touchdowns || 0);
     totalPoints += (stats.targets || 0) * (rules.receiving.targets || 0);
 
     // Receiving bonuses
@@ -284,7 +289,8 @@ function calculateScore(
   }
 
   // TWO-POINT CONVERSIONS
-  totalPoints += (stats.twoPointConversions || 0) * (rules.twoPointConversions || 0);
+  totalPoints +=
+    (stats.twoPointConversions || 0) * (rules.twoPointConversions || 0);
 
   return Math.round(totalPoints * 100) / 100; // Round to 2 decimal places
 }
@@ -318,12 +324,18 @@ function evaluateCondition(
   const statValue = (stats as any)[condition.stat] || 0;
 
   switch (condition.operator) {
-    case '>=': return statValue >= condition.value;
-    case '>': return statValue > condition.value;
-    case '<=': return statValue <= condition.value;
-    case '<': return statValue < condition.value;
-    case '=': return statValue === condition.value;
-    default: return false;
+    case '>=':
+      return statValue >= condition.value;
+    case '>':
+      return statValue > condition.value;
+    case '<=':
+      return statValue <= condition.value;
+    case '<':
+      return statValue < condition.value;
+    case '=':
+      return statValue === condition.value;
+    default:
+      return false;
   }
 }
 ```
@@ -336,22 +348,28 @@ Return detailed breakdown showing how points were earned, including bonuses:
 type ScoreBreakdown = {
   totalPoints: number;
   breakdown: Array<{
-    category: string;      // "Passing Yards", "Rushing TDs", "100 Yard Bonus", etc.
-    statValue: number | null;     // 287 yards, 2 TDs, etc. (null for bonuses)
-    pointValue: number;    // 11.48 points, 12 points, etc.
-    isBonus?: boolean;     // true if this is a bonus/conditional point
+    category: string; // "Passing Yards", "Rushing TDs", "100 Yard Bonus", etc.
+    statValue: number | null; // 287 yards, 2 TDs, etc. (null for bonuses)
+    pointValue: number; // 11.48 points, 12 points, etc.
+    isBonus?: boolean; // true if this is a bonus/conditional point
   }>;
 };
 ```
 
 Example (with bonuses):
+
 ```json
 {
   "totalPoints": 29.48,
   "breakdown": [
     { "category": "Passing Yards", "statValue": 324, "pointValue": 12.96 },
     { "category": "Passing TDs", "statValue": 2, "pointValue": 8 },
-    { "category": "300 Yard Bonus", "statValue": null, "pointValue": 3, "isBonus": true },
+    {
+      "category": "300 Yard Bonus",
+      "statValue": null,
+      "pointValue": 3,
+      "isBonus": true
+    },
     { "category": "Passing INTs", "statValue": 1, "pointValue": -2 },
     { "category": "Rushing Yards", "statValue": 45, "pointValue": 4.5 },
     { "category": "Rushing TDs", "statValue": 0, "pointValue": 0 },
@@ -361,6 +379,7 @@ Example (with bonuses):
 ```
 
 Example (TE Premium):
+
 ```json
 {
   "totalPoints": 20.7,
@@ -377,6 +396,7 @@ Example (TE Premium):
 ## API Endpoints
 
 ### Get League Scoring Rules
+
 ```
 GET /trpc/leagues.getScoringRules
 Input: { leagueSeasonId: string }
@@ -384,6 +404,7 @@ Output: ScoringRules
 ```
 
 ### Update League Scoring Rules
+
 ```
 POST /trpc/leagues.updateScoringRules
 Input: { leagueSeasonId: string, rules: ScoringRules }
@@ -391,6 +412,7 @@ Output: ScoringRules
 ```
 
 ### Calculate Player Score
+
 ```
 GET /trpc/scoring.calculatePlayerScore
 Input: { playerId: string, weekNumber: number, season: number, leagueSeasonId: string }
@@ -398,6 +420,7 @@ Output: ScoreBreakdown
 ```
 
 ### Calculate Team Score for Week
+
 ```
 GET /trpc/scoring.calculateTeamScore
 Input: { teamSeasonId: string, weekNumber: number }
@@ -418,9 +441,11 @@ Output: {
 ## MVP UI
 
 ### 1. Scoring Settings Page
+
 **Route:** `/leagues/:leagueId/settings/scoring`
 
 #### Phase 1: Basic Settings Form
+
 Simple form with number inputs for basic scoring:
 
 ```
@@ -456,6 +481,7 @@ Simple form with number inputs for basic scoring:
 ```
 
 #### Phase 2: Advanced Settings (Collapsible)
+
 When "Advanced: Bonuses & Conditionals" is expanded:
 
 ```
@@ -480,6 +506,7 @@ When "Advanced: Bonuses & Conditionals" is expanded:
 ```
 
 **Preset Templates:**
+
 - Standard (no PPR, no bonuses)
 - Half PPR (0.5 PPR uniform)
 - Full PPR (1.0 PPR uniform)
@@ -487,6 +514,7 @@ When "Advanced: Bonuses & Conditionals" is expanded:
 - Custom (user-modified)
 
 ### 2. Score Preview Component
+
 Show example scores for well-known performances (updates live as settings change):
 
 ```
@@ -519,6 +547,7 @@ Travis Kelce - Week 5, 2024 (TE Premium)
 ```
 
 ### 3. Player Card Score Display
+
 On player detail pages, show score breakdown with bonuses highlighted:
 
 ```
@@ -540,6 +569,7 @@ Total:                        31.32 pts
 ## Testing Strategy
 
 ### Unit Tests
+
 Test the core calculation function with known inputs/outputs:
 
 ```typescript
@@ -639,6 +669,7 @@ describe('calculateScore', () => {
 ```
 
 ### Integration Tests
+
 - Fetch player stats from DB, apply league rules, verify total
 - Calculate team score for a week with multiple players at different positions
 - Update league scoring rules, recalculate scores, verify changes
@@ -650,6 +681,7 @@ describe('calculateScore', () => {
 ## Implementation Order
 
 ### Phase 1: Foundation (Core Scoring)
+
 1. **Define Types** - Update `ScoringRulesJson` type in `packages/database/src/schema.ts` with full structure
 2. **Scoring Service** - Implement `apps/api/src/services/scoring-engine.ts`
    - Core calculation function
@@ -663,6 +695,7 @@ describe('calculateScore', () => {
    - Edge cases (nulls, thresholds)
 
 ### Phase 2: API & Data
+
 4. **API Endpoints** - Add scoring router to tRPC
    - `scoring.calculatePlayerScore` - Get breakdown for single player
    - `scoring.calculateTeamScore` - Get team total for a week
@@ -672,6 +705,7 @@ describe('calculateScore', () => {
    - Standard, Half PPR, Full PPR, TE Premium
 
 ### Phase 3: UI (Basic Settings)
+
 6. **Settings Page - Basic** - `/leagues/:leagueId/settings/scoring`
    - Number inputs for all base scoring values
    - PPR mode toggle (Simple vs Position-Specific)
@@ -680,6 +714,7 @@ describe('calculateScore', () => {
    - Save functionality
 
 ### Phase 4: UI (Advanced Features)
+
 7. **Settings Page - Advanced** - Collapsible bonus/conditional section
    - Checkbox controls for common bonuses
    - Custom bonus builder
@@ -688,6 +723,7 @@ describe('calculateScore', () => {
 9. **Player Card Integration** - Score breakdown on player detail pages
 
 ### Phase 5: Polish
+
 10. **Visual Enhancements** - Bonus indicators (🎁), formatting, tooltips
 11. **Validation** - Ensure rules make sense (no negative bonuses, valid thresholds)
 12. **Documentation** - Help text explaining each setting

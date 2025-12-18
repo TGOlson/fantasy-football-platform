@@ -16,7 +16,12 @@ import {
 } from '@mantine/core';
 import { DataTable } from 'mantine-datatable';
 import { ScoreBreakdown } from '@/components/score-breakdown';
-import { PageHeader, PositionBadge, StatCard, HistoricalBanner } from '@/components/ui';
+import {
+  PageHeader,
+  PositionBadge,
+  StatCard,
+  HistoricalBanner,
+} from '@/components/ui';
 import { loader } from './loader';
 
 export function PlayerDetailPage() {
@@ -26,26 +31,29 @@ export function PlayerDetailPage() {
     year: string;
     playerId: string;
   }>();
-  const { league, leagueSeason, isHistoricalYear, mostRecentLeagueYear } = useLeague();
+  const { league, leagueSeason, isHistoricalYear, mostRecentLeagueYear } =
+    useLeague();
 
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
-  const { data: stats } = trpc.players.getStats.useQuery(
-    { id: playerId!, season: leagueSeason.year }
-  );
+  const { data: stats } = trpc.players.getStats.useQuery({
+    id: playerId!,
+    season: leagueSeason.year,
+  });
 
   // Get score breakdown for selected week
-  const { data: scoreData, isLoading: scoreLoading } = trpc.scoring.calculatePlayerScore.useQuery(
-    {
-      playerId: playerId!,
-      season: leagueSeason.year,
-      weekNumber: selectedWeek!,
-      leagueSeasonId: leagueSeason.id,
-    },
-    {
-      enabled: !!playerId && !!selectedWeek,
-    }
-  );
+  const { data: scoreData, isLoading: scoreLoading } =
+    trpc.scoring.calculatePlayerScore.useQuery(
+      {
+        playerId: playerId!,
+        season: leagueSeason.year,
+        weekNumber: selectedWeek!,
+        leagueSeasonId: leagueSeason.id,
+      },
+      {
+        enabled: !!playerId && !!selectedWeek,
+      }
+    );
 
   // Calculate season totals
   const totals = (stats ?? []).reduce(
@@ -120,21 +128,30 @@ export function PlayerDetailPage() {
             <SimpleGrid cols={{ base: 2, sm: 4, md: 6 }}>
               {totals.passingYards > 0 && (
                 <>
-                  <StatCard label="Pass Yds" value={totals.passingYards.toLocaleString()} />
+                  <StatCard
+                    label="Pass Yds"
+                    value={totals.passingYards.toLocaleString()}
+                  />
                   <StatCard label="Pass TDs" value={totals.passingTds} />
                   <StatCard label="INTs" value={totals.passingInts} />
                 </>
               )}
               {totals.rushingYards > 0 && (
                 <>
-                  <StatCard label="Rush Yds" value={totals.rushingYards.toLocaleString()} />
+                  <StatCard
+                    label="Rush Yds"
+                    value={totals.rushingYards.toLocaleString()}
+                  />
                   <StatCard label="Rush TDs" value={totals.rushingTds} />
                 </>
               )}
               {totals.receptions > 0 && (
                 <>
                   <StatCard label="Rec" value={totals.receptions} />
-                  <StatCard label="Rec Yds" value={totals.receivingYards.toLocaleString()} />
+                  <StatCard
+                    label="Rec Yds"
+                    value={totals.receivingYards.toLocaleString()}
+                  />
                   <StatCard label="Rec TDs" value={totals.receivingTds} />
                 </>
               )}

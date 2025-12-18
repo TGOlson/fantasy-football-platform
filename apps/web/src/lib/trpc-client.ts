@@ -12,9 +12,11 @@ export const trpcClient = createTRPCClient<AppRouter>({
       // Add auth header from localStorage
       headers() {
         const token = localStorage.getItem('auth_token');
-        return token ? {
-          Authorization: `Bearer ${token}`,
-        } : {};
+        return token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {};
       },
     }),
   ],

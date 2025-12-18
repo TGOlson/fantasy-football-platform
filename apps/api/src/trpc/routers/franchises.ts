@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
-import { requireLeagueMembership, requireFranchiseOwnership } from '../../lib/auth';
+import {
+  requireLeagueMembership,
+  requireFranchiseOwnership,
+} from '../../lib/auth';
 import {
   getDatabase,
   franchises,
@@ -31,7 +34,9 @@ export const franchisesRouter = router({
       const db = getDatabase();
 
       // Verify league membership
-      await requireLeagueMembership(ctx.user.userId, { franchiseId: input.franchiseId });
+      await requireLeagueMembership(ctx.user.userId, {
+        franchiseId: input.franchiseId,
+      });
 
       // Get the franchise
       const [franchise] = await db

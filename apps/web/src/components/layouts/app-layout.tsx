@@ -35,7 +35,10 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
+  const { leagueSlug, year } = useParams<{
+    leagueSlug: string;
+    year: string;
+  }>();
 
   // Get league context (null if not in league route)
   const leagueContext = useLeagueOptional();
@@ -44,7 +47,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { data: leagues } = trpc.leagues.list.useQuery();
 
   // Use context for current league info, or find from list
-  const currentLeagueName = leagueContext?.league.name || leagues?.find((l) => l.slug === leagueSlug)?.name;
+  const currentLeagueName =
+    leagueContext?.league.name ||
+    leagues?.find((l) => l.slug === leagueSlug)?.name;
   const myTeam = leagueContext?.myFranchise;
 
   const handleLogout = () => {
@@ -54,16 +59,14 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   // Check if a path is active
   const isActive = (path: string) => location.pathname === path;
-  const isActivePrefix = (prefix: string) => location.pathname.startsWith(prefix);
+  const isActivePrefix = (prefix: string) =>
+    location.pathname.startsWith(prefix);
 
   // Build league-specific base path
   const leagueBase = leagueSlug && year ? `/${leagueSlug}/${year}` : null;
 
   return (
-    <AppShell
-      navbar={{ width: 220, breakpoint: 'sm' }}
-      padding="md"
-    >
+    <AppShell navbar={{ width: 220, breakpoint: 'sm' }} padding="md">
       <AppShell.Navbar p="sm">
         {/* Logo / App Name */}
         <AppShell.Section>
@@ -97,7 +100,10 @@ export function AppLayout({ children }: AppLayoutProps) {
                         {currentLeagueName || 'Select League'}
                       </Text>
                     </Stack>
-                    <IconChevronDown size={16} color="var(--mantine-color-dimmed)" />
+                    <IconChevronDown
+                      size={16}
+                      color="var(--mantine-color-dimmed)"
+                    />
                   </Group>
                 </UnstyledButton>
               </Menu.Target>
@@ -148,7 +154,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                     to={`${leagueBase}/franchises/${myTeam.id}`}
                     label="My Team"
                     leftSection={<IconUser size={18} />}
-                    active={isActivePrefix(`${leagueBase}/franchises/${myTeam.id}`)}
+                    active={isActivePrefix(
+                      `${leagueBase}/franchises/${myTeam.id}`
+                    )}
                   />
                 ) : (
                   <NavLink
@@ -221,7 +229,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 width: '100%',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--mantine-color-gray-1)';
+                e.currentTarget.style.backgroundColor =
+                  'var(--mantine-color-gray-1)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = 'transparent';

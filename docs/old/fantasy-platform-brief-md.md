@@ -1,4 +1,5 @@
 # Custom Fantasy Football Platform
+
 ## Technical Feasibility & Architecture Brief
 
 **December 2024**
@@ -39,6 +40,7 @@ Research across fantasy football forums, Reddit discussions, and platform review
 #### Position-Specific & Conditional Scoring
 
 **Examples found in research:**
+
 - Different PPR values per position (RB: 0.8, TE: 0.9, WR: 1.0)
 - Tiered PPR: 0-9 yard catches = 0.25 pts, 10-19 yards = 0.5 pts, 20+ yards = 0.75 pts
 - QB completion percentage bonuses (only if 20+ attempts)
@@ -48,11 +50,11 @@ Research across fantasy football forums, Reddit discussions, and platform review
 
 ### Target Market Segmentation
 
-| Segment | Size | Behavior | Opportunity |
-|---------|------|----------|-------------|
-| **Casual Players** | ~75% of market | Stick with ESPN/Yahoo defaults, rarely customize | Not your target |
-| **Engaged Enthusiasts** | ~15-20% | Play multiple leagues, research players, willing to pay for tools | **Primary target** |
-| **Hardcore/Dynasty** | ~5-10% | Complex leagues, already on MFL, most demanding | Early adopters, but small |
+| Segment                 | Size           | Behavior                                                          | Opportunity               |
+| ----------------------- | -------------- | ----------------------------------------------------------------- | ------------------------- |
+| **Casual Players**      | ~75% of market | Stick with ESPN/Yahoo defaults, rarely customize                  | Not your target           |
+| **Engaged Enthusiasts** | ~15-20%        | Play multiple leagues, research players, willing to pay for tools | **Primary target**        |
+| **Hardcore/Dynasty**    | ~5-10%         | Complex leagues, already on MFL, most demanding                   | Early adopters, but small |
 
 ### Willingness to Pay
 
@@ -68,14 +70,14 @@ Research across fantasy football forums, Reddit discussions, and platform review
 
 ### NFL Stats Data Sources & Costs
 
-| Provider | Package | Cost/Year | Notes |
-|----------|---------|-----------|-------|
-| **FTN Data** | CSV Access (basic stats) | $599 | Good for MVP, no live scoring |
-| **FTN Data** | API with live scoring | $2,000-4,000 | Flexible pricing, good for startups |
-| **SportsDataIO** | Pre-game data | $1,200 | Rosters, schedules, historical |
-| **SportsDataIO** | Post-game data | $3,600 | Final stats within minutes |
-| **SportsDataIO** | Live scoring | $4,800 | Real-time updates during games |
-| **Rolling Insights** | Full package with live | $4,800 | Similar to SportsDataIO |
+| Provider             | Package                  | Cost/Year    | Notes                               |
+| -------------------- | ------------------------ | ------------ | ----------------------------------- |
+| **FTN Data**         | CSV Access (basic stats) | $599         | Good for MVP, no live scoring       |
+| **FTN Data**         | API with live scoring    | $2,000-4,000 | Flexible pricing, good for startups |
+| **SportsDataIO**     | Pre-game data            | $1,200       | Rosters, schedules, historical      |
+| **SportsDataIO**     | Post-game data           | $3,600       | Final stats within minutes          |
+| **SportsDataIO**     | Live scoring             | $4,800       | Real-time updates during games      |
+| **Rolling Insights** | Full package with live   | $4,800       | Similar to SportsDataIO             |
 
 > **Key Insight:** At $5,000/year for live data, serving 200 leagues means only $25/league/year in data costs. This is extremely affordable compared to the $70+ that MFL charges per league. Data costs are not a barrier.
 
@@ -134,14 +136,14 @@ Hosting: AWS/Vercel/Railway
 
 ### Technical Complexity Assessment
 
-| Component | Complexity | Est. Time |
-|-----------|-----------|-----------|
-| Basic league management | Low-Medium | 3-4 weeks |
-| **Scoring engine** | **Medium-High** | **6-8 weeks** |
-| Stats ingestion/caching | Medium | 3-4 weeks |
-| User authentication/management | Low | 1-2 weeks |
-| Draft room | Medium | 4-5 weeks |
-| Live scoring integration | Medium | 2-3 weeks |
+| Component                      | Complexity      | Est. Time     |
+| ------------------------------ | --------------- | ------------- |
+| Basic league management        | Low-Medium      | 3-4 weeks     |
+| **Scoring engine**             | **Medium-High** | **6-8 weeks** |
+| Stats ingestion/caching        | Medium          | 3-4 weeks     |
+| User authentication/management | Low             | 1-2 weeks     |
+| Draft room                     | Medium          | 4-5 weeks     |
+| Live scoring integration       | Medium          | 2-3 weeks     |
 
 **Technical Feasibility Conclusion:** This is very buildable. The scoring engine is the most complex component but also your core differentiation. Everything else is standard web development. A solid full-stack developer could build an MVP in 3-6 months. Ongoing costs are manageable at $500-1,000/month.
 
@@ -249,7 +251,7 @@ Output Layer
 ```javascript
 function calculatePlayerScore(playerStats, scoringRules) {
   let totalPoints = 0;
-  
+
   // 1. Base scoring (yards, TDs, etc.)
   for (const [statType, statValue] of playerStats) {
     const rule = scoringRules[statType];
@@ -260,21 +262,21 @@ function calculatePlayerScore(playerStats, scoringRules) {
       totalPoints += statValue * rule.value;
     }
   }
-  
+
   // 2. Bonus evaluation (thresholds)
   for (const bonus of scoringRules.bonuses) {
     if (evaluateCondition(bonus.condition, playerStats)) {
       totalPoints += bonus.value;
     }
   }
-  
+
   // 3. Conditional modifiers
   for (const modifier of scoringRules.conditionals) {
     if (evaluateCondition(modifier.if, playerStats)) {
       totalPoints += modifier.then.value;
     }
   }
-  
+
   return totalPoints;
 }
 ```
@@ -295,29 +297,33 @@ Make complex customization feel simple. Users should be able to configure scorin
 #### UX Approach: Progressive Disclosure
 
 **Level 1: Quick Start Templates**
+
 - Standard Scoring
 - Half PPR
 - Full PPR
 - TE Premium (1.5 PPR for TEs)
 - Dynasty Standard
 
-*User selects template, can play immediately or customize further*
+_User selects template, can play immediately or customize further_
 
 **Level 2: Guided Customization**
 
 Card-based interface with sections:
 
 **Passing Scoring**
+
 - Points per yard: [slider: 0-0.1]
 - Points per TD: [input: 4]
 - Add bonus for 300+ yards? [toggle]
 
 **Rushing Scoring**
+
 - Points per yard: [slider]
 - Points per TD: [input]
 - Milestone bonuses: [+ Add bonus button]
 
 **Receiving Scoring**
+
 - Default points per reception: [input: 1.0]
 - Position-specific PPR: [toggle to expand]
   - WR: [input: 1.0]
@@ -327,11 +333,12 @@ Card-based interface with sections:
 **Level 3: Advanced Rules**
 
 For power users who want full control:
+
 - Conditional scoring: "If attempts >= 20 AND completion % >= 60%, add 2 points"
 - Tiered bonuses: Different bonuses at 100, 150, 200 yards
 - Complex position logic: Different scoring for RB1 vs RB2 slot
 
-*Visual rule builder (like Zapier/IFTTT) rather than code*
+_Visual rule builder (like Zapier/IFTTT) rather than code_
 
 #### Key UX Features
 

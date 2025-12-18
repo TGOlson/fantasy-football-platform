@@ -32,7 +32,9 @@ type StandingsEntry = {
  * Calculate standings from matchup results and update franchise_seasons table.
  * This should be called after matchups are scored.
  */
-export async function calculateStandings(leagueSeasonId: string): Promise<StandingsEntry[]> {
+export async function calculateStandings(
+  leagueSeasonId: string
+): Promise<StandingsEntry[]> {
   const db = getDatabase();
 
   // Get all franchise seasons for this league season
@@ -177,7 +179,9 @@ export async function calculateStandings(leagueSeasonId: string): Promise<Standi
 /**
  * Get current standings without recalculating (reads from franchise_seasons table).
  */
-export async function getStandings(leagueSeasonId: string): Promise<StandingsEntry[]> {
+export async function getStandings(
+  leagueSeasonId: string
+): Promise<StandingsEntry[]> {
   const db = getDatabase();
 
   // Get all franchise seasons with franchise and owner info

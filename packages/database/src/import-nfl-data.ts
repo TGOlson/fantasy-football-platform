@@ -10,7 +10,8 @@ import {
 dotenv.config({ path: '../../.env' });
 
 // ESPN's public API endpoints (unofficial but widely used)
-const ESPN_BASE_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl';
+const ESPN_BASE_URL =
+  'https://site.api.espn.com/apis/site/v2/sports/football/nfl';
 
 type ESPNPlayer = {
   id: string;
@@ -61,7 +62,9 @@ async function fetchTopPlayers(limit = 300): Promise<ESPNPlayer[]> {
 
       const response = await fetch(url);
       if (!response.ok) {
-        console.warn(`    Failed to fetch ${position}s: ${response.statusText}`);
+        console.warn(
+          `    Failed to fetch ${position}s: ${response.statusText}`
+        );
         continue;
       }
 
@@ -82,7 +85,7 @@ async function fetchTopPlayers(limit = 300): Promise<ESPNPlayer[]> {
       }
 
       // Rate limit - be nice to ESPN's servers
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (error) {
       console.error(`  Error fetching ${position}s:`, error);
     }
@@ -124,7 +127,7 @@ async function fetchPlayerWeeklyStats(
       }
 
       // Rate limit
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     } catch (error) {
       // Skip failed weeks
     }
@@ -159,9 +162,13 @@ async function importNFLData() {
     // For now, I'll create a more realistic seed with actual 2024 player names
 
     console.log('⚠️  ESPN API Note:');
-    console.log('ESPN doesn\'t have a well-documented public API.');
-    console.log('For production, use FTN Data ($2k-4k/year) or SportsDataIO ($4.8k/year).');
-    console.log('For now, creating enhanced seed with realistic 2024 player data...\n');
+    console.log("ESPN doesn't have a well-documented public API.");
+    console.log(
+      'For production, use FTN Data ($2k-4k/year) or SportsDataIO ($4.8k/year).'
+    );
+    console.log(
+      'For now, creating enhanced seed with realistic 2024 player data...\n'
+    );
 
     // Top 300 players for 2024 (real names, positions, teams)
     const top300Players = [
@@ -173,14 +180,29 @@ async function importNFLData() {
       { name: 'Joe Burrow', position: 'QB', team: 'CIN', jerseyNumber: 9 },
       { name: 'Justin Herbert', position: 'QB', team: 'LAC', jerseyNumber: 10 },
       { name: 'Dak Prescott', position: 'QB', team: 'DAL', jerseyNumber: 4 },
-      { name: 'Trevor Lawrence', position: 'QB', team: 'JAX', jerseyNumber: 16 },
+      {
+        name: 'Trevor Lawrence',
+        position: 'QB',
+        team: 'JAX',
+        jerseyNumber: 16,
+      },
       { name: 'Jordan Love', position: 'QB', team: 'GB', jerseyNumber: 10 },
       { name: 'Brock Purdy', position: 'QB', team: 'SF', jerseyNumber: 13 },
       { name: 'Tua Tagovailoa', position: 'QB', team: 'MIA', jerseyNumber: 1 },
       { name: 'CJ Stroud', position: 'QB', team: 'HOU', jerseyNumber: 7 },
       { name: 'Jared Goff', position: 'QB', team: 'DET', jerseyNumber: 16 },
-      { name: 'Anthony Richardson', position: 'QB', team: 'IND', jerseyNumber: 5 },
-      { name: 'Matthew Stafford', position: 'QB', team: 'LAR', jerseyNumber: 9 },
+      {
+        name: 'Anthony Richardson',
+        position: 'QB',
+        team: 'IND',
+        jerseyNumber: 5,
+      },
+      {
+        name: 'Matthew Stafford',
+        position: 'QB',
+        team: 'LAR',
+        jerseyNumber: 9,
+      },
       { name: 'Deshaun Watson', position: 'QB', team: 'CLE', jerseyNumber: 4 },
       { name: 'Geno Smith', position: 'QB', team: 'SEA', jerseyNumber: 7 },
       { name: 'Kirk Cousins', position: 'QB', team: 'ATL', jerseyNumber: 18 },
@@ -188,34 +210,69 @@ async function importNFLData() {
       { name: 'Derek Carr', position: 'QB', team: 'NO', jerseyNumber: 4 },
 
       // RBs (Top 70)
-      { name: 'Christian McCaffrey', position: 'RB', team: 'SF', jerseyNumber: 23 },
+      {
+        name: 'Christian McCaffrey',
+        position: 'RB',
+        team: 'SF',
+        jerseyNumber: 23,
+      },
       { name: 'Saquon Barkley', position: 'RB', team: 'PHI', jerseyNumber: 26 },
       { name: 'Derrick Henry', position: 'RB', team: 'BAL', jerseyNumber: 22 },
       { name: 'Breece Hall', position: 'RB', team: 'NYJ', jerseyNumber: 20 },
       { name: 'Josh Jacobs', position: 'RB', team: 'GB', jerseyNumber: 8 },
       { name: 'Bijan Robinson', position: 'RB', team: 'ATL', jerseyNumber: 7 },
       { name: 'Jahmyr Gibbs', position: 'RB', team: 'DET', jerseyNumber: 26 },
-      { name: 'Kenneth Walker III', position: 'RB', team: 'SEA', jerseyNumber: 9 },
-      { name: 'De\'Von Achane', position: 'RB', team: 'MIA', jerseyNumber: 28 },
-      { name: 'Jonathan Taylor', position: 'RB', team: 'IND', jerseyNumber: 28 },
+      {
+        name: 'Kenneth Walker III',
+        position: 'RB',
+        team: 'SEA',
+        jerseyNumber: 9,
+      },
+      { name: "De'Von Achane", position: 'RB', team: 'MIA', jerseyNumber: 28 },
+      {
+        name: 'Jonathan Taylor',
+        position: 'RB',
+        team: 'IND',
+        jerseyNumber: 28,
+      },
       { name: 'Travis Etienne', position: 'RB', team: 'JAX', jerseyNumber: 1 },
       { name: 'Kyren Williams', position: 'RB', team: 'LAR', jerseyNumber: 23 },
-      { name: 'David Montgomery', position: 'RB', team: 'DET', jerseyNumber: 5 },
+      {
+        name: 'David Montgomery',
+        position: 'RB',
+        team: 'DET',
+        jerseyNumber: 5,
+      },
       { name: 'Joe Mixon', position: 'RB', team: 'HOU', jerseyNumber: 28 },
       { name: 'Aaron Jones', position: 'RB', team: 'MIN', jerseyNumber: 33 },
       { name: 'Rachaad White', position: 'RB', team: 'TB', jerseyNumber: 29 },
       { name: 'James Cook', position: 'RB', team: 'BUF', jerseyNumber: 4 },
-      { name: 'Rhamondre Stevenson', position: 'RB', team: 'NE', jerseyNumber: 38 },
+      {
+        name: 'Rhamondre Stevenson',
+        position: 'RB',
+        team: 'NE',
+        jerseyNumber: 38,
+      },
       { name: 'Najee Harris', position: 'RB', team: 'PIT', jerseyNumber: 22 },
       { name: 'Tony Pollard', position: 'RB', team: 'TEN', jerseyNumber: 20 },
 
       // WRs (Top 100)
       { name: 'CeeDee Lamb', position: 'WR', team: 'DAL', jerseyNumber: 88 },
       { name: 'Tyreek Hill', position: 'WR', team: 'MIA', jerseyNumber: 10 },
-      { name: 'Justin Jefferson', position: 'WR', team: 'MIN', jerseyNumber: 18 },
-      { name: 'Amon-Ra St. Brown', position: 'WR', team: 'DET', jerseyNumber: 14 },
+      {
+        name: 'Justin Jefferson',
+        position: 'WR',
+        team: 'MIN',
+        jerseyNumber: 18,
+      },
+      {
+        name: 'Amon-Ra St. Brown',
+        position: 'WR',
+        team: 'DET',
+        jerseyNumber: 14,
+      },
       { name: 'AJ Brown', position: 'WR', team: 'PHI', jerseyNumber: 11 },
-      { name: 'Ja\'Marr Chase', position: 'WR', team: 'CIN', jerseyNumber: 1 },
+      { name: "Ja'Marr Chase", position: 'WR', team: 'CIN', jerseyNumber: 1 },
       { name: 'Puka Nacua', position: 'WR', team: 'LAR', jerseyNumber: 17 },
       { name: 'Garrett Wilson', position: 'WR', team: 'NYJ', jerseyNumber: 5 },
       { name: 'Nico Collins', position: 'WR', team: 'HOU', jerseyNumber: 12 },
@@ -339,7 +396,9 @@ async function importNFLData() {
     for (let i = 0; i < weeklyStats.length; i += chunkSize) {
       const chunk = weeklyStats.slice(i, i + chunkSize);
       await db.insert(playerWeeklyStats).values(chunk);
-      console.log(`  Inserted ${Math.min(i + chunkSize, weeklyStats.length)} / ${weeklyStats.length} stats`);
+      console.log(
+        `  Inserted ${Math.min(i + chunkSize, weeklyStats.length)} / ${weeklyStats.length} stats`
+      );
     }
 
     console.log(`✓ Created ${weeklyStats.length} weekly stat entries\n`);
@@ -350,7 +409,6 @@ async function importNFLData() {
     console.log(`  - ${createdPlayers.length} player seasons (2024)`);
     console.log(`  - ${weeklyStats.length} weekly stat entries (weeks 1-10)`);
     console.log(`  - ${weeksToImport.length} weeks of data`);
-
   } catch (error) {
     console.error('\n❌ Import failed:', error);
     process.exit(1);

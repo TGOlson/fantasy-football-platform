@@ -189,7 +189,9 @@ export const leaguesRouter = router({
       const db = getDatabase();
 
       // Verify league membership
-      await requireLeagueMembership(ctx.user.userId, { leagueId: input.leagueId });
+      await requireLeagueMembership(ctx.user.userId, {
+        leagueId: input.leagueId,
+      });
 
       // Get the league
       const [league] = await db

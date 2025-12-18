@@ -15,107 +15,76 @@ See: [docs/tech-stack.md](./docs/tech-stack.md)
 ### Installation
 
 ```bash
-# 1. Install dependencies
-pnpm install
-
-# 2. Start PostgreSQL database
-docker compose up -d
-
-# 3. Run database migrations
-cd packages/database
-pnpm db:generate  # Generate migration from schema
-pnpm db:migrate   # Apply migration to database
-
-# 4. (Optional) Seed with sample data
-pnpm db:seed
+pnpm install          # Install dependencies
+docker compose up -d  # Start PostgreSQL
+pnpm db:push          # Push schema to database
+pnpm db:seed          # (Optional) Seed with sample data
 ```
+
+## Commands
+
+All commands run from the project root.
 
 ### Development
 
 ```bash
-# Run both frontend and API concurrently
-pnpm dev
-
-# Or run them individually:
-pnpm dev:web    # Frontend only (http://localhost:5173)
-pnpm dev:api    # API only (http://localhost:3000)
+pnpm dev           # Run all apps (web + api)
+pnpm dev:web       # Frontend only (http://localhost:5173)
+pnpm dev:api       # API only (http://localhost:3000)
 ```
 
-### Building
+### Build & Test
 
 ```bash
-# Build both apps
-pnpm build
-
-# Or build individually:
-pnpm build:web
-pnpm build:api
+pnpm build         # Build all apps
+pnpm build:web     # Build frontend
+pnpm build:api     # Build API
+pnpm typecheck     # Typecheck all packages
+pnpm test          # Run tests
+pnpm test:watch    # Watch mode
 ```
 
-### Type Checking
+### Formatting & Linting
 
 ```bash
-# Typecheck entire monorepo (all packages in parallel)
-pnpm typecheck
-
-# Or check individual packages:
-pnpm --filter api typecheck
-pnpm --filter web typecheck
-pnpm --filter @fantasy-platform/database typecheck
+pnpm format        # Format all files with Prettier
+pnpm format:check  # Check formatting (for CI)
+pnpm lint          # Run ESLint
 ```
 
-### Database Commands
-
-All database commands are run from `packages/database`:
+### Database
 
 ```bash
-cd packages/database
-
-# Generate migration from schema changes
-pnpm db:generate
-
-# Apply migrations to database
-pnpm db:migrate
-
-# Push schema directly (dev only, skips migrations)
-pnpm db:push
-
-# Open Drizzle Studio (database GUI)
-pnpm db:studio
-
-# Seed database with sample data
-pnpm db:seed
+pnpm db:generate   # Generate migration from schema changes
+pnpm db:migrate    # Apply migrations
+pnpm db:push       # Push schema directly (dev only)
+pnpm db:studio     # Open Drizzle Studio (database GUI)
+pnpm db:seed       # Seed with sample data
 ```
 
-### Docker Commands
+### Docker
 
 ```bash
-# Start PostgreSQL
-docker compose up -d
-
-# Stop PostgreSQL
-docker compose down
-
-# View logs
+docker compose up -d      # Start PostgreSQL
+docker compose down       # Stop PostgreSQL
+docker compose down -v    # Reset database (deletes all data)
 docker compose logs postgres
-
-# Reset database (WARNING: deletes all data)
-docker compose down -v
-docker compose up -d
 ```
 
 ## Documentation
 
-- [CLAUDE.md](./CLAUDE.md) - Development guide for AI assistance
-- [docs/](./docs/) - Architecture and design decisions
+- [docs/tech-stack.md](./docs/tech-stack.md) - Architecture and tech stack
+- [CLAUDE.md](./CLAUDE.md) - AI assistant guidelines
 
 ## Environment Variables
 
-Environment variables are already configured in:
+Already configured in:
+
 - `apps/web/.env` - Frontend configuration
-- `apps/api/.env` - Backend configuration (includes DATABASE_URL)
+- `apps/api/.env` - Backend configuration
 
 Default database connection:
+
 ```
 DATABASE_URL=postgresql://fantasy:fantasy_dev_password@localhost:5432/fantasy_platform
 ```

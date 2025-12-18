@@ -45,4 +45,20 @@ export type {
 } from '@fantasy-platform/types';
 
 // Export commonly used Drizzle operators
-export { eq, and, or, ne, gt, gte, lt, lte, isNull, isNotNull, inArray, notInArray, like, desc, asc } from 'drizzle-orm';
+export {
+  eq,
+  and,
+  or,
+  ne,
+  gt,
+  gte,
+  lt,
+  lte,
+  isNull,
+  isNotNull,
+  inArray,
+  notInArray,
+  like,
+  desc,
+  asc,
+} from 'drizzle-orm';

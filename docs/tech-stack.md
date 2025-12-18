@@ -3,11 +3,13 @@
 ## Frontend (`apps/web`)
 
 **Framework & Build**
+
 - **Vite** - Fast build tool and dev server
 - **React 19** - UI framework
 - **TypeScript** - Type safety
 
 **UI & Styling**
+
 - **Mantine** - Component library (buttons, forms, tables, etc.)
   - `@mantine/core` - Core components
   - `@mantine/hooks` - Utility hooks
@@ -17,10 +19,12 @@
 - **No Tailwind/CSS** - Mantine handles all styling via props
 
 **Routing & State**
+
 - **React Router** - Client-side routing
 - **TanStack Query** - Data fetching, caching (powers tRPC)
 
 **API Client**
+
 - **tRPC Client** - Type-safe API calls with auto-generated hooks
   - Location: `apps/web/src/lib/trpc.ts`
   - Provider: `apps/web/src/lib/trpc-provider.tsx`
@@ -30,21 +34,25 @@
 ## Backend (`apps/api`)
 
 **Framework**
+
 - **Express** - HTTP server
 - **TypeScript** - Type safety
 
 **API Layer**
+
 - **tRPC Server** - Type-safe API with zero code generation
   - Location: `apps/api/src/trpc/`
   - Router: `apps/api/src/trpc/router.ts`
   - Routers: `apps/api/src/trpc/routers/`
 
 **Database**
+
 - **Drizzle ORM** - TypeScript-native ORM
   - Schema: `packages/database/src/schema/`
   - Client: `packages/database/src/index.ts`
 
 **Auth**
+
 - **JWT** - Token-based authentication
 - **bcryptjs** - Password hashing
 
@@ -53,10 +61,12 @@
 ## Database (`packages/database`)
 
 **Database**
+
 - **PostgreSQL 16** - Running in Docker
 - **Drizzle ORM** - Schema definition and migrations
 
 **Tools**
+
 - `drizzle-kit` - Schema migrations
 - `tsx` - Run TypeScript seed scripts
 
@@ -65,10 +75,12 @@
 ## Monorepo Structure
 
 **Package Manager**
+
 - **pnpm** - Fast, disk-efficient package manager
 - **Workspaces** - Monorepo with shared dependencies
 
 **Workspaces**
+
 ```
 apps/
   api/          - Express + tRPC backend

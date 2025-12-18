@@ -21,20 +21,21 @@ import { PageHeader, StatCard, HistoricalBanner } from '@/components/ui';
 
 export function LeagueDetailPage() {
   const { league } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
-  const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
+  const { leagueSlug, year } = useParams<{
+    leagueSlug: string;
+    year: string;
+  }>();
   const { leagueSeason, isHistoricalYear, mostRecentLeagueYear } = useLeague();
 
   // Week navigation state
   const regularSeasonWeeks = (league.settings?.playoffStartWeek || 15) - 1;
   const [currentWeek, setCurrentWeek] = useState(1);
 
-  const { data: matchups } = trpc.matchups.getByLeagueWeek.useQuery(
-    {
-      leagueId: league.leagueId,
-      weekNumber: currentWeek,
-      season: parseInt(year || '2024'),
-    }
-  );
+  const { data: matchups } = trpc.matchups.getByLeagueWeek.useQuery({
+    leagueId: league.leagueId,
+    weekNumber: currentWeek,
+    season: parseInt(year || '2024'),
+  });
 
   const { data: standings } = trpc.standings.getByLeagueSeason.useQuery(
     { leagueSeasonId: leagueSeason?.id || '' },
@@ -81,10 +82,7 @@ export function LeagueDetailPage() {
 
         {/* Stats */}
         <SimpleGrid cols={{ base: 1, sm: 3 }}>
-          <StatCard
-            label="Franchises"
-            value={league.franchises?.length || 0}
-          />
+          <StatCard label="Franchises" value={league.franchises?.length || 0} />
           <StatCard
             label="Playoff Teams"
             value={league.settings?.playoffTeams || 4}
@@ -122,7 +120,8 @@ export function LeagueDetailPage() {
                   </Table.Thead>
                   <Table.Tbody>
                     {standings.map((franchise, index) => {
-                      const isPlayoffTeam = index < (league.settings?.playoffTeams || 4);
+                      const isPlayoffTeam =
+                        index < (league.settings?.playoffTeams || 4);
                       return (
                         <Table.Tr
                           key={franchise.franchiseSeasonId}
@@ -132,18 +131,25 @@ export function LeagueDetailPage() {
                           style={{ textDecoration: 'none', cursor: 'pointer' }}
                         >
                           <Table.Td>
-                            <Text fw={500} c={isPlayoffTeam ? 'green' : undefined}>
+                            <Text
+                              fw={500}
+                              c={isPlayoffTeam ? 'green' : undefined}
+                            >
                               {index + 1}
                             </Text>
                           </Table.Td>
                           <Table.Td>
                             <Stack gap={0}>
                               <Text fw={500}>{franchise.franchiseName}</Text>
-                              <Text size="xs" c="dimmed">{franchise.ownerName}</Text>
+                              <Text size="xs" c="dimmed">
+                                {franchise.ownerName}
+                              </Text>
                             </Stack>
                           </Table.Td>
                           <Table.Td ta="center">
-                            <Text fw={500} c="green">{franchise.wins}</Text>
+                            <Text fw={500} c="green">
+                              {franchise.wins}
+                            </Text>
                           </Table.Td>
                           <Table.Td ta="center">
                             <Text c="red">{franchise.losses}</Text>
@@ -155,7 +161,9 @@ export function LeagueDetailPage() {
                             <Text>{franchise.pointsFor.toFixed(1)}</Text>
                           </Table.Td>
                           <Table.Td ta="right">
-                            <Text c="dimmed">{franchise.pointsAgainst.toFixed(1)}</Text>
+                            <Text c="dimmed">
+                              {franchise.pointsAgainst.toFixed(1)}
+                            </Text>
                           </Table.Td>
                         </Table.Tr>
                       );
@@ -182,7 +190,9 @@ export function LeagueDetailPage() {
               <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }}>
                 {league.franchises.map((franchise) => {
                   // Find franchise's standing
-                  const franchiseStanding = standings?.find(s => s.franchiseId === franchise.id);
+                  const franchiseStanding = standings?.find(
+                    (s) => s.franchiseId === franchise.id
+                  );
                   const record = franchiseStanding
                     ? `${franchiseStanding.wins}-${franchiseStanding.losses}-${franchiseStanding.ties}`
                     : '0-0-0';
@@ -240,10 +250,13 @@ export function LeagueDetailPage() {
                     w={100}
                     value={currentWeek.toString()}
                     onChange={(val) => setCurrentWeek(parseInt(val || '1'))}
-                    data={Array.from({ length: regularSeasonWeeks }, (_, i) => ({
-                      value: (i + 1).toString(),
-                      label: `Week ${i + 1}`,
-                    }))}
+                    data={Array.from(
+                      { length: regularSeasonWeeks },
+                      (_, i) => ({
+                        value: (i + 1).toString(),
+                        label: `Week ${i + 1}`,
+                      })
+                    )}
                   />
                 </Group>
                 <Group gap="xs">
@@ -259,7 +272,9 @@ export function LeagueDetailPage() {
                     variant="subtle"
                     size="sm"
                     disabled={currentWeek >= regularSeasonWeeks}
-                    onClick={() => setCurrentWeek((w) => Math.min(regularSeasonWeeks, w + 1))}
+                    onClick={() =>
+                      setCurrentWeek((w) => Math.min(regularSeasonWeeks, w + 1))
+                    }
                   >
                     Next →
                   </Button>
@@ -269,16 +284,29 @@ export function LeagueDetailPage() {
               {matchups && matchups.length > 0 ? (
                 <Stack gap="sm">
                   {matchups.map((matchup) => {
-                    const homeScore = matchup.homeScore ? parseFloat(matchup.homeScore) : null;
-                    const awayScore = matchup.awayScore ? parseFloat(matchup.awayScore) : null;
-                    const homeWon = homeScore !== null && awayScore !== null && homeScore > awayScore;
-                    const awayWon = homeScore !== null && awayScore !== null && awayScore > homeScore;
+                    const homeScore = matchup.homeScore
+                      ? parseFloat(matchup.homeScore)
+                      : null;
+                    const awayScore = matchup.awayScore
+                      ? parseFloat(matchup.awayScore)
+                      : null;
+                    const homeWon =
+                      homeScore !== null &&
+                      awayScore !== null &&
+                      homeScore > awayScore;
+                    const awayWon =
+                      homeScore !== null &&
+                      awayScore !== null &&
+                      awayScore > homeScore;
 
                     return (
                       <Paper key={matchup.id} withBorder p="md" radius="md">
                         <Group justify="space-between" align="center">
                           <Stack gap={4} style={{ flex: 1 }}>
-                            <Text fw={homeWon ? 700 : 500} c={homeWon ? 'green' : undefined}>
+                            <Text
+                              fw={homeWon ? 700 : 500}
+                              c={homeWon ? 'green' : undefined}
+                            >
                               {matchup.home?.name || 'TBD'}
                             </Text>
                             <Text size="sm" c="dimmed">
@@ -289,27 +317,38 @@ export function LeagueDetailPage() {
                           </Stack>
 
                           <Stack gap={0} align="center" miw={80}>
-                            <Text size="xl" fw={700} c={homeWon ? 'green' : undefined}>
+                            <Text
+                              size="xl"
+                              fw={700}
+                              c={homeWon ? 'green' : undefined}
+                            >
                               {homeScore?.toFixed(1) ?? '-'}
                             </Text>
                             <Text size="xs" c="dimmed">
                               vs
                             </Text>
-                            <Text size="xl" fw={700} c={awayWon ? 'green' : undefined}>
+                            <Text
+                              size="xl"
+                              fw={700}
+                              c={awayWon ? 'green' : undefined}
+                            >
                               {awayScore?.toFixed(1) ?? '-'}
                             </Text>
                           </Stack>
 
                           <Stack gap={4} style={{ flex: 1 }} align="end">
-                            <Text fw={awayWon ? 700 : 500} c={awayWon ? 'green' : undefined}>
+                            <Text
+                              fw={awayWon ? 700 : 500}
+                              c={awayWon ? 'green' : undefined}
+                            >
                               {matchup.away?.name || 'BYE'}
                             </Text>
                             <Text size="sm" c="dimmed">
                               {matchup.away?.record
                                 ? `${matchup.away.record.wins}-${matchup.away.record.losses}-${matchup.away.record.ties}`
                                 : matchup.away
-                                ? '0-0-0'
-                                : ''}
+                                  ? '0-0-0'
+                                  : ''}
                             </Text>
                           </Stack>
                         </Group>

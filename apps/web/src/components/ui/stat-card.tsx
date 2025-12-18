@@ -1,5 +1,9 @@
 import { Paper, Text, Group, Tooltip, ActionIcon } from '@mantine/core';
-import { IconInfoCircle, IconTrendingUp, IconTrendingDown } from '@tabler/icons-react';
+import {
+  IconInfoCircle,
+  IconTrendingUp,
+  IconTrendingDown,
+} from '@tabler/icons-react';
 
 type StatCardProps = {
   label: string;
@@ -47,7 +51,12 @@ export function StatCard({ label, value, trend, info }: StatCardProps) {
       </Text>
       {trend && (
         <Group gap={4} mt={4}>
-          {TrendIcon && <TrendIcon size={14} color={`var(--mantine-color-${trendColor}-6)`} />}
+          {TrendIcon && (
+            <TrendIcon
+              size={14}
+              color={`var(--mantine-color-${trendColor}-6)`}
+            />
+          )}
           <Text size="xs" c={trendColor} fw={500}>
             {trend.value > 0 ? '+' : ''}
             {trend.value}

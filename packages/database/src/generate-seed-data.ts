@@ -88,7 +88,11 @@ const top60Players = [
   { name: 'David Njoku', position: 'TE', team: 'CLE', jerseyNumber: 85 },
 ];
 
-function generateWeeklyStats(playerName: string, position: string, week: number) {
+function generateWeeklyStats(
+  playerName: string,
+  position: string,
+  week: number
+) {
   const stats: any = {
     player_name: playerName,
     week_number: week,
@@ -123,7 +127,8 @@ function generateWeeklyStats(playerName: string, position: string, week: number)
       stats.receiving_yards = Math.floor(40 + Math.random() * 120);
       stats.receiving_tds = Math.random() > 0.7 ? 1 : 0;
       stats.targets = stats.receptions + Math.floor(Math.random() * 4);
-      stats.rushing_yards = Math.random() > 0.9 ? Math.floor(Math.random() * 20) : 0;
+      stats.rushing_yards =
+        Math.random() > 0.9 ? Math.floor(Math.random() * 20) : 0;
       stats.fumbles_lost = Math.random() > 0.95 ? 1 : 0;
       break;
 
@@ -183,9 +188,7 @@ async function generateSeedData() {
           stats.rushing_tds || ''
         },${stats.rushing_attempts || ''},${stats.receptions || ''},${
           stats.receiving_yards || ''
-        },${stats.receiving_tds || ''},${stats.targets || ''},${
-          stats.fumbles_lost || ''
-        }`
+        },${stats.receiving_tds || ''},${stats.targets || ''},${stats.fumbles_lost || ''}`
       );
       totalStats++;
     }

@@ -32,11 +32,12 @@
 
 **Status:** COMPLETED (December 15, 2024)
 
-### Tasks (omitted for brevity) 
+### Tasks (omitted for brevity)
 
 **Success Criteria:** ✅ Can run `pnpm dev` and have both frontend and backend running with hot reload.
 
 **What Was Built:**
+
 - Monorepo with pnpm workspaces
 - Vite + React + TypeScript frontend with Tailwind CSS configured
 - Express + TypeScript backend with health check endpoint
@@ -55,11 +56,12 @@
 
 **Note:** Changed from Prisma to Drizzle ORM for simpler TypeScript-native schema definition.
 
-### Tasks (omitted for brevity) 
+### Tasks (omitted for brevity)
 
 **Success Criteria:** ✅ Database is running, migrations work, can query data via Drizzle from API.
 
 **What Was Built:**
+
 - PostgreSQL 16 running in Docker container
 - Drizzle ORM with TypeScript-native schemas
 - Five core tables: users, leagues, teams, players, scoring_rules
@@ -69,6 +71,7 @@
 - Database connection test endpoint at `/api/test/db`
 
 **Known Issues:**
+
 - Dynamic imports required for env var loading (TODO: refactor to lazy initialization)
 
 ---
@@ -81,15 +84,17 @@
 
 **Note:** Changed from REST to tRPC for type-safe APIs and auto-generated React hooks.
 
-### Tasks (omitted for brevity) 
+### Tasks (omitted for brevity)
 
 **Success Criteria:**
+
 - ✅ tRPC server running with type-safe procedures
 - ✅ Auth working (register, login, protected routes)
 - ✅ CRUD operations for leagues, teams, players
 - ⏳ Frontend can call procedures with full type safety (Next Milestone)
 
 **What Was Built:**
+
 - tRPC server mounted at `/trpc` endpoint
 - Type-safe context with database and user authentication
 - Protected procedure middleware (checks JWT)
@@ -112,12 +117,14 @@
   - `players.getById` - Get single player by ID
 
 **Technical Notes:**
+
 - Using bcryptjs instead of bcrypt (no native bindings needed)
 - JWT tokens in `Authorization: Bearer <token>` header
 - Protected procedures throw UNAUTHORIZED error if no valid token
 - All input validation handled by Zod schemas in tRPC procedures
 
 **Future Enhancements (Noted in apps/api/TODO.md):**
+
 - OAuth support (Google, GitHub, etc.)
 - Refresh tokens for longer sessions
 - Two-factor authentication
@@ -132,11 +139,12 @@
 
 **Note:** Switched from shadcn/ui to Mantine for better data-heavy UI components.
 
-### Tasks (omitted for brevity) 
+### Tasks (omitted for brevity)
 
 **Success Criteria:** ✅ Can register, login, see leagues list, browse players in polished UI.
 
 **What Was Built:**
+
 - **Mantine UI System** - Complete component library with excellent defaults
   - `@mantine/core` - Buttons, inputs, cards, papers, etc.
   - `@mantine/notifications` - Toast notification system
@@ -157,11 +165,13 @@
   - Works seamlessly with Mantine components
 
 **Technical Decisions:**
+
 - **Why Mantine over shadcn/ui**: Better for data-heavy apps (DataTable is killer)
 - **Why AppShell**: Professional sidebar layout with mobile responsive built-in
 - **Why DataTable**: Fantasy football = lots of tables. Mantine's DataTable has everything (sorting, filtering, row selection, sticky headers, pagination)
 
 **What's Different from Plan:**
+
 - Replaced shadcn/ui with Mantine (better for our use case)
 - No separate AuthLayout needed (Mantine Container handles it)
 - League detail page moved to next milestone
@@ -172,7 +182,7 @@
 
 **Goal:** Implement full data model for leagues, teams, rosters, and expand player data.
 
-### Tasks (omitted for brevity) 
+### Tasks (omitted for brevity)
 
 **Success Criteria:** Can create league with settings, add teams, assign players to roster, set starting lineup.
 
@@ -182,7 +192,7 @@
 
 **Goal:** Set up player data pipeline, initially with static/CSV data for development.
 
-### Tasks (omitted for brevity) 
+### Tasks (omitted for brevity)
 
 **Success Criteria:** Can browse NFL players, view their stats for specific weeks, search and filter.
 
@@ -192,7 +202,7 @@
 
 **Goal:** Build the core scoring calculation engine with simple rules.
 
-### Tasks (omitted for brevity) 
+### Tasks (omitted for brevity)
 
 **Success Criteria:** Can configure basic scoring rules, calculate player/team scores, see results in UI.
 
@@ -202,7 +212,7 @@
 
 **Goal:** Add position-specific PPR, bonuses, and conditional scoring.
 
-### Tasks (omitted for brevity) 
+### Tasks (omitted for brevity)
 
 **Success Criteria:** Can create TE Premium league, set milestone bonuses, see accurate score breakdowns.
 
@@ -342,10 +352,10 @@ These will be prioritized based on user feedback:
 
 ## Note from elsewhere that I don't want to lose
 
-
 ## MVP Feature Scope
 
 **Must Build (Tier 1 & 2):**
+
 1. Custom Scoring Engine (6-8 weeks) - CORE MOAT
 2. League Management (3-4 weeks)
 3. Live Scoring (2-3 weeks)
@@ -356,6 +366,7 @@ These will be prioritized based on user feedback:
 8. Mobile-Responsive UI (ongoing)
 
 **Explicitly NOT Building for MVP:**
+
 - Dynasty/keeper features
 - Auction drafts
 - Salary caps
@@ -366,22 +377,23 @@ These will be prioritized based on user feedback:
 
 ## Open questions
 
-* Should `player_weekly_stats` have a bunch of columns of big a json blob?
-* How to represent league transactions (trades, waiver, draft), one big event log?
-* should we delete docs/schema.md in favor of the actual schema.ts file?
-* can we auto-gen docs for the api (useful for claude to reference)
-* better logging/error handling for debugging
-* protected app routes by team/league
-* get league `getById` is long with a lot of lookups. maybe sure all indexed
-* move to json router in app? is that better?
-* how is query stale time used? `staleTime: 5 * 1000, // 5 seconds`
-* tests? just to make sure we don't completely break things?
-* high tech feeling data viz
-  * even if not super complex
-  * trend lines, ranges for projections, historical scatter plot, etc
-* more generic stat views per player (eg. wr can have rushes, qb can have catches, etc)
+- Should `player_weekly_stats` have a bunch of columns of big a json blob?
+- How to represent league transactions (trades, waiver, draft), one big event log?
+- should we delete docs/schema.md in favor of the actual schema.ts file?
+- can we auto-gen docs for the api (useful for claude to reference)
+- better logging/error handling for debugging
+- protected app routes by team/league
+- get league `getById` is long with a lot of lookups. maybe sure all indexed
+- move to json router in app? is that better?
+- how is query stale time used? `staleTime: 5 * 1000, // 5 seconds`
+- tests? just to make sure we don't completely break things?
+- high tech feeling data viz
+  - even if not super complex
+  - trend lines, ranges for projections, historical scatter plot, etc
+- more generic stat views per player (eg. wr can have rushes, qb can have catches, etc)
 
 📋 Future enhancements (not urgent):
+
 - Enhance scoring config UI (allow users to select from presets, customize rules)
 - Polish the player score breakdown modal UI
 - Maybe expose the scoring presets via tRPC endpoint if/when you build a league setup wizard

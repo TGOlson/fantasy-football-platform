@@ -2,3 +2,4 @@
 **/.env
 **/seed-data
 .claude
+.vscode

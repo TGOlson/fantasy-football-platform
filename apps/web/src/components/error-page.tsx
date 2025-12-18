@@ -11,7 +11,8 @@ export function ErrorPage() {
   if (isRouteErrorResponse(error)) {
     if (error.status === 404) {
       title = 'Not Found';
-      message = error.statusText || 'The page you are looking for does not exist';
+      message =
+        error.statusText || 'The page you are looking for does not exist';
     } else {
       title = `Error ${error.status}`;
       message = error.statusText || error.data;

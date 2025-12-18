@@ -148,7 +148,10 @@ export const lineupsRouter = router({
           ownerId: franchiseSeasons.ownerId,
         })
         .from(weeklyLineups)
-        .innerJoin(franchiseSeasons, eq(weeklyLineups.franchiseSeasonId, franchiseSeasons.id))
+        .innerJoin(
+          franchiseSeasons,
+          eq(weeklyLineups.franchiseSeasonId, franchiseSeasons.id)
+        )
         .where(eq(weeklyLineups.id, input.lineupId))
         .limit(1);
 
@@ -304,7 +307,10 @@ export const lineupsRouter = router({
           ownerId: franchiseSeasons.ownerId,
         })
         .from(weeklyLineups)
-        .innerJoin(franchiseSeasons, eq(weeklyLineups.franchiseSeasonId, franchiseSeasons.id))
+        .innerJoin(
+          franchiseSeasons,
+          eq(weeklyLineups.franchiseSeasonId, franchiseSeasons.id)
+        )
         .where(eq(weeklyLineups.id, input.lineupId))
         .limit(1);
 
@@ -324,7 +330,9 @@ export const lineupsRouter = router({
       }
 
       // Remove from lineup
-      await db.delete(weeklyLineups).where(eq(weeklyLineups.id, input.lineupId));
+      await db
+        .delete(weeklyLineups)
+        .where(eq(weeklyLineups.id, input.lineupId));
 
       return { success: true };
     }),

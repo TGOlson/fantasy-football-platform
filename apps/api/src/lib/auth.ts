@@ -61,7 +61,15 @@ export async function comparePassword(
 // AUTH HELPERS
 // ============================================================================
 
-import { getDatabase, franchises, franchiseSeasons, leagueSeasons, eq, and, users } from '@fantasy-platform/database';
+import {
+  getDatabase,
+  franchises,
+  franchiseSeasons,
+  leagueSeasons,
+  eq,
+  and,
+  users,
+} from '@fantasy-platform/database';
 import { TRPCError } from '@trpc/server';
 
 /**
@@ -87,7 +95,12 @@ export async function checkLeagueMembership(
     .select()
     .from(franchiseSeasons)
     .innerJoin(franchises, eq(franchiseSeasons.franchiseId, franchises.id))
-    .where(and(eq(franchises.leagueId, leagueId), eq(franchiseSeasons.ownerId, userId)))
+    .where(
+      and(
+        eq(franchises.leagueId, leagueId),
+        eq(franchiseSeasons.ownerId, userId)
+      )
+    )
     .limit(1);
 
   return !!fs;
@@ -105,7 +118,12 @@ export async function checkFranchiseOwnership(
   const [fs] = await db
     .select()
     .from(franchiseSeasons)
-    .where(and(eq(franchiseSeasons.franchiseId, franchiseId), eq(franchiseSeasons.ownerId, userId)))
+    .where(
+      and(
+        eq(franchiseSeasons.franchiseId, franchiseId),
+        eq(franchiseSeasons.ownerId, userId)
+      )
+    )
     .limit(1);
 
   return !!fs;
@@ -123,7 +141,12 @@ export async function checkLeagueAdmin(
   const [season] = await db
     .select()
     .from(leagueSeasons)
-    .where(and(eq(leagueSeasons.leagueId, leagueId), eq(leagueSeasons.commissionerId, userId)))
+    .where(
+      and(
+        eq(leagueSeasons.leagueId, leagueId),
+        eq(leagueSeasons.commissionerId, userId)
+      )
+    )
     .limit(1);
 
   return !!season;

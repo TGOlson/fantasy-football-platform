@@ -3,30 +3,36 @@
 ## Auth Levels
 
 ### 1. Public (Unauthed)
+
 - `/login`
 - `/register`
 
 ### 2. User Auth (Logged in)
+
 - User must have valid JWT
 - Can access their user home, settings, create leagues
 
 ### 3. League Member Auth
+
 - User must be logged in AND own (or have ever owned) a team in the league
 - Can view all league pages (standings, rosters, matchups, players, settings)
 - Historical access: Can view past seasons even if no longer active in league
 - Cannot edit things they don't own
 
 ### 4. Team Owner Auth
+
 - League member + owns the specific team
 - Can edit their lineup, manage their roster
 - Future: make trades, view their transaction history
 
 ### 5. League Admin Auth
+
 - League member + is the commissioner (`league.commissionerId`)
 - Can edit league settings, manage league
 - Future: approve/reject trades, process waivers
 
 ### 6. Site Admin
+
 - Special role for developers
 - Can view/do anything across all leagues
 - Implementation: Add `isSiteAdmin` boolean to users table
@@ -37,11 +43,14 @@
 **Keep it simple - no complex permissions framework.**
 
 ### API (tRPC)
+
 Current procedures:
+
 - `publicProcedure` - unauthed
 - `protectedProcedure` - user auth only
 
 Add new procedures:
+
 - `leagueProcedure` - requires user is in league (owns a team)
 - `teamOwnerProcedure` - requires user owns the specific team
 - `leagueAdminProcedure` - requires user is commissioner
@@ -50,6 +59,7 @@ Add new procedures:
 These procedures check memberships via database queries (join teams table on userId + leagueId/teamId from input).
 
 ### App (React)
+
 - Keep `<ProtectedRoute>` for basic user auth
 - Add route-level checks for league membership (redirect to home if not in league)
 - UI-level checks for owner/admin features:
@@ -60,6 +70,7 @@ These procedures check memberships via database queries (join teams table on use
 ## Route Structure
 
 ### Current (OLD)
+
 ```
 /                           → Dashboard
 /leagues                    → List leagues
@@ -71,6 +82,7 @@ These procedures check memberships via database queries (join teams table on use
 ```
 
 ### Proposed (NEW)
+
 ```
 # Unauthed
 /login
@@ -102,19 +114,23 @@ These procedures check memberships via database queries (join teams table on use
 ```
 
 ### League Slug
+
 - Derive from league name: "The Championship League" → `the-championship-league`
 - Store as `slug` column on leagues table (unique)
 - Auto-generate on league creation, allow commissioner to customize
 
 ### Year in URL
+
 **Decision needed:** Should current year be omitted from URL?
 
 **Option A: Always include year**
+
 - `/my-league/2025` even if 2025 is current
 - Pro: Simpler routing, explicit
 - Con: Slightly longer URLs
 
 **Option B: Omit current year**
+
 - `/my-league` shows current season
 - `/my-league/2024` shows historical
 - Pro: Cleaner URLs for common case
@@ -125,11 +141,13 @@ These procedures check memberships via database queries (join teams table on use
 ## Data Requirements
 
 ### Database Changes
+
 1. Add `slug` to leagues table (text, unique, indexed)
 2. Add `isSiteAdmin` to users table (boolean, default false)
 3. Add unique constraint on teams table for `(leagueId, ownerId)` to prevent multiple team ownership
 
 ### API Changes
+
 1. Implement new tRPC procedures (league/team/admin/site-admin)
 2. Migrate existing routers to use appropriate procedures:
    - Leagues router: most endpoints need leagueProcedure
@@ -137,18 +155,19 @@ These procedures check memberships via database queries (join teams table on use
    - Settings router: viewing = leagueProcedure, editing = leagueAdminProcedure
 3. Add helpers to check memberships:
    ```ts
-   async function checkLeagueMembership(userId, leagueId) // Check if user ever owned team
-   async function checkTeamOwnership(userId, teamId)
-   async function checkLeagueAdmin(userId, leagueId)
+   async function checkLeagueMembership(userId, leagueId); // Check if user ever owned team
+   async function checkTeamOwnership(userId, teamId);
+   async function checkLeagueAdmin(userId, leagueId);
    ```
 4. Add slug generation utility:
    ```ts
-   async function generateUniqueSlug(leagueName: string): Promise<string>
+   async function generateUniqueSlug(leagueName: string): Promise<string>;
    // "The Championship League" → "the-championship-league"
    // If exists, append number: "the-championship-league-2"
    ```
 
 ### App Changes
+
 1. Update all routes to new structure
 2. Add league membership check wrapper
 3. Add conditional rendering for owner/admin features
