@@ -1,6 +1,7 @@
-import { Breadcrumbs, Anchor, Title, Text, Group, Stack } from '@mantine/core';
+import { Breadcrumbs, Anchor, Title, Text, Group, Stack, Box } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
+import { IconChevronRight } from '@tabler/icons-react';
 
 type BreadcrumbItem = {
   label: string;
@@ -23,9 +24,14 @@ export function PageHeader({
   badges,
 }: PageHeaderProps) {
   return (
-    <Stack gap="xs">
+    <Stack gap="sm">
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <Breadcrumbs separator="/">
+        <Breadcrumbs
+          separator={<IconChevronRight size={14} color="var(--mantine-color-gray-5)" />}
+          styles={{
+            separator: { marginLeft: 6, marginRight: 6 },
+          }}
+        >
           {breadcrumbs.map((item, index) =>
             item.to ? (
               <Anchor
@@ -34,11 +40,16 @@ export function PageHeader({
                 to={item.to}
                 size="sm"
                 c="dimmed"
+                fw={500}
+                style={{
+                  textDecoration: 'none',
+                  '&:hover': { textDecoration: 'underline' }
+                }}
               >
                 {item.label}
               </Anchor>
             ) : (
-              <Text key={index} size="sm" c="dimmed">
+              <Text key={index} size="sm" c="dimmed" fw={500}>
                 {item.label}
               </Text>
             )
@@ -46,14 +57,20 @@ export function PageHeader({
         </Breadcrumbs>
       )}
       <Group justify="space-between" align="flex-start">
-        <Stack gap={4}>
-          <Group gap="sm">
-            <Title order={1}>{title}</Title>
+        <Box>
+          <Group gap="md" align="center">
+            <Title order={1} style={{ letterSpacing: '-0.03em' }}>
+              {title}
+            </Title>
             {badges}
           </Group>
-          {subtitle && <Text c="dimmed">{subtitle}</Text>}
-        </Stack>
-        {actions && <Group gap="xs">{actions}</Group>}
+          {subtitle && (
+            <Text c="dimmed" mt={4} size="md">
+              {subtitle}
+            </Text>
+          )}
+        </Box>
+        {actions && <Group gap="sm">{actions}</Group>}
       </Group>
     </Stack>
   );

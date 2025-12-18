@@ -111,7 +111,7 @@ export function PlayerDetailPage() {
           ]}
           badges={
             <Group gap="xs">
-              <PositionBadge position={player.position} size="lg" />
+              <PositionBadge position={player.position} />
               <Badge size="lg" variant="outline">
                 {player.team}
               </Badge>

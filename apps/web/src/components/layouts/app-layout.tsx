@@ -11,6 +11,7 @@ import {
   UnstyledButton,
   Menu,
   Box,
+  Paper,
 } from '@mantine/core';
 import {
   IconLayoutDashboard,
@@ -21,7 +22,7 @@ import {
   IconSettings,
   IconChartBar,
   IconLogout,
-  IconChevronDown,
+  IconSelector,
 } from '@tabler/icons-react';
 import { useAuth } from '@/lib/auth-context';
 import { useLeagueOptional } from '@/lib/league-context';
@@ -66,13 +67,38 @@ export function AppLayout({ children }: AppLayoutProps) {
   const leagueBase = leagueSlug && year ? `/${leagueSlug}/${year}` : null;
 
   return (
-    <AppShell navbar={{ width: 220, breakpoint: 'sm' }} padding="md">
-      <AppShell.Navbar p="sm">
+    <AppShell
+      navbar={{ width: 240, breakpoint: 'sm' }}
+      padding="lg"
+      styles={{
+        main: {
+          backgroundColor: 'var(--mantine-color-slate-0)',
+          minHeight: '100vh',
+        },
+        navbar: {
+          backgroundColor: 'var(--mantine-color-white)',
+          borderRight: '1px solid var(--mantine-color-gray-2)',
+        },
+      }}
+    >
+      <AppShell.Navbar p="md">
         {/* Logo / App Name */}
         <AppShell.Section>
-          <Group gap="xs" mb="md">
-            <IconTrophy size={24} color="var(--mantine-color-violet-6)" />
-            <Text size="md" fw={700}>
+          <Group gap="xs" mb="lg">
+            <Box
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: 'linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <IconTrophy size={18} color="white" />
+            </Box>
+            <Text size="lg" fw={800} style={{ letterSpacing: '-0.02em' }}>
               Fantasy
             </Text>
           </Group>
@@ -80,34 +106,45 @@ export function AppLayout({ children }: AppLayoutProps) {
 
         {/* League Selector (when leagues exist) */}
         {leagues && leagues.length > 0 && (
-          <AppShell.Section mb="sm">
-            <Menu shadow="md" width={200}>
+          <AppShell.Section mb="md">
+            <Menu shadow="md" width={220}>
               <Menu.Target>
                 <UnstyledButton
-                  p="xs"
+                  p="sm"
                   style={{
-                    borderRadius: 'var(--mantine-radius-sm)',
+                    borderRadius: 'var(--mantine-radius-md)',
                     border: '1px solid var(--mantine-color-gray-3)',
+                    backgroundColor: 'var(--mantine-color-slate-0)',
                     width: '100%',
+                    transition: 'all 150ms ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--mantine-color-violet-4)';
+                    e.currentTarget.style.backgroundColor = 'var(--mantine-color-violet-0)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--mantine-color-gray-3)';
+                    e.currentTarget.style.backgroundColor = 'var(--mantine-color-slate-0)';
                   }}
                 >
                   <Group justify="space-between" wrap="nowrap">
-                    <Stack gap={0}>
-                      <Text size="xs" c="dimmed">
+                    <Stack gap={2}>
+                      <Text size="xs" c="dimmed" fw={600} tt="uppercase" style={{ letterSpacing: '0.5px' }}>
                         League
                       </Text>
-                      <Text size="sm" fw={500} lineClamp={1}>
+                      <Text size="sm" fw={600} lineClamp={1}>
                         {currentLeagueName || 'Select League'}
                       </Text>
                     </Stack>
-                    <IconChevronDown
+                    <IconSelector
                       size={16}
-                      color="var(--mantine-color-dimmed)"
+                      color="var(--mantine-color-gray-5)"
                     />
                   </Group>
                 </UnstyledButton>
               </Menu.Target>
               <Menu.Dropdown>
+                <Menu.Label>Your Leagues</Menu.Label>
                 {leagues.map((league) => (
                   <Menu.Item
                     key={league.id}
@@ -116,6 +153,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                         `/${league.slug}/${league.currentSeason?.year || new Date().getFullYear()}`
                       )
                     }
+                    fw={league.slug === leagueSlug ? 600 : 400}
+                    bg={league.slug === leagueSlug ? 'violet.0' : undefined}
                   >
                     {league.name}
                   </Menu.Item>
@@ -125,7 +164,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </AppShell.Section>
         )}
 
-        <Divider mb="sm" />
+        <Divider mb="md" color="gray.2" />
 
         {/* Main Navigation */}
         <AppShell.Section grow>
@@ -136,17 +175,22 @@ export function AppLayout({ children }: AppLayoutProps) {
               label="Dashboard"
               leftSection={<IconLayoutDashboard size={18} />}
               active={isActive('/')}
+              variant="filled"
             />
 
             {/* League-specific navigation (when in league context) */}
             {leagueBase && (
               <>
+                <Text size="xs" c="dimmed" fw={600} tt="uppercase" mt="md" mb={4} style={{ letterSpacing: '0.5px' }}>
+                  League
+                </Text>
                 <NavLink
                   component={Link}
                   to={leagueBase}
                   label="League Home"
                   leftSection={<IconTrophy size={18} />}
                   active={isActive(leagueBase)}
+                  variant="filled"
                 />
                 {myTeam ? (
                   <NavLink
@@ -157,6 +201,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     active={isActivePrefix(
                       `${leagueBase}/franchises/${myTeam.id}`
                     )}
+                    variant="filled"
                   />
                 ) : (
                   <NavLink
@@ -172,15 +217,14 @@ export function AppLayout({ children }: AppLayoutProps) {
                   label="Players"
                   leftSection={<IconUsers size={18} />}
                   active={isActivePrefix(`${leagueBase}/players`)}
+                  variant="filled"
                 />
-                {/* TODO: Matchups */}
                 <NavLink
                   label="Matchups"
                   leftSection={<IconCalendarEvent size={18} />}
                   disabled
                   c="dimmed"
                 />
-                {/* TODO: Standings */}
                 <NavLink
                   label="Standings"
                   leftSection={<IconChartBar size={18} />}
@@ -188,31 +232,33 @@ export function AppLayout({ children }: AppLayoutProps) {
                   c="dimmed"
                 />
 
-                <Divider my="sm" />
-
+                <Text size="xs" c="dimmed" fw={600} tt="uppercase" mt="md" mb={4} style={{ letterSpacing: '0.5px' }}>
+                  Settings
+                </Text>
                 <NavLink
                   component={Link}
                   to={`${leagueBase}/settings`}
-                  label="Scoring Settings"
+                  label="Scoring Rules"
                   leftSection={<IconSettings size={18} />}
                   active={isActive(`${leagueBase}/settings`)}
+                  variant="filled"
                 />
               </>
             )}
           </Stack>
         </AppShell.Section>
 
-        <Divider mb="sm" />
+        <Divider mb="md" color="gray.2" />
 
         {/* User Section */}
         <AppShell.Section>
-          <Box p="xs">
+          <Paper p="sm" bg="slate.0" radius="md">
             <Group gap="sm" wrap="nowrap">
-              <Avatar size="sm" radius="xl" color="violet">
+              <Avatar size="md" radius="xl" color="violet" variant="filled">
                 {user?.name?.[0]?.toUpperCase() || 'U'}
               </Avatar>
               <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
-                <Text size="sm" fw={500} lineClamp={1}>
+                <Text size="sm" fw={600} lineClamp={1}>
                   {user?.name}
                 </Text>
                 <Text size="xs" c="dimmed" lineClamp={1}>
@@ -220,30 +266,31 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </Text>
               </Stack>
             </Group>
-            <UnstyledButton
-              onClick={handleLogout}
-              mt="sm"
-              p="xs"
-              style={{
-                borderRadius: 'var(--mantine-radius-sm)',
-                width: '100%',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  'var(--mantine-color-gray-1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <Group gap="xs">
-                <IconLogout size={16} color="var(--mantine-color-dimmed)" />
-                <Text size="sm" c="dimmed">
-                  Logout
-                </Text>
-              </Group>
-            </UnstyledButton>
-          </Box>
+          </Paper>
+          <UnstyledButton
+            onClick={handleLogout}
+            mt="sm"
+            p="sm"
+            style={{
+              borderRadius: 'var(--mantine-radius-md)',
+              width: '100%',
+              transition: 'background-color 150ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor =
+                'var(--mantine-color-loss-0)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            <Group gap="xs">
+              <IconLogout size={16} color="var(--mantine-color-gray-6)" />
+              <Text size="sm" c="dimmed" fw={500}>
+                Sign out
+              </Text>
+            </Group>
+          </UnstyledButton>
         </AppShell.Section>
       </AppShell.Navbar>
 

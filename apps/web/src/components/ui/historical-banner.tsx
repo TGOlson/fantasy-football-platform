@@ -1,4 +1,4 @@
-import { Alert, Group, Text, Anchor } from '@mantine/core';
+import { Paper, Group, Text, Anchor, ThemeIcon } from '@mantine/core';
 import { IconHistory } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 
@@ -16,24 +16,38 @@ export function HistoricalBanner({
   currentYearPath,
 }: HistoricalBannerProps) {
   return (
-    <Alert
-      variant="light"
-      color="gray"
-      icon={<IconHistory size={18} />}
-      py="xs"
+    <Paper
+      p="sm"
+      withBorder
+      style={{
+        backgroundColor: '#fef3c7',
+        borderColor: '#fcd34d',
+      }}
     >
       <Group justify="space-between">
-        <Text size="sm">
-          You're viewing the{' '}
-          <Text span fw={600}>
-            {year}
-          </Text>{' '}
-          season.
-        </Text>
-        <Anchor component={Link} to={currentYearPath} size="sm">
+        <Group gap="sm">
+          <ThemeIcon size="sm" variant="light" color="yellow" radius="xl">
+            <IconHistory size={14} />
+          </ThemeIcon>
+          <Text size="sm" c="dark">
+            You're viewing the{' '}
+            <Text span fw={700}>
+              {year}
+            </Text>{' '}
+            season.
+          </Text>
+        </Group>
+        <Anchor
+          component={Link}
+          to={currentYearPath}
+          size="sm"
+          fw={600}
+          c="dark"
+          style={{ textDecoration: 'underline' }}
+        >
           View current season
         </Anchor>
       </Group>
-    </Alert>
+    </Paper>
   );
 }

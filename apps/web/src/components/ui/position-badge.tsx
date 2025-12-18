@@ -1,28 +1,21 @@
-import { Badge } from '@mantine/core';
-import type { MantineColor } from '@mantine/core';
-
-const POSITION_COLORS: Record<string, MantineColor> = {
-  QB: 'violet',
-  RB: 'blue',
-  WR: 'green',
-  TE: 'orange',
-  K: 'gray',
-  DEF: 'red',
-  FLEX: 'cyan',
-  SUPERFLEX: 'pink',
-};
+import { Text } from '@mantine/core';
 
 type PositionBadgeProps = {
   position: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
 };
 
-export function PositionBadge({ position, size = 'sm' }: PositionBadgeProps) {
-  const color = POSITION_COLORS[position] || 'gray';
-
+export function PositionBadge({ position }: PositionBadgeProps) {
   return (
-    <Badge color={color} size={size} variant="light">
+    <Text
+      size="xs"
+      fw={600}
+      c="dimmed"
+      style={{
+        fontFamily: 'var(--mantine-font-family-monospace)',
+        letterSpacing: '0.02em',
+      }}
+    >
       {position}
-    </Badge>
+    </Text>
   );
 }

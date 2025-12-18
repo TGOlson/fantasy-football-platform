@@ -16,9 +16,10 @@ type StatCardProps = {
 };
 
 export function StatCard({ label, value, trend, info }: StatCardProps) {
+  // Trend colors are semantic - green for up, red for down
   const trendColor = trend
     ? trend.value > 0
-      ? 'green'
+      ? 'teal'
       : trend.value < 0
         ? 'red'
         : 'dimmed'
@@ -33,27 +34,29 @@ export function StatCard({ label, value, trend, info }: StatCardProps) {
     : null;
 
   return (
-    <Paper withBorder p="sm">
-      <Group justify="space-between" mb={4}>
-        <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+    <Paper withBorder shadow="xs" p="sm">
+      <Group justify="space-between" mb={2}>
+        <Text size="xs" c="dimmed" fw={500}>
           {label}
         </Text>
         {info && (
           <Tooltip label={info} withArrow>
             <ActionIcon variant="subtle" size="xs" color="gray">
-              <IconInfoCircle size={14} />
+              <IconInfoCircle size={12} />
             </ActionIcon>
           </Tooltip>
         )}
       </Group>
-      <Text size="xl" fw={700}>
+
+      <Text fw={700} style={{ fontSize: '1.5rem', lineHeight: 1.2 }}>
         {value}
       </Text>
+
       {trend && (
         <Group gap={4} mt={4}>
           {TrendIcon && (
             <TrendIcon
-              size={14}
+              size={12}
               color={`var(--mantine-color-${trendColor}-6)`}
             />
           )}

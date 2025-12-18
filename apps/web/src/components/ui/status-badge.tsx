@@ -1,5 +1,4 @@
 import { Badge } from '@mantine/core';
-import type { MantineColor } from '@mantine/core';
 
 type PlayerStatus =
   | 'active'
@@ -10,17 +9,18 @@ type PlayerStatus =
   | 'bye'
   | 'suspended';
 
+// Using semantic colors with good contrast
 const STATUS_CONFIG: Record<
   PlayerStatus,
-  { color: MantineColor; label: string }
+  { bg: string; color: string; label: string }
 > = {
-  active: { color: 'green', label: 'Active' },
-  questionable: { color: 'yellow', label: 'Q' },
-  doubtful: { color: 'orange', label: 'D' },
-  out: { color: 'red', label: 'O' },
-  ir: { color: 'red', label: 'IR' },
-  bye: { color: 'gray', label: 'BYE' },
-  suspended: { color: 'red', label: 'SUSP' },
+  active: { bg: '#dcfce7', color: '#166534', label: 'Active' },
+  questionable: { bg: '#fef3c7', color: '#92400e', label: 'Q' },
+  doubtful: { bg: '#ffedd5', color: '#9a3412', label: 'D' },
+  out: { bg: '#fee2e2', color: '#991b1b', label: 'O' },
+  ir: { bg: '#fee2e2', color: '#991b1b', label: 'IR' },
+  bye: { bg: '#f3f4f6', color: '#4b5563', label: 'BYE' },
+  suspended: { bg: '#fee2e2', color: '#991b1b', label: 'SUSP' },
 };
 
 type StatusBadgeProps = {
@@ -47,7 +47,17 @@ export function StatusBadge({
   }
 
   return (
-    <Badge color={config.color} size={size} variant="filled">
+    <Badge
+      size={size}
+      variant="filled"
+      styles={{
+        root: {
+          backgroundColor: config.bg,
+          color: config.color,
+          fontWeight: 700,
+        },
+      }}
+    >
       {config.label}
     </Badge>
   );

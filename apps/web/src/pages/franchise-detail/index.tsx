@@ -21,6 +21,16 @@ import {
   HistoricalBanner,
 } from '@/components/ui';
 
+// Helper to get score color - functional highlighting for scannability
+function getScoreStyle(score: string | number | null | undefined) {
+  if (!score) return {};
+  const pts = typeof score === 'string' ? parseFloat(score) : score;
+  if (pts >= 20)
+    return { color: 'var(--mantine-color-teal-7)', fontWeight: 700 };
+  if (pts >= 10) return { fontWeight: 600 };
+  return { color: 'var(--mantine-color-gray-6)' };
+}
+
 export function FranchiseDetailPage() {
   const { franchise } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const { leagueSlug, year } = useParams<{
@@ -33,14 +43,31 @@ export function FranchiseDetailPage() {
     franchise.lineup?.filter((p) => p.slotType !== 'BENCH') || [];
   const bench = franchise.lineup?.filter((p) => p.slotType === 'BENCH') || [];
 
-  // Build record string
-  const record = franchise.franchiseSeason
-    ? `${franchise.franchiseSeason.wins}-${franchise.franchiseSeason.losses}-${franchise.franchiseSeason.ties}`
-    : '0-0-0';
+  const wins = franchise.franchiseSeason?.wins || 0;
+  const losses = franchise.franchiseSeason?.losses || 0;
+  const ties = franchise.franchiseSeason?.ties || 0;
+  const record = `${wins}-${losses}-${ties}`;
+
+  // Record badge - semantic color for quick scan
+  const recordColor =
+    wins > losses
+      ? {
+          bg: 'var(--mantine-color-teal-1)',
+          color: 'var(--mantine-color-teal-8)',
+        }
+      : wins < losses
+        ? {
+            bg: 'var(--mantine-color-red-1)',
+            color: 'var(--mantine-color-red-8)',
+          }
+        : {
+            bg: 'var(--mantine-color-gray-2)',
+            color: 'var(--mantine-color-gray-7)',
+          };
 
   return (
     <AppLayout>
-      <Stack gap="lg">
+      <Stack gap="md">
         {isHistoricalYear && (
           <HistoricalBanner
             year={parseInt(year!)}
@@ -48,7 +75,6 @@ export function FranchiseDetailPage() {
           />
         )}
 
-        {/* Header */}
         <PageHeader
           title={franchise.name}
           subtitle={`Owner: ${franchise.owner?.name || 'Unknown'}`}
@@ -58,13 +84,24 @@ export function FranchiseDetailPage() {
             { label: franchise.name },
           ]}
           badges={
-            <Badge size="lg" variant="light" color="violet">
+            <Badge
+              size="lg"
+              variant="filled"
+              styles={{
+                root: {
+                  backgroundColor: recordColor.bg,
+                  color: recordColor.color,
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                },
+              }}
+            >
               {record}
             </Badge>
           }
         />
 
-        {/* Stats */}
+        {/* Stats row - semantic colors on wins/losses for quick scanning */}
         <SimpleGrid cols={{ base: 2, sm: 4 }}>
           <StatCard
             label="Points For"
@@ -74,17 +111,42 @@ export function FranchiseDetailPage() {
             label="Points Against"
             value={franchise.franchiseSeason?.pointsAgainst || '0.00'}
           />
-          <StatCard label="Wins" value={franchise.franchiseSeason?.wins || 0} />
-          <StatCard
-            label="Losses"
-            value={franchise.franchiseSeason?.losses || 0}
-          />
+          <Paper withBorder shadow="xs" p="sm">
+            <Text size="xs" c="dimmed" fw={500} mb={2}>
+              Wins
+            </Text>
+            <Text
+              fw={700}
+              c="teal.7"
+              style={{ fontSize: '1.5rem', lineHeight: 1.2 }}
+            >
+              {wins}
+            </Text>
+          </Paper>
+          <Paper withBorder shadow="xs" p="sm">
+            <Text size="xs" c="dimmed" fw={500} mb={2}>
+              Losses
+            </Text>
+            <Text
+              fw={700}
+              c="red.7"
+              style={{ fontSize: '1.5rem', lineHeight: 1.2 }}
+            >
+              {losses}
+            </Text>
+          </Paper>
         </SimpleGrid>
 
         {/* Starting Lineup */}
-        <Box>
-          <Group justify="space-between" mb="sm">
-            <Title order={3} size="h4">
+        <Paper withBorder shadow="xs" p={0} style={{ overflow: 'hidden' }}>
+          <Group
+            justify="space-between"
+            px="sm"
+            py="xs"
+            bg="gray.1"
+            style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}
+          >
+            <Title order={5} fw={600}>
               Starting Lineup
             </Title>
             <Text size="sm" c="dimmed">
@@ -93,17 +155,29 @@ export function FranchiseDetailPage() {
           </Group>
           {starters.length > 0 ? (
             <DataTable
-              withTableBorder
-              borderRadius="sm"
+              withTableBorder={false}
+              borderRadius={0}
               highlightOnHover
+              horizontalSpacing="sm"
+              verticalSpacing="xs"
               records={starters}
+              styles={{
+                header: {
+                  backgroundColor: 'var(--mantine-color-gray-0)',
+                },
+              }}
               columns={[
                 {
                   accessor: 'slotType',
                   title: 'Slot',
-                  width: 70,
+                  width: 55,
                   render: (record) => (
-                    <Badge variant="filled" color="violet" size="sm">
+                    <Badge
+                      size="xs"
+                      variant="light"
+                      color="gray"
+                      styles={{ root: { fontWeight: 600 } }}
+                    >
                       {record.slotType}
                     </Badge>
                   ),
@@ -122,7 +196,7 @@ export function FranchiseDetailPage() {
                 {
                   accessor: 'position',
                   title: 'Pos',
-                  width: 70,
+                  width: 50,
                   render: (record) => (
                     <PositionBadge position={record.position} />
                   ),
@@ -130,7 +204,7 @@ export function FranchiseDetailPage() {
                 {
                   accessor: 'opponent',
                   title: 'Opp',
-                  width: 80,
+                  width: 55,
                   render: () => (
                     <Text size="sm" c="dimmed">
                       -
@@ -140,7 +214,7 @@ export function FranchiseDetailPage() {
                 {
                   accessor: 'projected',
                   title: 'Proj',
-                  width: 70,
+                  width: 55,
                   textAlign: 'right',
                   render: () => (
                     <Text size="sm" c="dimmed">
@@ -150,11 +224,11 @@ export function FranchiseDetailPage() {
                 },
                 {
                   accessor: 'pointsScored',
-                  title: 'Score',
-                  width: 70,
+                  title: 'Pts',
+                  width: 55,
                   textAlign: 'right',
                   render: (record) => (
-                    <Text size="sm" fw={600}>
+                    <Text size="sm" style={getScoreStyle(record.pointsScored)}>
                       {record.pointsScored || '-'}
                     </Text>
                   ),
@@ -162,30 +236,43 @@ export function FranchiseDetailPage() {
               ]}
             />
           ) : (
-            <Paper withBorder p="xl">
-              <Text c="dimmed" ta="center">
+            <Box p="md">
+              <Text c="dimmed" ta="center" size="sm">
                 No starters set
               </Text>
-            </Paper>
+            </Box>
           )}
-        </Box>
+        </Paper>
 
         {/* Bench */}
-        <Box>
-          <Group justify="space-between" mb="sm">
-            <Title order={3} size="h4">
+        <Paper withBorder shadow="xs" p={0} style={{ overflow: 'hidden' }}>
+          <Group
+            justify="space-between"
+            px="sm"
+            py="xs"
+            bg="gray.1"
+            style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}
+          >
+            <Title order={5} fw={600}>
               Bench
             </Title>
-            <Text size="sm" c="dimmed">
-              {bench.length} players
-            </Text>
+            <Badge size="sm" variant="light" color="gray">
+              {bench.length}
+            </Badge>
           </Group>
           {bench.length > 0 ? (
             <DataTable
-              withTableBorder
-              borderRadius="sm"
+              withTableBorder={false}
+              borderRadius={0}
               highlightOnHover
+              horizontalSpacing="sm"
+              verticalSpacing="xs"
               records={bench}
+              styles={{
+                header: {
+                  backgroundColor: 'var(--mantine-color-gray-0)',
+                },
+              }}
               columns={[
                 {
                   accessor: 'playerName',
@@ -201,7 +288,7 @@ export function FranchiseDetailPage() {
                 {
                   accessor: 'position',
                   title: 'Pos',
-                  width: 70,
+                  width: 50,
                   render: (record) => (
                     <PositionBadge position={record.position} />
                   ),
@@ -209,7 +296,7 @@ export function FranchiseDetailPage() {
                 {
                   accessor: 'opponent',
                   title: 'Opp',
-                  width: 80,
+                  width: 55,
                   render: () => (
                     <Text size="sm" c="dimmed">
                       -
@@ -219,7 +306,7 @@ export function FranchiseDetailPage() {
                 {
                   accessor: 'projected',
                   title: 'Proj',
-                  width: 70,
+                  width: 55,
                   textAlign: 'right',
                   render: () => (
                     <Text size="sm" c="dimmed">
@@ -229,11 +316,11 @@ export function FranchiseDetailPage() {
                 },
                 {
                   accessor: 'pointsScored',
-                  title: 'Score',
-                  width: 70,
+                  title: 'Pts',
+                  width: 55,
                   textAlign: 'right',
                   render: (record) => (
-                    <Text size="sm" fw={600}>
+                    <Text size="sm" style={getScoreStyle(record.pointsScored)}>
                       {record.pointsScored || '-'}
                     </Text>
                   ),
@@ -241,24 +328,17 @@ export function FranchiseDetailPage() {
               ]}
             />
           ) : (
-            <Paper withBorder p="xl">
-              <Text c="dimmed" ta="center">
+            <Box p="md">
+              <Text c="dimmed" ta="center" size="sm">
                 No bench players
               </Text>
-            </Paper>
+            </Box>
           )}
-        </Box>
-
-        {/* TODO Sections */}
-        <Paper withBorder p="md" bg="gray.0">
-          <Text size="sm" c="dimmed">
-            TODO: Recent Transactions (trades, adds, drops)
-          </Text>
         </Paper>
 
-        <Paper withBorder p="md" bg="gray.0">
+        <Paper withBorder p="sm" bg="gray.1">
           <Text size="sm" c="dimmed">
-            TODO: Schedule / Recent Results
+            Coming soon: Transactions, Schedule, Results
           </Text>
         </Paper>
       </Stack>

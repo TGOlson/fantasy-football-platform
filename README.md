@@ -1,89 +1,80 @@
 # Fantasy Platform
 
-The most powerful fantasy football platform.
+Custom fantasy football platform with advanced scoring customization.
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, Vite, Mantine UI, TanStack Query |
+| API | Express, tRPC |
+| Database | PostgreSQL 16, Drizzle ORM |
+| Auth | JWT, bcryptjs |
+| Tooling | TypeScript, pnpm workspaces, Prettier, ESLint |
+
+## Project Structure
+
+```
+apps/
+  web/              # React frontend (localhost:5173)
+  api/              # Express + tRPC backend (localhost:3000)
+packages/
+  database/         # Drizzle schema + migrations
+  types/            # Shared TypeScript types
+```
+
+**Key files:**
+- `packages/database/src/schema.ts` - Database schema
+- `apps/api/src/trpc/router.ts` - API routes
+- `apps/web/src/lib/trpc.ts` - Frontend API client
 
 ## Getting Started
 
-See: [docs/tech-stack.md](./docs/tech-stack.md)
-
-### Prerequisites
-
-- Node.js >= 18
-- pnpm >= 10.26.0
-- Docker (for PostgreSQL)
-
-### Installation
+**Prerequisites:** Node.js >= 18, pnpm >= 10.26.0, Docker
 
 ```bash
 pnpm install          # Install dependencies
 docker compose up -d  # Start PostgreSQL
 pnpm db:push          # Push schema to database
-pnpm db:seed          # (Optional) Seed with sample data
+pnpm db:seed          # (Optional) Seed sample data
 ```
 
 ## Commands
 
-All commands run from the project root.
-
-### Development
+All commands run from project root.
 
 ```bash
-pnpm dev           # Run all apps (web + api)
-pnpm dev:web       # Frontend only (http://localhost:5173)
-pnpm dev:api       # API only (http://localhost:3000)
-```
+# Development
+pnpm dev              # Run all apps
+pnpm dev:web          # Frontend only
+pnpm dev:api          # API only
 
-### Build & Test
+# Build & Test
+pnpm build            # Build all
+pnpm typecheck        # Typecheck all packages
+pnpm test             # Run tests
 
-```bash
-pnpm build         # Build all apps
-pnpm build:web     # Build frontend
-pnpm build:api     # Build API
-pnpm typecheck     # Typecheck all packages
-pnpm test          # Run tests
-pnpm test:watch    # Watch mode
-```
+# Formatting
+pnpm format           # Format with Prettier
+pnpm format:check     # Check formatting (CI)
+pnpm lint             # Run ESLint
 
-### Formatting & Linting
+# Database
+pnpm db:push          # Push schema (dev)
+pnpm db:generate      # Generate migration
+pnpm db:migrate       # Apply migrations
+pnpm db:studio        # Open Drizzle Studio
+pnpm db:seed          # Seed data
 
-```bash
-pnpm format        # Format all files with Prettier
-pnpm format:check  # Check formatting (for CI)
-pnpm lint          # Run ESLint
-```
-
-### Database
-
-```bash
-pnpm db:generate   # Generate migration from schema changes
-pnpm db:migrate    # Apply migrations
-pnpm db:push       # Push schema directly (dev only)
-pnpm db:studio     # Open Drizzle Studio (database GUI)
-pnpm db:seed       # Seed with sample data
-```
-
-### Docker
-
-```bash
+# Docker
 docker compose up -d      # Start PostgreSQL
-docker compose down       # Stop PostgreSQL
-docker compose down -v    # Reset database (deletes all data)
-docker compose logs postgres
+docker compose down       # Stop
+docker compose down -v    # Reset (deletes data)
 ```
-
-## Documentation
-
-- [docs/tech-stack.md](./docs/tech-stack.md) - Architecture and tech stack
-- [CLAUDE.md](./CLAUDE.md) - AI assistant guidelines
 
 ## Environment Variables
 
-Already configured in:
-
-- `apps/web/.env` - Frontend configuration
-- `apps/api/.env` - Backend configuration
-
-Default database connection:
+Pre-configured in `apps/web/.env` and `apps/api/.env`.
 
 ```
 DATABASE_URL=postgresql://fantasy:fantasy_dev_password@localhost:5432/fantasy_platform

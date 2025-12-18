@@ -1,58 +1,81 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Instructions for Claude Code when working in this repository.
 
-## Project Overview
+## Context
 
-Custom fantasy football platform with advanced scoring customization. The goal is to combine modern UX (Linear-inspired) with deep customization (MyFantasyLeague-level flexibility) to serve engaged fantasy football enthusiasts willing to pay for better tools.
+**Always read [README.md](./README.md)** for tech stack, project structure, and commands.
 
-## Docs
+This is a fantasy football platform targeting engaged enthusiasts who want more customization than ESPN/Yahoo but simpler than MyFantasyLeague. Linear-inspired UX (clean, fast, professional) with deep scoring flexibility.
 
-- [README.md](./README.md) gives an overview of the project and useful developer commands
-- [docs/tech-stack.md](./docs/tech-stack.md) give an overview of the tech stack and project structure
+## Design Guidelines
 
-Important: always read `docs/tech-stack.md` to understand the core components of the system.
+**Philosophy:** A serious tool for engaged fantasy players. Data-dense, efficient, and professional—but not cold. Think Linear's information density and polish, with Sleeper's utility-focused clarity. Color communicates meaning, not decoration.
 
-## Design System & UX
+**Visual Identity:**
 
-### Visual Principles (Linear-Inspired)
+- **Color palette:** Light mode with warm gray page backgrounds, white cards. Primary color TBD—violet feels too Yahoo. Consider deeper blue, indigo, or something more distinctive. Semantic colors:
+  - Green/teal for positive (wins, good scores)
+  - Red/coral for negative (injuries, losses, alerts)
+  - Amber for warnings (questionable, notable info)
+  - Gray for neutral/disabled
+- **Color for scannability:** Use color pops to help users quickly parse information—badges, status indicators, key numbers, important callouts. Not decoration, but functional highlighting.
+- **Contrast matters:** Cards should clearly lift off the page background. Borders + subtle shadows together. Table headers visually distinct from rows. Interactive elements obviously clickable. If things feel flat, add more contrast.
+- **Typography:** Clean and dense. Plus Jakarta Sans for now (can revisit). Tight letter-spacing on headers. Readable at small sizes.
+- **Density:** Favor information density. Users want to see their data, not scroll past padding.
 
-- Clean, minimal, professional aesthetic
-- Subtle color palette (grays with accent colors)
-- Lots of whitespace, no clutter
-- Smooth animations and transitions (Framer Motion)
-- Information density without overwhelming users
+**Reference points:** Linear (polish, density, professional) + Sleeper (utility, meaningful color) — light mode, more distinctive than Yahoo's purple aesthetic.
 
-### Key UX Patterns
+**Motion & Interaction (Framer Motion):**
 
-- Data tables with sorting/filtering for player lists
+- Subtle and functional, not flashy
+- Quick transitions (150-200ms)
+- Hover states for interactive elements
+- Loading skeletons for async data
+- Avoid: decorative animations, bouncy effects, anything that feels playful
+
+**UX Patterns:**
+
+- Dense data tables with sorting/filtering (Mantine DataTable)
+- Loading skeletons, not spinners
+- Toast notifications for feedback
 - Inline editing where possible
-- Toast notifications (not alerts)
-- Loading skeletons (not spinners)
-- Drag-and-drop for lineup management
+- Drag-and-drop for lineups
+- Empty states should be helpful, not clever
 
-## Key Principles
+**Implementation:**
 
-1. Start simple, add complexity only when needed
-2. MVP in 4-6 months beats perfect in 12 months
-3. Build 20% of MFL's features to capture 80% of value
-4. Desktop for admin, mobile for everything else
-5. Type safety everywhere (TypeScript + Drizzle)
-6. Mantime UI components for speed and good defaults
-7. Linear-inspired: clean, fast, professional
-8. **The scoring engine is your moat** - nail that first
+- **Design tokens first:** Colors, shadows, spacing as CSS variables or Mantine theme tokens. No hardcoded values in components.
+- **Reusable components:** Build primitives once (stat displays, player rows, badges). Consistency over customization.
+- **Extend Mantine's theme:** Override at theme level, not per-component.
+- **Restraint:** When in doubt, leave it out. Every visual element should earn its place.
 
-## Additional instructions
+**Avoid:**
 
-- Claude should never try to run services (eg. pmpm dev) or run typecheck commands to verify output
-  - Always delegate that work to the user, ask the user to run these commands whenever needed
-- Always prefer types (`type Foo = ...`) over interfaces (`interface Foo ...`)
-- Keep TODOs in `TODO.md` files (either in project root or located in relevant sub-dir)
-- Top level files in [docs/](./docs/) can be useful references, when needed
-  - However, files in `/docs/old` can contain outdated data, don't read them unless directly instructed to
-- Prefer to not add optional types or default values unless required.
-  - We should default to using strict, simple types first, then expand later
-- We're in early dev testing, so we can break things as needed
-  - We don't need to write migrations, just drop and push updates to the db
-  - We don't need backfills to old behavior, we can just break old code/data when building new features
-- Prefer skeletons for loading states over spinners
+- Decorative color (color should mean something)
+- Playful/cartoon-y elements (pastel rainbow badges, accent bars, bouncy animations)
+- Excessive whitespace that reduces information density
+- Dark mode (not our aesthetic)
+- Yahoo's purple aesthetic and visual busyness
+- Sleeper's darkness
+- Flat, low-contrast layouts (add borders/shadows if things blend together)
+- Generic SaaS blandness
+- One-off styles that should be tokens or shared components
+
+## Code Style
+
+- Use `type` over `interface`
+- Strict types first - avoid optionals and defaults unless required
+- No over-engineering - only build what's needed now
+- Keep TODOs in `TODO.md` files (root or relevant sub-dir)
+
+## Development Notes
+
+- Early stage: we can break things freely
+- No migrations needed yet - just `pnpm db:push`
+- No backwards compatibility concerns
+- Don't run `pnpm` commands (eg. `dev`, `typecheck`, etc) - ask the user to run these
+
+## Reference Docs
+
+Files in `working-docs/` are working documents, potentially outdated. Don't read `working-docs/old/` unless explicitly asked.
