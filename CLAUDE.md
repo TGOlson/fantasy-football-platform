@@ -47,8 +47,10 @@ Important: always read `docs/tech-stack.md` to understand the core components of
 - Always prefer types (`type Foo = ...`) over interfaces (`interface Foo ...`)
 - Keep TODOs in `TODO.md` files (either in project root or located in relevant sub-dir)
 - Top level files in [docs/](./docs/) can be useful references, when needed
-  - However, files in `/docs/initial` can contain outdated data, don't read them unless directly instructed to
-- Prefer to not add optional types or default values unless required. We should default to using strict, simple types first, then expand later
+  - However, files in `/docs/old` can contain outdated data, don't read them unless directly instructed to
+- Prefer to not add optional types or default values unless required.
+  - We should default to using strict, simple types first, then expand later
 - We're in early dev testing, so we can break things as needed
   - We don't need to write migrations, just drop and push updates to the db
   - We don't need backfills to old behavior, we can just break old code/data when building new features
+- Prefer skeletons for loading states over spinners
