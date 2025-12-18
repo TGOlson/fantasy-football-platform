@@ -14,8 +14,23 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const status = res.statusCode;
+    const statusColor =
+      status >= 500 ? '\x1b[31m' : status >= 400 ? '\x1b[33m' : '\x1b[32m';
+    console.log(
+      `${statusColor}${status}\x1b[0m ${req.method} ${req.path} ${duration}ms`
+    );
+  });
+  next();
+});
+
 // Health check route (simple Express route)
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -25,6 +40,12 @@ app.use(
   createExpressMiddleware({
     router: appRouter,
     createContext,
+    onError: ({ path, error }) => {
+      console.error(`\x1b[31m[tRPC Error]\x1b[0m ${path}: ${error.message}`);
+      if (error.cause) {
+        console.error('  Cause:', error.cause);
+      }
+    },
   })
 );
 
@@ -32,10 +53,11 @@ app.use(
 app.use(
   (
     err: Error,
-    req: express.Request,
+    _req: express.Request,
     res: express.Response,
-    next: express.NextFunction
+    _next: express.NextFunction
   ) => {
+    console.error('\x1b[31m[Express Error]\x1b[0m', err.message);
     console.error(err.stack);
     res.status(500).json({ error: 'Something went wrong!' });
   }
