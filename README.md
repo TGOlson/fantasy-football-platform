@@ -4,13 +4,13 @@ Custom fantasy football platform with advanced scoring customization.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React 19, Vite, Mantine UI, TanStack Query |
-| API | Express, tRPC |
-| Database | PostgreSQL 16, Drizzle ORM |
-| Auth | JWT, bcryptjs |
-| Tooling | TypeScript, pnpm workspaces, Prettier, ESLint |
+| Layer    | Technology                                    |
+| -------- | --------------------------------------------- |
+| Frontend | React 19, Vite, Mantine UI, TanStack Query    |
+| API      | Express, tRPC                                 |
+| Database | PostgreSQL 16, Drizzle ORM                    |
+| Auth     | JWT, bcryptjs                                 |
+| Tooling  | TypeScript, pnpm workspaces, Prettier, ESLint |
 
 ## Project Structure
 
@@ -24,6 +24,7 @@ packages/
 ```
 
 **Key files:**
+
 - `packages/database/src/schema.ts` - Database schema
 - `apps/api/src/trpc/router.ts` - API routes
 - `apps/web/src/lib/trpc.ts` - Frontend API client
@@ -79,3 +80,13 @@ Pre-configured in `apps/web/.env` and `apps/api/.env`.
 ```
 DATABASE_URL=postgresql://fantasy:fantasy_dev_password@localhost:5432/fantasy_platform
 ```
+
+TODO:
+
+- fix lint errors
+- come up w/ standard type for roster settings (inc flex)
+  - think there are examples of this scattered around the code
+- clean up endpoints, make them smaller, more single task specific
+- review working-docs/features.md, ensure "done" is correct, start on next set
+- write unit tests for any complicated logic
+- figure out e2e testing story
