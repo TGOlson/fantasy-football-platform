@@ -62,13 +62,13 @@ export async function comparePassword(
 // ============================================================================
 
 import {
-  getDatabase,
   franchises,
   franchiseSeasons,
   leagueSeasons,
   eq,
   and,
   users,
+  type DBClient,
 } from '@fantasy-platform/database';
 import { TRPCError } from '@trpc/server';
 
@@ -76,11 +76,10 @@ import { TRPCError } from '@trpc/server';
  * Check if a user is a member of a league (owns a franchise in the league)
  */
 export async function checkLeagueMembership(
+  db: DBClient,
   userId: string,
   leagueId: string
 ): Promise<boolean> {
-  const db = getDatabase();
-
   // Check if user owns any franchise in this league
   const [franchise] = await db
     .select()
@@ -110,11 +109,10 @@ export async function checkLeagueMembership(
  * Check if a user owns a specific franchise (in any season)
  */
 export async function checkFranchiseOwnership(
+  db: DBClient,
   userId: string,
   franchiseId: string
 ): Promise<boolean> {
-  const db = getDatabase();
-
   const [fs] = await db
     .select()
     .from(franchiseSeasons)
@@ -133,11 +131,10 @@ export async function checkFranchiseOwnership(
  * Check if a user is a league admin (commissioner for any season)
  */
 export async function checkLeagueAdmin(
+  db: DBClient,
   userId: string,
   leagueId: string
 ): Promise<boolean> {
-  const db = getDatabase();
-
   const [season] = await db
     .select()
     .from(leagueSeasons)
@@ -155,9 +152,10 @@ export async function checkLeagueAdmin(
 /**
  * Check if a user is a site admin
  */
-export async function checkSiteAdmin(userId: string): Promise<boolean> {
-  const db = getDatabase();
-
+export async function checkSiteAdmin(
+  db: DBClient,
+  userId: string
+): Promise<boolean> {
   const [user] = await db
     .select({ isSiteAdmin: users.isSiteAdmin })
     .from(users)
@@ -184,10 +182,10 @@ type LeagueIdentifiers = {
  * @throws TRPCError if not authorized or if league/season/franchise not found
  */
 export async function requireLeagueMembership(
+  db: DBClient,
   userId: string,
   identifiers: LeagueIdentifiers
 ): Promise<string> {
-  const db = getDatabase();
   let resolvedLeagueId = identifiers.leagueId;
 
   // Resolve leagueId from leagueSeasonId if needed
@@ -234,13 +232,13 @@ export async function requireLeagueMembership(
   }
 
   // Check if site admin - they have access to everything
-  const isSiteAdmin = await checkSiteAdmin(userId);
+  const isSiteAdmin = await checkSiteAdmin(db, userId);
   if (isSiteAdmin) {
     return resolvedLeagueId;
   }
 
   // Check league membership
-  const isMember = await checkLeagueMembership(userId, resolvedLeagueId);
+  const isMember = await checkLeagueMembership(db, userId, resolvedLeagueId);
 
   if (!isMember) {
     throw new TRPCError({
@@ -258,17 +256,18 @@ export async function requireLeagueMembership(
  * @throws TRPCError if not authorized
  */
 export async function requireFranchiseOwnership(
+  db: DBClient,
   userId: string,
   franchiseId: string
 ): Promise<void> {
   // Check if site admin - they have access to everything
-  const isSiteAdmin = await checkSiteAdmin(userId);
+  const isSiteAdmin = await checkSiteAdmin(db, userId);
   if (isSiteAdmin) {
     return;
   }
 
   // Check franchise ownership
-  const isOwner = await checkFranchiseOwnership(userId, franchiseId);
+  const isOwner = await checkFranchiseOwnership(db, userId, franchiseId);
 
   if (!isOwner) {
     throw new TRPCError({
@@ -286,10 +285,10 @@ export async function requireFranchiseOwnership(
  * @throws TRPCError if not authorized or if league/season not found
  */
 export async function requireLeagueAdmin(
+  db: DBClient,
   userId: string,
   identifiers: { leagueId?: string; leagueSeasonId?: string }
 ): Promise<string> {
-  const db = getDatabase();
   let resolvedLeagueId = identifiers.leagueId;
 
   // Resolve leagueId from leagueSeasonId if needed
@@ -318,13 +317,13 @@ export async function requireLeagueAdmin(
   }
 
   // Check if site admin - they have access to everything
-  const isSiteAdmin = await checkSiteAdmin(userId);
+  const isSiteAdmin = await checkSiteAdmin(db, userId);
   if (isSiteAdmin) {
     return resolvedLeagueId;
   }
 
   // Check if user is league admin
-  const isAdmin = await checkLeagueAdmin(userId, resolvedLeagueId);
+  const isAdmin = await checkLeagueAdmin(db, userId, resolvedLeagueId);
 
   if (!isAdmin) {
     throw new TRPCError({

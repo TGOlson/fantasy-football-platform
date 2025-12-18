@@ -148,7 +148,7 @@ async function seed() {
     // =========================================================================
     console.log('\n🏈 Creating league...');
     const leagueName = 'The Championship League';
-    const leagueSlug = await generateUniqueSlug(leagueName);
+    const leagueSlug = await generateUniqueSlug(db, leagueName);
 
     const [league] = await db
       .insert(leagues)

@@ -1,4 +1,5 @@
-import { getDatabase, leagues, eq } from '../index';
+import { leagues, eq } from '../index';
+import type { DBClient } from '../index';
 
 /**
  * Convert a string to a URL-friendly slug
@@ -17,8 +18,10 @@ export function slugify(text: string): string {
  * Generate a unique slug for a league name
  * If slug exists, appends a number: "the-championship-league-2"
  */
-export async function generateUniqueSlug(leagueName: string): Promise<string> {
-  const db = getDatabase();
+export async function generateUniqueSlug(
+  db: DBClient,
+  leagueName: string
+): Promise<string> {
   const baseSlug = slugify(leagueName);
 
   // Check if base slug is available

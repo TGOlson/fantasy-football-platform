@@ -6,7 +6,6 @@ import {
   requireFranchiseOwnership,
 } from '../../lib/auth';
 import {
-  getDatabase,
   franchises,
   franchiseSeasons,
   users,
@@ -31,10 +30,10 @@ export const franchisesRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Verify league membership
-      await requireLeagueMembership(ctx.user.userId, {
+      await requireLeagueMembership(db, ctx.user.userId, {
         franchiseId: input.franchiseId,
       });
 
@@ -175,10 +174,10 @@ export const franchisesRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Verify franchise ownership
-      await requireFranchiseOwnership(ctx.user.userId, input.id);
+      await requireFranchiseOwnership(db, ctx.user.userId, input.id);
 
       // Update the franchise
       const [updatedFranchise] = await db
@@ -205,8 +204,8 @@ export const franchisesRouter = router({
         season: z.number().int().optional(),
       })
     )
-    .query(async ({ input }) => {
-      const db = getDatabase();
+    .query(async ({ input, ctx }) => {
+      const { db } = ctx;
 
       // Get all franchises for this league
       const leagueFranchises = await db

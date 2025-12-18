@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure } from '../trpc';
 import {
-  getDatabase,
   players,
   playerSeasons,
   playerWeeklyStats,
@@ -23,8 +22,8 @@ export const playersRouter = router({
         search: z.string().optional(),
       })
     )
-    .query(async ({ input }) => {
-      const db = getDatabase();
+    .query(async ({ input, ctx }) => {
+      const { db } = ctx;
 
       // Build where conditions dynamically
       const conditions = [eq(playerSeasons.season, input.season)];
@@ -68,8 +67,8 @@ export const playersRouter = router({
         season: z.number().int(),
       })
     )
-    .query(async ({ input }) => {
-      const db = getDatabase();
+    .query(async ({ input, ctx }) => {
+      const { db } = ctx;
 
       const [player] = await db
         .select({
@@ -106,8 +105,8 @@ export const playersRouter = router({
         season: z.number().int(),
       })
     )
-    .query(async ({ input }) => {
-      const db = getDatabase();
+    .query(async ({ input, ctx }) => {
+      const { db } = ctx;
 
       const stats = await db
         .select()

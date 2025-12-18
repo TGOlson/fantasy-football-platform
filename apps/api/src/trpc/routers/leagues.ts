@@ -3,7 +3,6 @@ import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
 import { requireLeagueMembership, requireLeagueAdmin } from '../../lib/auth';
 import {
-  getDatabase,
   leagues,
   leagueSeasons,
   leagueSettings,
@@ -23,7 +22,7 @@ import { STANDARD_SCORING } from '../../services/scoring-presets';
 export const leaguesRouter = router({
   // Get all leagues for the current user (leagues where they own a franchise)
   list: protectedProcedure.query(async ({ ctx }) => {
-    const db = getDatabase();
+    const { db } = ctx;
 
     // Get all franchise seasons owned by this user
     const userFranchiseSeasons = await db
@@ -76,7 +75,7 @@ export const leaguesRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Get the league by slug
       const [league] = await db
@@ -95,7 +94,7 @@ export const leaguesRouter = router({
       const leagueId = league.id;
 
       // Verify league membership
-      await requireLeagueMembership(ctx.user.userId, { leagueId });
+      await requireLeagueMembership(db, ctx.user.userId, { leagueId });
 
       // Get the specific season
       const [season] = await db
@@ -186,10 +185,10 @@ export const leaguesRouter = router({
   getById: protectedProcedure
     .input(z.object({ leagueId: z.string() }))
     .query(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Verify league membership
-      await requireLeagueMembership(ctx.user.userId, {
+      await requireLeagueMembership(db, ctx.user.userId, {
         leagueId: input.leagueId,
       });
 
@@ -267,10 +266,10 @@ export const leaguesRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Generate unique slug for the league
-      const slug = await generateUniqueSlug(input.name);
+      const slug = await generateUniqueSlug(db, input.name);
 
       // Create the league
       const [newLeague] = await db
@@ -326,10 +325,12 @@ export const leaguesRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Verify league admin
-      await requireLeagueAdmin(ctx.user.userId, { leagueId: input.leagueId });
+      await requireLeagueAdmin(db, ctx.user.userId, {
+        leagueId: input.leagueId,
+      });
 
       // Check if league exists
       const [existingLeague] = await db
@@ -350,7 +351,7 @@ export const leaguesRouter = router({
 
       if (input.name !== undefined) {
         updateData.name = input.name;
-        updateData.slug = await generateUniqueSlug(input.name);
+        updateData.slug = await generateUniqueSlug(db, input.name);
       }
 
       if (Object.keys(updateData).length === 0) {

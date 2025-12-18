@@ -1,10 +1,10 @@
 import {
-  getDatabase,
   matchups,
   franchiseSeasons,
   franchises,
   users,
   eq,
+  type DBClient,
 } from '@fantasy-platform/database';
 
 // ============================================================================
@@ -33,10 +33,9 @@ type StandingsEntry = {
  * This should be called after matchups are scored.
  */
 export async function calculateStandings(
+  db: DBClient,
   leagueSeasonId: string
 ): Promise<StandingsEntry[]> {
-  const db = getDatabase();
-
   // Get all franchise seasons for this league season
   const allFranchiseSeasons = await db
     .select()
@@ -180,10 +179,9 @@ export async function calculateStandings(
  * Get current standings without recalculating (reads from franchise_seasons table).
  */
 export async function getStandings(
+  db: DBClient,
   leagueSeasonId: string
 ): Promise<StandingsEntry[]> {
-  const db = getDatabase();
-
   // Get all franchise seasons with franchise and owner info
   const allFranchiseSeasons = await db
     .select()

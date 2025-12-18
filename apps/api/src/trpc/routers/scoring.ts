@@ -3,7 +3,6 @@ import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
 import { requireLeagueMembership, requireLeagueAdmin } from '../../lib/auth';
 import {
-  getDatabase,
   playerSeasons,
   playerWeeklyStats,
   leagueSettings,
@@ -26,10 +25,10 @@ export const scoringRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Verify league membership
-      await requireLeagueMembership(ctx.user.userId, {
+      await requireLeagueMembership(db, ctx.user.userId, {
         leagueSeasonId: input.leagueSeasonId,
       });
 
@@ -115,10 +114,10 @@ export const scoringRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Verify league membership
-      await requireLeagueMembership(ctx.user.userId, {
+      await requireLeagueMembership(db, ctx.user.userId, {
         leagueSeasonId: input.leagueSeasonId,
       });
 
@@ -149,10 +148,10 @@ export const scoringRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Verify league admin
-      await requireLeagueAdmin(ctx.user.userId, {
+      await requireLeagueAdmin(db, ctx.user.userId, {
         leagueSeasonId: input.leagueSeasonId,
       });
 

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
-import { getDatabase, users, eq } from '@fantasy-platform/database';
+import { users, eq } from '@fantasy-platform/database';
 import { hashPassword, comparePassword, signToken } from '../../lib/auth';
 
 export const authRouter = router({
@@ -14,8 +14,8 @@ export const authRouter = router({
         name: z.string().min(1, 'Name is required'),
       })
     )
-    .mutation(async ({ input }) => {
-      const db = getDatabase();
+    .mutation(async ({ input, ctx }) => {
+      const { db } = ctx;
 
       // Check if user already exists
       const existingUser = await db
@@ -68,8 +68,8 @@ export const authRouter = router({
         password: z.string(),
       })
     )
-    .mutation(async ({ input }) => {
-      const db = getDatabase();
+    .mutation(async ({ input, ctx }) => {
+      const { db } = ctx;
 
       // Find user by email
       const [user] = await db
@@ -116,7 +116,7 @@ export const authRouter = router({
 
   // Get current user (protected - requires JWT)
   me: protectedProcedure.query(async ({ ctx }) => {
-    const db = getDatabase();
+    const { db } = ctx;
 
     // ctx.user is guaranteed to exist because of protectedProcedure
     const [user] = await db

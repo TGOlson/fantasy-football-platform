@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import {
-  getDatabase,
   weeklyLineups,
   franchiseSeasons,
   franchises,
@@ -24,8 +23,8 @@ export const lineupsRouter = router({
         season: z.number().int().optional(),
       })
     )
-    .query(async ({ input }) => {
-      const db = getDatabase();
+    .query(async ({ input, ctx }) => {
+      const { db } = ctx;
 
       // Get the franchise
       const [franchise] = await db
@@ -138,7 +137,7 @@ export const lineupsRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Get lineup entry with franchise info
       const [lineupEntry] = await db
@@ -195,7 +194,7 @@ export const lineupsRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Get the franchise
       const [franchise] = await db
@@ -298,7 +297,7 @@ export const lineupsRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Get lineup entry with franchise info
       const [lineupEntry] = await db

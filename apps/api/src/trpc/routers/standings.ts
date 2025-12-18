@@ -10,8 +10,8 @@ export const standingsRouter = router({
         leagueSeasonId: z.string(),
       })
     )
-    .query(async ({ input }) => {
-      return getStandings(input.leagueSeasonId);
+    .query(async ({ input, ctx }) => {
+      return getStandings(ctx.db, input.leagueSeasonId);
     }),
 
   // Recalculate standings from matchup results
@@ -21,7 +21,7 @@ export const standingsRouter = router({
         leagueSeasonId: z.string(),
       })
     )
-    .mutation(async ({ input }) => {
-      return calculateStandings(input.leagueSeasonId);
+    .mutation(async ({ input, ctx }) => {
+      return calculateStandings(ctx.db, input.leagueSeasonId);
     }),
 });

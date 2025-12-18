@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import {
-  getDatabase,
   matchups,
   leagueSeasons,
   franchiseSeasons,
@@ -23,8 +22,8 @@ export const matchupsRouter = router({
         season: z.number().int().optional(),
       })
     )
-    .query(async ({ input }) => {
-      const db = getDatabase();
+    .query(async ({ input, ctx }) => {
+      const { db } = ctx;
 
       // Get league season
       let leagueSeason;
@@ -162,8 +161,8 @@ export const matchupsRouter = router({
   // Get matchup by ID with full details
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ input }) => {
-      const db = getDatabase();
+    .query(async ({ input, ctx }) => {
+      const { db } = ctx;
 
       const [matchup] = await db
         .select()
@@ -261,7 +260,7 @@ export const matchupsRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const db = getDatabase();
+      const { db } = ctx;
 
       // Get matchup with league info
       const [matchup] = await db

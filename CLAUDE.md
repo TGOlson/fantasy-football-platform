@@ -75,6 +75,7 @@ This is a fantasy football platform targeting engaged enthusiasts who want more 
 - No migrations needed yet - just `pnpm db:push`
 - No backwards compatibility concerns
 - Don't run `pnpm` commands (eg. `dev`, `typecheck`, etc) - ask the user to run these
+- All `pnpm` commands should be runnable from the root dir (ie. are not required to be run from a nested dir)
 
 ## Reference Docs
 
