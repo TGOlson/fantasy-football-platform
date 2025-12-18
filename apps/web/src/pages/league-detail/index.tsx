@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useLoaderData, useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
 import { useLeague } from '@/lib/league-context';
@@ -12,6 +13,8 @@ import {
   Tabs,
   SimpleGrid,
   Button,
+  Table,
+  Select,
 } from '@mantine/core';
 import { loader } from './loader';
 import { PageHeader, StatCard, HistoricalBanner } from '@/components/ui';
@@ -21,26 +24,36 @@ export function LeagueDetailPage() {
   const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
   const { leagueSeason, isHistoricalYear, mostRecentLeagueYear } = useLeague();
 
+  // Week navigation state
+  const regularSeasonWeeks = (league.settings?.playoffStartWeek || 15) - 1;
+  const [currentWeek, setCurrentWeek] = useState(1);
+
   const { data: matchups } = trpc.matchups.getByLeagueWeek.useQuery(
     {
       leagueId: league.leagueId,
-      weekNumber: 1,
+      weekNumber: currentWeek,
+      season: parseInt(year || '2024'),
     }
+  );
+
+  const { data: standings } = trpc.standings.getByLeagueSeason.useQuery(
+    { leagueSeasonId: leagueSeason?.id || '' },
+    { enabled: !!leagueSeason?.id }
   );
 
   // Build subtitle - only show year if historical
   const subtitleParts = [];
-  if (isHistoricalYear) {
-    subtitleParts.push(`${leagueSeason.season} Season`);
+  if (isHistoricalYear && leagueSeason) {
+    subtitleParts.push(`${leagueSeason.year} Season`);
   }
   subtitleParts.push(`Commissioner: ${league.commissioner?.name}`);
 
   return (
     <AppLayout>
       <Stack gap="lg">
-        {isHistoricalYear && (
+        {isHistoricalYear && leagueSeason && (
           <HistoricalBanner
-            year={leagueSeason.season}
+            year={leagueSeason.year}
             currentYearPath={`/${leagueSlug}/${mostRecentLeagueYear}`}
           />
         )}
@@ -69,8 +82,8 @@ export function LeagueDetailPage() {
         {/* Stats */}
         <SimpleGrid cols={{ base: 1, sm: 3 }}>
           <StatCard
-            label="Teams"
-            value={`${league.teams?.length || 0} / ${league.settings?.teamCount || 10}`}
+            label="Franchises"
+            value={league.franchises?.length || 0}
           />
           <StatCard
             label="Playoff Teams"
@@ -84,51 +97,131 @@ export function LeagueDetailPage() {
         </SimpleGrid>
 
         {/* Tabs */}
-        <Tabs defaultValue="teams">
+        <Tabs defaultValue="standings">
           <Tabs.List>
-            <Tabs.Tab value="teams">Teams</Tabs.Tab>
+            <Tabs.Tab value="standings">Standings</Tabs.Tab>
             <Tabs.Tab value="matchups">Matchups</Tabs.Tab>
+            <Tabs.Tab value="franchises">Franchises</Tabs.Tab>
             <Tabs.Tab value="settings">Settings</Tabs.Tab>
           </Tabs.List>
 
-          <Tabs.Panel value="teams" pt="md">
-            {league.teams && league.teams.length > 0 ? (
+          <Tabs.Panel value="standings" pt="md">
+            {standings && standings.length > 0 ? (
+              <Paper withBorder radius="md">
+                <Table striped highlightOnHover>
+                  <Table.Thead>
+                    <Table.Tr>
+                      <Table.Th w={40}>#</Table.Th>
+                      <Table.Th>Franchise</Table.Th>
+                      <Table.Th ta="center">W</Table.Th>
+                      <Table.Th ta="center">L</Table.Th>
+                      <Table.Th ta="center">T</Table.Th>
+                      <Table.Th ta="right">PF</Table.Th>
+                      <Table.Th ta="right">PA</Table.Th>
+                    </Table.Tr>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {standings.map((franchise, index) => {
+                      const isPlayoffTeam = index < (league.settings?.playoffTeams || 4);
+                      return (
+                        <Table.Tr
+                          key={franchise.franchiseSeasonId}
+                          component={Link}
+                          to={`/${leagueSlug}/${year}/franchises/${franchise.franchiseId}`}
+                          style={{ textDecoration: 'none', cursor: 'pointer' }}
+                        >
+                          <Table.Td>
+                            <Text fw={500} c={isPlayoffTeam ? 'green' : undefined}>
+                              {index + 1}
+                            </Text>
+                          </Table.Td>
+                          <Table.Td>
+                            <Stack gap={0}>
+                              <Text fw={500}>{franchise.franchiseName}</Text>
+                              <Text size="xs" c="dimmed">{franchise.ownerName}</Text>
+                            </Stack>
+                          </Table.Td>
+                          <Table.Td ta="center">
+                            <Text fw={500} c="green">{franchise.wins}</Text>
+                          </Table.Td>
+                          <Table.Td ta="center">
+                            <Text c="red">{franchise.losses}</Text>
+                          </Table.Td>
+                          <Table.Td ta="center">
+                            <Text c="dimmed">{franchise.ties}</Text>
+                          </Table.Td>
+                          <Table.Td ta="right">
+                            <Text>{franchise.pointsFor.toFixed(1)}</Text>
+                          </Table.Td>
+                          <Table.Td ta="right">
+                            <Text c="dimmed">{franchise.pointsAgainst.toFixed(1)}</Text>
+                          </Table.Td>
+                        </Table.Tr>
+                      );
+                    })}
+                  </Table.Tbody>
+                </Table>
+                <Group justify="flex-start" p="sm" pt={0}>
+                  <Text size="xs" c="dimmed">
+                    Top {league.settings?.playoffTeams || 4} teams make playoffs
+                  </Text>
+                </Group>
+              </Paper>
+            ) : (
+              <Paper withBorder p="xl" radius="md">
+                <Text c="dimmed" ta="center">
+                  No standings data yet
+                </Text>
+              </Paper>
+            )}
+          </Tabs.Panel>
+
+          <Tabs.Panel value="franchises" pt="md">
+            {league.franchises && league.franchises.length > 0 ? (
               <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }}>
-                {league.teams.map((team) => (
-                  <Paper
-                    key={team.id}
-                    component={Link}
-                    to={`/${leagueSlug}/${year}/teams/${team.id}`}
-                    withBorder
-                    p="md"
-                    radius="md"
-                    style={{
-                      textDecoration: 'none',
-                      color: 'inherit',
-                      cursor: 'pointer',
-                      transition: 'border-color 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor =
-                        'var(--mantine-color-violet-6)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '';
-                    }}
-                  >
-                    <Title order={4} size="h5" mb="xs">
-                      {team.name}
-                    </Title>
-                    <Text size="sm" c="dimmed">
-                      0-0-0
-                    </Text>
-                  </Paper>
-                ))}
+                {league.franchises.map((franchise) => {
+                  // Find franchise's standing
+                  const franchiseStanding = standings?.find(s => s.franchiseId === franchise.id);
+                  const record = franchiseStanding
+                    ? `${franchiseStanding.wins}-${franchiseStanding.losses}-${franchiseStanding.ties}`
+                    : '0-0-0';
+
+                  return (
+                    <Paper
+                      key={franchise.id}
+                      component={Link}
+                      to={`/${leagueSlug}/${year}/franchises/${franchise.id}`}
+                      withBorder
+                      p="md"
+                      radius="md"
+                      style={{
+                        textDecoration: 'none',
+                        color: 'inherit',
+                        cursor: 'pointer',
+                        transition: 'border-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor =
+                          'var(--mantine-color-violet-6)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = '';
+                      }}
+                    >
+                      <Title order={4} size="h5" mb="xs">
+                        {franchise.name}
+                      </Title>
+                      <Text size="sm" c="dimmed">
+                        {franchise.owner?.name || 'No owner'} • {record}
+                      </Text>
+                    </Paper>
+                  );
+                })}
               </SimpleGrid>
             ) : (
               <Paper withBorder p="xl" radius="md">
                 <Text c="dimmed" ta="center">
-                  No teams yet
+                  No franchises yet
                 </Text>
               </Paper>
             )}
@@ -137,14 +230,36 @@ export function LeagueDetailPage() {
           <Tabs.Panel value="matchups" pt="md">
             <Stack gap="md">
               <Group justify="space-between">
-                <Title order={3} size="h4">
-                  Week 1
-                </Title>
+                <Group gap="sm">
+                  <Title order={3} size="h4">
+                    Week {currentWeek}
+                  </Title>
+                  <Select
+                    size="xs"
+                    w={100}
+                    value={currentWeek.toString()}
+                    onChange={(val) => setCurrentWeek(parseInt(val || '1'))}
+                    data={Array.from({ length: regularSeasonWeeks }, (_, i) => ({
+                      value: (i + 1).toString(),
+                      label: `Week ${i + 1}`,
+                    }))}
+                  />
+                </Group>
                 <Group gap="xs">
-                  <Button variant="subtle" size="sm">
+                  <Button
+                    variant="subtle"
+                    size="sm"
+                    disabled={currentWeek <= 1}
+                    onClick={() => setCurrentWeek((w) => Math.max(1, w - 1))}
+                  >
                     ← Prev
                   </Button>
-                  <Button variant="subtle" size="sm">
+                  <Button
+                    variant="subtle"
+                    size="sm"
+                    disabled={currentWeek >= regularSeasonWeeks}
+                    onClick={() => setCurrentWeek((w) => Math.min(regularSeasonWeeks, w + 1))}
+                  >
                     Next →
                   </Button>
                 </Group>
@@ -152,48 +267,59 @@ export function LeagueDetailPage() {
 
               {matchups && matchups.length > 0 ? (
                 <Stack gap="sm">
-                  {matchups.map((matchup) => (
-                    <Paper key={matchup.id} withBorder p="md" radius="md">
-                      <Group justify="space-between" align="center">
-                        <Stack gap={4} style={{ flex: 1 }}>
-                          <Text fw={500}>{matchup.team1?.name || 'TBD'}</Text>
-                          <Text size="sm" c="dimmed">
-                            {matchup.team1?.record
-                              ? `${matchup.team1.record.wins}-${matchup.team1.record.losses}-${matchup.team1.record.ties}`
-                              : '0-0-0'}
-                          </Text>
-                        </Stack>
+                  {matchups.map((matchup) => {
+                    const homeScore = matchup.homeScore ? parseFloat(matchup.homeScore) : null;
+                    const awayScore = matchup.awayScore ? parseFloat(matchup.awayScore) : null;
+                    const homeWon = homeScore !== null && awayScore !== null && homeScore > awayScore;
+                    const awayWon = homeScore !== null && awayScore !== null && awayScore > homeScore;
 
-                        <Stack gap={0} align="center">
-                          <Text size="xl" fw={700}>
-                            {matchup.team1Score || '-'}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            vs
-                          </Text>
-                          <Text size="xl" fw={700}>
-                            {matchup.team2Score || '-'}
-                          </Text>
-                        </Stack>
+                    return (
+                      <Paper key={matchup.id} withBorder p="md" radius="md">
+                        <Group justify="space-between" align="center">
+                          <Stack gap={4} style={{ flex: 1 }}>
+                            <Text fw={homeWon ? 700 : 500} c={homeWon ? 'green' : undefined}>
+                              {matchup.home?.name || 'TBD'}
+                            </Text>
+                            <Text size="sm" c="dimmed">
+                              {matchup.home?.record
+                                ? `${matchup.home.record.wins}-${matchup.home.record.losses}-${matchup.home.record.ties}`
+                                : '0-0-0'}
+                            </Text>
+                          </Stack>
 
-                        <Stack gap={4} style={{ flex: 1 }} align="end">
-                          <Text fw={500}>{matchup.team2?.name || 'BYE'}</Text>
-                          <Text size="sm" c="dimmed">
-                            {matchup.team2?.record
-                              ? `${matchup.team2.record.wins}-${matchup.team2.record.losses}-${matchup.team2.record.ties}`
-                              : matchup.team2
-                              ? '0-0-0'
-                              : ''}
-                          </Text>
-                        </Stack>
-                      </Group>
-                    </Paper>
-                  ))}
+                          <Stack gap={0} align="center" miw={80}>
+                            <Text size="xl" fw={700} c={homeWon ? 'green' : undefined}>
+                              {homeScore?.toFixed(1) ?? '-'}
+                            </Text>
+                            <Text size="xs" c="dimmed">
+                              vs
+                            </Text>
+                            <Text size="xl" fw={700} c={awayWon ? 'green' : undefined}>
+                              {awayScore?.toFixed(1) ?? '-'}
+                            </Text>
+                          </Stack>
+
+                          <Stack gap={4} style={{ flex: 1 }} align="end">
+                            <Text fw={awayWon ? 700 : 500} c={awayWon ? 'green' : undefined}>
+                              {matchup.away?.name || 'BYE'}
+                            </Text>
+                            <Text size="sm" c="dimmed">
+                              {matchup.away?.record
+                                ? `${matchup.away.record.wins}-${matchup.away.record.losses}-${matchup.away.record.ties}`
+                                : matchup.away
+                                ? '0-0-0'
+                                : ''}
+                            </Text>
+                          </Stack>
+                        </Group>
+                      </Paper>
+                    );
+                  })}
                 </Stack>
               ) : (
                 <Paper withBorder p="xl" radius="md">
                   <Text c="dimmed" ta="center">
-                    No matchups scheduled yet
+                    No matchups scheduled for this week
                   </Text>
                 </Paper>
               )}
@@ -208,8 +334,8 @@ export function LeagueDetailPage() {
                 </Title>
                 <Stack gap="sm">
                   <Group justify="space-between">
-                    <Text c="dimmed">Team Count</Text>
-                    <Text fw={500}>{league.settings?.teamCount || 10}</Text>
+                    <Text c="dimmed">Franchise Count</Text>
+                    <Text fw={500}>{league.franchises?.length || 0}</Text>
                   </Group>
                   <Group justify="space-between">
                     <Text c="dimmed">Playoff Teams</Text>

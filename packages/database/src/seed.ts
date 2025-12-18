@@ -7,15 +7,16 @@ import {
   getDatabase,
   users,
   leagues,
+  franchises,
   leagueSeasons,
   leagueSettings,
-  teams,
-  teamSeasons,
+  franchiseSeasons,
   players,
   playerSeasons,
   playerWeeklyStats,
-  rosterPlayers,
+  weeklyLineups,
   matchups,
+  nflGames,
   eq,
   generateUniqueSlug,
 } from './index';
@@ -35,14 +36,12 @@ function parseCSV(filePath: string): any[] {
   const headers = lines[0].split(',');
 
   return lines.slice(1).map((line) => {
-    // Handle quoted values
     const values: string[] = [];
     let currentValue = '';
     let inQuotes = false;
 
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
-
       if (char === '"') {
         inQuotes = !inQuotes;
       } else if (char === ',' && !inQuotes) {
@@ -52,7 +51,7 @@ function parseCSV(filePath: string): any[] {
         currentValue += char;
       }
     }
-    values.push(currentValue); // Last value
+    values.push(currentValue);
 
     const row: any = {};
     headers.forEach((header, index) => {
@@ -74,15 +73,16 @@ async function seed() {
     // =========================================================================
     console.log('\n🗑️  Clearing existing data...');
 
+    await db.delete(weeklyLineups);
     await db.delete(matchups);
-    await db.delete(rosterPlayers);
+    await db.delete(nflGames);
     await db.delete(playerWeeklyStats);
     await db.delete(playerSeasons);
     await db.delete(players);
-    await db.delete(teamSeasons);
-    await db.delete(teams);
+    await db.delete(franchiseSeasons);
     await db.delete(leagueSettings);
     await db.delete(leagueSeasons);
+    await db.delete(franchises);
     await db.delete(leagues);
     await db.delete(users);
 
@@ -93,7 +93,6 @@ async function seed() {
     // =========================================================================
     console.log('\n👥 Creating users...');
 
-    // Hash admin password
     const adminPasswordHash = await bcrypt.hash('admin', 10);
 
     const [user1, user2, user3, user4, user5, user6, user7, user8] = await db
@@ -113,7 +112,7 @@ async function seed() {
     console.log('✓ Created 8 users (admin@example.com / admin)');
 
     // =========================================================================
-    // LEAGUE & SEASON
+    // LEAGUE
     // =========================================================================
     console.log('\n🏈 Creating league...');
     const leagueName = 'The Championship League';
@@ -124,18 +123,46 @@ async function seed() {
       .values({
         name: leagueName,
         slug: leagueSlug,
-        commissionerId: user1.id,
       })
       .returning();
 
-    console.log(`✓ Created league: ${league.name} (Commissioner: ${user1.name})`);
+    console.log(`✓ Created league: ${league.name}`);
+
+    // =========================================================================
+    // FRANCHISES
+    // =========================================================================
+    console.log('\n🏆 Creating franchises...');
+
+    const franchiseNames = [
+      "Admin's All-Stars",
+      "Sarah's Squad",
+      "Mike's Monsters",
+      "Jessica's Juggernauts",
+      "Chris's Crushers",
+      "Amanda's Avengers",
+      "David's Destroyers",
+      "Emily's Eagles",
+    ];
+
+    const createdFranchises = await db
+      .insert(franchises)
+      .values(franchiseNames.map(name => ({ leagueId: league.id, name })))
+      .returning();
+
+    console.log(`✓ Created ${createdFranchises.length} franchises`);
+
+    // =========================================================================
+    // LEAGUE SEASON
+    // =========================================================================
+    console.log('\n📅 Creating 2024 season...');
 
     const [season2024] = await db
       .insert(leagueSeasons)
       .values({
         leagueId: league.id,
-        season: 2024,
+        year: 2024,
         status: 'active',
+        commissionerId: user1.id,
       })
       .returning();
 
@@ -146,13 +173,12 @@ async function seed() {
     // =========================================================================
     console.log('\n⚙️  Creating league settings...');
 
-    // Define scoring rules with explicit typing to ensure type safety
     const scoringRules: ScoringRules = {
       passing: {
         yards: { type: 'base', value: 0.04 },
         touchdowns: { type: 'base', value: 4 },
         interceptions: { type: 'base', value: -2 },
-        completions: {type: 'base', value: 0},
+        completions: { type: 'base', value: 0 },
         bonuses: [
           {
             name: '300 Yard Game',
@@ -164,7 +190,7 @@ async function seed() {
       rushing: {
         yards: { type: 'base', value: 0.1 },
         touchdowns: { type: 'base', value: 6 },
-        attempts: {type: 'base', value: 0},
+        attempts: { type: 'base', value: 0 },
         bonuses: [
           {
             name: '100 Yard Game',
@@ -177,15 +203,11 @@ async function seed() {
         receptions: {
           type: 'position-specific',
           default: 0.5,
-          byPosition: {
-            TE: 1.5, // TE Premium
-            WR: 1.0,
-            RB: 0.5,
-          },
+          byPosition: { TE: 1.5, WR: 1.0, RB: 0.5 },
         },
         yards: { type: 'base', value: 0.1 },
         touchdowns: { type: 'base', value: 6 },
-        targets: {type: 'base', value: 0},
+        targets: { type: 'base', value: 0 },
         bonuses: [
           {
             name: '100 Yard Game',
@@ -202,62 +224,33 @@ async function seed() {
 
     await db.insert(leagueSettings).values({
       leagueSeasonId: season2024.id,
-      teamCount: 8,
-      rosterPositions: {
-        QB: 1,
-        RB: 2,
-        WR: 2,
-        TE: 1,
-        FLEX: 1,
-        BENCH: 6,
-      },
+      scoringRules,
+      rosterPositions: { QB: 1, RB: 2, WR: 2, TE: 1, FLEX: 1, BENCH: 5 },
       playoffTeams: 4,
       playoffStartWeek: 15,
       tradeDeadlineWeek: 11,
-      scoringRules,
     });
 
     console.log('✓ Created league settings (TE Premium scoring)');
 
     // =========================================================================
-    // TEAMS
+    // FRANCHISE SEASONS
     // =========================================================================
-    console.log('\n🏆 Creating teams...');
-    const [team1, team2, team3, team4, team5, team6, team7, team8] = await db
-      .insert(teams)
-      .values([
-        { leagueId: league.id, ownerId: user1.id, name: "Admin's All-Stars" },
-        { leagueId: league.id, ownerId: user2.id, name: "Sarah's Squad" },
-        { leagueId: league.id, ownerId: user3.id, name: "Mike's Monsters" },
-        { leagueId: league.id, ownerId: user4.id, name: "Jessica's Juggernauts" },
-        { leagueId: league.id, ownerId: user5.id, name: "Chris's Crushers" },
-        { leagueId: league.id, ownerId: user6.id, name: "Amanda's Avengers" },
-        { leagueId: league.id, ownerId: user7.id, name: "David's Destroyers" },
-        { leagueId: league.id, ownerId: user8.id, name: "Emily's Eagles" },
-      ])
+    console.log('\n📊 Creating franchise seasons...');
+
+    const userList = [user1, user2, user3, user4, user5, user6, user7, user8];
+    const createdFranchiseSeasons = await db
+      .insert(franchiseSeasons)
+      .values(
+        createdFranchises.map((franchise, i) => ({
+          franchiseId: franchise.id,
+          leagueSeasonId: season2024.id,
+          ownerId: userList[i].id,
+        }))
+      )
       .returning();
 
-    console.log('✓ Created 8 teams');
-
-    // =========================================================================
-    // TEAM SEASONS
-    // =========================================================================
-    console.log('\n📊 Creating team seasons...');
-    const [ts1, ts2, ts3, ts4, ts5, ts6, ts7, ts8] = await db
-      .insert(teamSeasons)
-      .values([
-        { teamId: team1.id, leagueSeasonId: season2024.id, wins: 0, losses: 0, ties: 0 },
-        { teamId: team2.id, leagueSeasonId: season2024.id, wins: 0, losses: 0, ties: 0 },
-        { teamId: team3.id, leagueSeasonId: season2024.id, wins: 0, losses: 0, ties: 0 },
-        { teamId: team4.id, leagueSeasonId: season2024.id, wins: 0, losses: 0, ties: 0 },
-        { teamId: team5.id, leagueSeasonId: season2024.id, wins: 0, losses: 0, ties: 0 },
-        { teamId: team6.id, leagueSeasonId: season2024.id, wins: 0, losses: 0, ties: 0 },
-        { teamId: team7.id, leagueSeasonId: season2024.id, wins: 0, losses: 0, ties: 0 },
-        { teamId: team8.id, leagueSeasonId: season2024.id, wins: 0, losses: 0, ties: 0 },
-      ])
-      .returning();
-
-    console.log('✓ Created 8 team seasons');
+    console.log(`✓ Created ${createdFranchiseSeasons.length} franchise seasons`);
 
     // =========================================================================
     // PLAYERS (from CSV seed data)
@@ -274,20 +267,13 @@ async function seed() {
     const playerData = parseCSV(playersCSVPath);
     console.log(`  Found ${playerData.length} players in CSV`);
 
-    // Create players
     const createdPlayers = await db
       .insert(players)
-      .values(
-        playerData.map((p, i) => ({
-          nflId: `espn_${i + 1}`,
-          name: p.name,
-        }))
-      )
+      .values(playerData.map((p, i) => ({ nflId: `espn_${i + 1}`, name: p.name })))
       .returning();
 
     console.log(`✓ Created ${createdPlayers.length} players`);
 
-    // Create player seasons
     await db.insert(playerSeasons).values(
       createdPlayers.map((player, i) => ({
         playerId: player.id,
@@ -301,10 +287,12 @@ async function seed() {
 
     console.log(`✓ Created ${createdPlayers.length} player seasons (2024)`);
 
-    // Import weekly stats
+    // =========================================================================
+    // PLAYER WEEKLY STATS
+    // =========================================================================
     console.log('\n📊 Importing weekly stats from CSV...');
-    const statsCSVPath = path.join(SEED_DATA_DIR, 'player-stats-2024.csv');
 
+    const statsCSVPath = path.join(SEED_DATA_DIR, 'player-stats-2024.csv');
     if (!fs.existsSync(statsCSVPath)) {
       console.error('❌ player-stats-2024.csv not found!');
       process.exit(1);
@@ -313,12 +301,8 @@ async function seed() {
     const statsData = parseCSV(statsCSVPath);
     console.log(`  Found ${statsData.length} stat entries in CSV`);
 
-    // Create a map of player name -> player ID
-    const playerNameToId = new Map(
-      createdPlayers.map((p, i) => [playerData[i].name, p.id])
-    );
+    const playerNameToId = new Map(createdPlayers.map((p, i) => [playerData[i].name, p.id]));
 
-    // Convert CSV stats to DB format
     const weeklyStatsToInsert = statsData.map((stat) => ({
       playerId: playerNameToId.get(stat.player_name)!,
       season: 2024,
@@ -338,150 +322,325 @@ async function seed() {
       fumblesLost: stat.fumbles_lost ? parseInt(stat.fumbles_lost) : null,
     }));
 
-    // Insert in chunks
     const chunkSize = 500;
     for (let i = 0; i < weeklyStatsToInsert.length; i += chunkSize) {
       const chunk = weeklyStatsToInsert.slice(i, i + chunkSize);
       await db.insert(playerWeeklyStats).values(chunk);
-      console.log(
-        `  Inserted ${Math.min(i + chunkSize, weeklyStatsToInsert.length)} / ${
-          weeklyStatsToInsert.length
-        } stats`
-      );
     }
 
     console.log(`✓ Created ${weeklyStatsToInsert.length} weekly stat entries`);
 
     // =========================================================================
-    // ROSTERS
+    // NFL GAMES (fake schedule for 2024)
     // =========================================================================
-    console.log('\n📋 Adding players to rosters...');
+    console.log('\n🏟️  Creating NFL game schedule...');
 
-    // Get player seasons to know positions
+    const nflTeams = ['KC', 'BUF', 'BAL', 'CIN', 'MIA', 'NYJ', 'NE', 'LV', 'DEN', 'LAC', 'HOU', 'JAX', 'IND', 'TEN', 'CLE', 'PIT',
+                      'PHI', 'DAL', 'NYG', 'WAS', 'SF', 'SEA', 'LAR', 'ARI', 'GB', 'MIN', 'DET', 'CHI', 'TB', 'NO', 'ATL', 'CAR'];
+
+    const nflGamesToInsert: { season: number; weekNumber: number; homeTeam: string; awayTeam: string; kickoffAt: Date }[] = [];
+
+    for (let week = 1; week <= 10; week++) {
+      // Create 16 games per week (32 teams / 2)
+      const shuffled = [...nflTeams].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < 16; i++) {
+        const homeTeam = shuffled[i * 2];
+        const awayTeam = shuffled[i * 2 + 1];
+        // Stagger kickoff times: Thursday (1), Sunday early (8), Sunday late (4), Sunday night (1), Monday (2)
+        let dayOffset = 0;
+        let hour = 13;
+        if (i === 0) { dayOffset = -3; hour = 20; } // Thursday night
+        else if (i < 9) { dayOffset = 0; hour = 13; } // Sunday 1pm
+        else if (i < 13) { dayOffset = 0; hour = 16; } // Sunday 4pm
+        else if (i === 13) { dayOffset = 0; hour = 20; } // Sunday night
+        else { dayOffset = 1; hour = 20; } // Monday night
+
+        const kickoffAt = new Date(2024, 8 + Math.floor(week / 5), (week % 4) * 7 + 8 + dayOffset, hour, 0, 0);
+        nflGamesToInsert.push({ season: 2024, weekNumber: week, homeTeam, awayTeam, kickoffAt });
+      }
+    }
+
+    await db.insert(nflGames).values(nflGamesToInsert);
+    console.log(`✓ Created ${nflGamesToInsert.length} NFL games`);
+
+    // =========================================================================
+    // WEEKLY LINEUPS - Create for all 10 weeks
+    // =========================================================================
+    console.log('\n📋 Creating weekly lineups...');
+
     const allPlayerSeasons = await db
       .select()
       .from(playerSeasons)
       .where(eq(playerSeasons.season, 2024));
 
-    // Helper to get players by position
-    const getPlayersByPosition = (position: string, count: number) => {
-      return allPlayerSeasons
-        .filter(ps => ps.position === position)
-        .slice(0, count)
-        .map(ps => ps.playerId);
-    };
-
-    // Team 1 roster (Admin's All-Stars) - full roster
-    const team1Roster = [];
-    const qbs = getPlayersByPosition('QB', 2);
-    const rbs = getPlayersByPosition('RB', 4);
-    const wrs = getPlayersByPosition('WR', 4);
-    const tes = getPlayersByPosition('TE', 2);
-
-    if (qbs[0]) team1Roster.push({ teamSeasonId: ts1.id, playerId: qbs[0], slotType: 'QB' });
-    if (rbs[0]) team1Roster.push({ teamSeasonId: ts1.id, playerId: rbs[0], slotType: 'RB' });
-    if (rbs[1]) team1Roster.push({ teamSeasonId: ts1.id, playerId: rbs[1], slotType: 'RB' });
-    if (wrs[0]) team1Roster.push({ teamSeasonId: ts1.id, playerId: wrs[0], slotType: 'WR' });
-    if (wrs[1]) team1Roster.push({ teamSeasonId: ts1.id, playerId: wrs[1], slotType: 'WR' });
-    if (tes[0]) team1Roster.push({ teamSeasonId: ts1.id, playerId: tes[0], slotType: 'TE' });
-    if (rbs[2]) team1Roster.push({ teamSeasonId: ts1.id, playerId: rbs[2], slotType: 'FLEX' });
-    // Bench
-    if (qbs[1]) team1Roster.push({ teamSeasonId: ts1.id, playerId: qbs[1], slotType: 'BENCH' });
-    if (rbs[3]) team1Roster.push({ teamSeasonId: ts1.id, playerId: rbs[3], slotType: 'BENCH' });
-    if (wrs[2]) team1Roster.push({ teamSeasonId: ts1.id, playerId: wrs[2], slotType: 'BENCH' });
-    if (wrs[3]) team1Roster.push({ teamSeasonId: ts1.id, playerId: wrs[3], slotType: 'BENCH' });
-    if (tes[1]) team1Roster.push({ teamSeasonId: ts1.id, playerId: tes[1], slotType: 'BENCH' });
-
-    if (team1Roster.length > 0) {
-      await db.insert(rosterPlayers).values(team1Roster);
+    const playersByPosition: Record<string, string[]> = { QB: [], RB: [], WR: [], TE: [] };
+    for (const ps of allPlayerSeasons) {
+      if (playersByPosition[ps.position]) {
+        playersByPosition[ps.position].push(ps.playerId);
+      }
     }
 
-    // Team 2 roster (Sarah's Squad) - use next set of players
-    const team2Roster = [];
-    const qbs2 = getPlayersByPosition('QB', 4).slice(2);
-    const rbs2 = getPlayersByPosition('RB', 8).slice(4);
-    const wrs2 = getPlayersByPosition('WR', 8).slice(4);
-    const tes2 = getPlayersByPosition('TE', 4).slice(2);
+    const regularSeasonWeeks = 10;
+    const allLineupEntries: { franchiseSeasonId: string; weekNumber: number; playerId: string; slotType: string }[] = [];
 
-    if (qbs2[0]) team2Roster.push({ teamSeasonId: ts2.id, playerId: qbs2[0], slotType: 'QB' });
-    if (rbs2[0]) team2Roster.push({ teamSeasonId: ts2.id, playerId: rbs2[0], slotType: 'RB' });
-    if (rbs2[1]) team2Roster.push({ teamSeasonId: ts2.id, playerId: rbs2[1], slotType: 'RB' });
-    if (wrs2[0]) team2Roster.push({ teamSeasonId: ts2.id, playerId: wrs2[0], slotType: 'WR' });
-    if (wrs2[1]) team2Roster.push({ teamSeasonId: ts2.id, playerId: wrs2[1], slotType: 'WR' });
-    if (tes2[0]) team2Roster.push({ teamSeasonId: ts2.id, playerId: tes2[0], slotType: 'TE' });
-    if (wrs2[2]) team2Roster.push({ teamSeasonId: ts2.id, playerId: wrs2[2], slotType: 'FLEX' });
-    // Bench
-    if (qbs2[1]) team2Roster.push({ teamSeasonId: ts2.id, playerId: qbs2[1], slotType: 'BENCH' });
-    if (rbs2[2]) team2Roster.push({ teamSeasonId: ts2.id, playerId: rbs2[2], slotType: 'BENCH' });
-    if (rbs2[3]) team2Roster.push({ teamSeasonId: ts2.id, playerId: rbs2[3], slotType: 'BENCH' });
-    if (wrs2[3]) team2Roster.push({ teamSeasonId: ts2.id, playerId: wrs2[3], slotType: 'BENCH' });
-    if (tes2[1]) team2Roster.push({ teamSeasonId: ts2.id, playerId: tes2[1], slotType: 'BENCH' });
+    // Assign players to franchises (each franchise gets unique players)
+    let qbIdx = 0, rbIdx = 0, wrIdx = 0, teIdx = 0;
 
-    if (team2Roster.length > 0) {
-      await db.insert(rosterPlayers).values(team2Roster);
+    for (const fs of createdFranchiseSeasons) {
+      const rosterPlayerIds: string[] = [];
+
+      // Build roster for this franchise
+      const qb1 = playersByPosition.QB[qbIdx++];
+      const qb2 = playersByPosition.QB[qbIdx++];
+      const rb1 = playersByPosition.RB[rbIdx++];
+      const rb2 = playersByPosition.RB[rbIdx++];
+      const rb3 = playersByPosition.RB[rbIdx++];
+      const rb4 = playersByPosition.RB[rbIdx++];
+      const wr1 = playersByPosition.WR[wrIdx++];
+      const wr2 = playersByPosition.WR[wrIdx++];
+      const wr3 = playersByPosition.WR[wrIdx++];
+      const wr4 = playersByPosition.WR[wrIdx++];
+      const te1 = playersByPosition.TE[teIdx++];
+      const te2 = playersByPosition.TE[teIdx++];
+
+      // Create lineup for each week (same lineup each week for simplicity)
+      for (let week = 1; week <= regularSeasonWeeks; week++) {
+        // Starters
+        if (qb1) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: qb1, slotType: 'QB' });
+        if (rb1) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: rb1, slotType: 'RB' });
+        if (rb2) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: rb2, slotType: 'RB' });
+        if (wr1) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: wr1, slotType: 'WR' });
+        if (wr2) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: wr2, slotType: 'WR' });
+        if (te1) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: te1, slotType: 'TE' });
+        if (rb3) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: rb3, slotType: 'FLEX' });
+        // Bench
+        if (qb2) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: qb2, slotType: 'BENCH' });
+        if (rb4) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: rb4, slotType: 'BENCH' });
+        if (wr3) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: wr3, slotType: 'BENCH' });
+        if (wr4) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: wr4, slotType: 'BENCH' });
+        if (te2) allLineupEntries.push({ franchiseSeasonId: fs.id, weekNumber: week, playerId: te2, slotType: 'BENCH' });
+      }
     }
 
-    // Team 3 roster (Mike's Monsters) - smaller partial roster
-    const team3Roster = [];
-    const qbs3 = getPlayersByPosition('QB', 6).slice(4);
-    const rbs3 = getPlayersByPosition('RB', 12).slice(8);
-    const wrs3 = getPlayersByPosition('WR', 12).slice(8);
-    const tes3 = getPlayersByPosition('TE', 6).slice(4);
-
-    if (qbs3[0]) team3Roster.push({ teamSeasonId: ts3.id, playerId: qbs3[0], slotType: 'QB' });
-    if (rbs3[0]) team3Roster.push({ teamSeasonId: ts3.id, playerId: rbs3[0], slotType: 'RB' });
-    if (wrs3[0]) team3Roster.push({ teamSeasonId: ts3.id, playerId: wrs3[0], slotType: 'WR' });
-    if (tes3[0]) team3Roster.push({ teamSeasonId: ts3.id, playerId: tes3[0], slotType: 'TE' });
-
-    if (team3Roster.length > 0) {
-      await db.insert(rosterPlayers).values(team3Roster);
+    // Insert lineups in chunks
+    for (let i = 0; i < allLineupEntries.length; i += chunkSize) {
+      const chunk = allLineupEntries.slice(i, i + chunkSize);
+      await db.insert(weeklyLineups).values(chunk);
     }
 
-    console.log(`✓ Added players to ${team1Roster.length > 0 ? '3' : '0'} team rosters`);
+    console.log(`✓ Created ${allLineupEntries.length} weekly lineup entries`);
 
     // =========================================================================
-    // MATCHUPS (Week 1)
+    // MATCHUPS - Generate schedule for all weeks
     // =========================================================================
-    console.log('\n🗓️  Creating Week 1 matchups...');
-    await db.insert(matchups).values([
-      {
-        leagueSeasonId: season2024.id,
-        weekNumber: 1,
-        team1SeasonId: ts1.id,
-        team2SeasonId: ts2.id,
-      },
-      {
-        leagueSeasonId: season2024.id,
-        weekNumber: 1,
-        team1SeasonId: ts3.id,
-        team2SeasonId: ts4.id,
-      },
-      {
-        leagueSeasonId: season2024.id,
-        weekNumber: 1,
-        team1SeasonId: ts5.id,
-        team2SeasonId: ts6.id,
-      },
-      {
-        leagueSeasonId: season2024.id,
-        weekNumber: 1,
-        team1SeasonId: ts7.id,
-        team2SeasonId: ts8.id,
-      },
-    ]);
+    console.log('\n🗓️  Generating matchup schedule...');
 
-    console.log('✓ Created 4 matchups for Week 1');
+    function generateRoundRobin(ids: string[]): { home: string; away: string }[][] {
+      const teams = [...ids];
+      const numTeams = teams.length;
+      const schedule: { home: string; away: string }[][] = [];
 
+      for (let round = 0; round < numTeams - 1; round++) {
+        const weekMatchups: { home: string; away: string }[] = [];
+        for (let i = 0; i < numTeams / 2; i++) {
+          weekMatchups.push({ home: teams[i], away: teams[numTeams - 1 - i] });
+        }
+        schedule.push(weekMatchups);
+        const lastTeam = teams.pop()!;
+        teams.splice(1, 0, lastTeam);
+      }
+      return schedule;
+    }
+
+    const franchiseSeasonIds = createdFranchiseSeasons.map(fs => fs.id);
+    const baseSchedule = generateRoundRobin(franchiseSeasonIds);
+
+    const fullSchedule: { home: string; away: string }[][] = [];
+    let iteration = 0;
+    while (fullSchedule.length < regularSeasonWeeks) {
+      for (const week of baseSchedule) {
+        if (fullSchedule.length >= regularSeasonWeeks) break;
+        if (iteration % 2 === 1) {
+          fullSchedule.push(week.map(m => ({ home: m.away, away: m.home })));
+        } else {
+          fullSchedule.push([...week]);
+        }
+      }
+      iteration++;
+    }
+
+    const matchupsToInsert = fullSchedule.flatMap((weekMatchups, weekIndex) =>
+      weekMatchups.map(m => ({
+        leagueSeasonId: season2024.id,
+        weekNumber: weekIndex + 1,
+        homeFranchiseSeasonId: m.home,
+        awayFranchiseSeasonId: m.away,
+      }))
+    );
+
+    await db.insert(matchups).values(matchupsToInsert);
+    console.log(`✓ Created ${matchupsToInsert.length} matchups for ${regularSeasonWeeks} weeks`);
+
+    // =========================================================================
+    // SCORE MATCHUPS
+    // =========================================================================
+    console.log('\n🎯 Calculating matchup scores...');
+
+    function calculatePlayerScore(
+      stats: { passingYards: number | null; passingTds: number | null; passingInts: number | null;
+               rushingYards: number | null; rushingTds: number | null; receptions: number | null;
+               receivingYards: number | null; receivingTds: number | null; fumblesLost: number | null },
+      position: string
+    ): number {
+      let score = 0;
+      score += (stats.passingYards || 0) * 0.04;
+      score += (stats.passingTds || 0) * 4;
+      score += (stats.passingInts || 0) * -2;
+      score += (stats.rushingYards || 0) * 0.1;
+      score += (stats.rushingTds || 0) * 6;
+
+      const pprValue = position === 'TE' ? 1.5 : position === 'WR' ? 1.0 : 0.5;
+      score += (stats.receptions || 0) * pprValue;
+      score += (stats.receivingYards || 0) * 0.1;
+      score += (stats.receivingTds || 0) * 6;
+      score += (stats.fumblesLost || 0) * -2;
+
+      if ((stats.passingYards || 0) >= 300) score += 3;
+      if ((stats.rushingYards || 0) >= 100) score += 3;
+      if ((stats.receivingYards || 0) >= 100) score += 3;
+
+      return Math.round(score * 100) / 100;
+    }
+
+    const allMatchups = await db.select().from(matchups).where(eq(matchups.leagueSeasonId, season2024.id));
+    const allLineups = await db.select().from(weeklyLineups);
+    const allStats = await db.select().from(playerWeeklyStats).where(eq(playerWeeklyStats.season, 2024));
+
+    const lineupsByFranchiseWeek = new Map<string, typeof allLineups>();
+    for (const l of allLineups) {
+      const key = `${l.franchiseSeasonId}-${l.weekNumber}`;
+      if (!lineupsByFranchiseWeek.has(key)) lineupsByFranchiseWeek.set(key, []);
+      lineupsByFranchiseWeek.get(key)!.push(l);
+    }
+
+    const statsByPlayerWeek = new Map<string, typeof allStats[0]>();
+    for (const s of allStats) {
+      statsByPlayerWeek.set(`${s.playerId}-${s.weekNumber}`, s);
+    }
+
+    const positionByPlayer = new Map<string, string>();
+    for (const ps of allPlayerSeasons) {
+      positionByPlayer.set(ps.playerId, ps.position);
+    }
+
+    const STARTER_SLOTS = ['QB', 'RB', 'WR', 'TE', 'FLEX'];
+
+    function getFranchiseScore(franchiseSeasonId: string, week: number): number {
+      const lineup = lineupsByFranchiseWeek.get(`${franchiseSeasonId}-${week}`) || [];
+      const starters = lineup.filter(l => STARTER_SLOTS.includes(l.slotType));
+      let total = 0;
+      for (const starter of starters) {
+        const stats = statsByPlayerWeek.get(`${starter.playerId}-${week}`);
+        const position = positionByPlayer.get(starter.playerId) || 'RB';
+        if (stats) total += calculatePlayerScore(stats, position);
+      }
+      return Math.round(total * 100) / 100;
+    }
+
+    for (const matchup of allMatchups) {
+      const homeScore = getFranchiseScore(matchup.homeFranchiseSeasonId, matchup.weekNumber);
+      const awayScore = matchup.awayFranchiseSeasonId
+        ? getFranchiseScore(matchup.awayFranchiseSeasonId, matchup.weekNumber)
+        : null;
+
+      await db.update(matchups)
+        .set({
+          homeScore: homeScore.toString(),
+          awayScore: awayScore?.toString() || null,
+          completedAt: new Date(), // Mark as completed
+          updatedAt: new Date(),
+        })
+        .where(eq(matchups.id, matchup.id));
+    }
+
+    console.log(`✓ Scored ${allMatchups.length} matchups`);
+
+    // =========================================================================
+    // CALCULATE STANDINGS
+    // =========================================================================
+    console.log('\n📊 Calculating standings...');
+
+    const scoredMatchups = await db.select().from(matchups).where(eq(matchups.leagueSeasonId, season2024.id));
+
+    const franchiseStats = new Map<string, { wins: number; losses: number; ties: number; pointsFor: number; pointsAgainst: number }>();
+    for (const fs of createdFranchiseSeasons) {
+      franchiseStats.set(fs.id, { wins: 0, losses: 0, ties: 0, pointsFor: 0, pointsAgainst: 0 });
+    }
+
+    for (const m of scoredMatchups) {
+      const homeScore = m.homeScore ? parseFloat(m.homeScore) : 0;
+      const awayScore = m.awayScore ? parseFloat(m.awayScore) : 0;
+
+      const homeStats = franchiseStats.get(m.homeFranchiseSeasonId)!;
+      const awayStats = m.awayFranchiseSeasonId ? franchiseStats.get(m.awayFranchiseSeasonId) : null;
+
+      homeStats.pointsFor += homeScore;
+      if (awayStats) {
+        awayStats.pointsFor += awayScore;
+        homeStats.pointsAgainst += awayScore;
+        awayStats.pointsAgainst += homeScore;
+
+        if (homeScore > awayScore) {
+          homeStats.wins++;
+          awayStats.losses++;
+        } else if (awayScore > homeScore) {
+          homeStats.losses++;
+          awayStats.wins++;
+        } else {
+          homeStats.ties++;
+          awayStats.ties++;
+        }
+      }
+    }
+
+    for (const [fsId, stats] of franchiseStats) {
+      await db.update(franchiseSeasons)
+        .set({
+          wins: stats.wins,
+          losses: stats.losses,
+          ties: stats.ties,
+          pointsFor: stats.pointsFor.toFixed(2),
+          pointsAgainst: stats.pointsAgainst.toFixed(2),
+          updatedAt: new Date(),
+        })
+        .where(eq(franchiseSeasons.id, fsId));
+    }
+
+    const standingsList = Array.from(franchiseStats.entries())
+      .map(([fsId, stats]) => ({ fsId, ...stats }))
+      .sort((a, b) => b.wins !== a.wins ? b.wins - a.wins : b.pointsFor - a.pointsFor);
+
+    console.log('✓ Standings calculated');
+    console.log('\n  Standings:');
+    standingsList.forEach((s, i) => {
+      console.log(`    ${i + 1}. ${s.wins}-${s.losses}-${s.ties} (${s.pointsFor.toFixed(1)} PF)`);
+    });
+
+    // =========================================================================
+    // SUMMARY
+    // =========================================================================
     console.log('\n✅ Seed completed successfully!');
     console.log('\n📝 Summary:');
     console.log('  - 8 users');
     console.log('  - 1 league (The Championship League)');
+    console.log('  - 8 franchises');
     console.log('  - 1 season (2024, active)');
-    console.log('  - 8 teams with team seasons');
-    console.log(`  - ${createdPlayers.length} NFL players with 2024 data`);
-    console.log(`  - ${weeklyStatsToInsert.length} weekly stat entries (weeks 1-10)`);
-    console.log('  - 3 teams with rosters');
-    console.log('  - 4 Week 1 matchups');
+    console.log('  - 8 franchise seasons with standings');
+    console.log(`  - ${createdPlayers.length} NFL players`);
+    console.log(`  - ${weeklyStatsToInsert.length} weekly stat entries`);
+    console.log(`  - ${nflGamesToInsert.length} NFL games`);
+    console.log(`  - ${allLineupEntries.length} weekly lineup entries`);
+    console.log(`  - ${matchupsToInsert.length} matchups (all scored)`);
     console.log('\n🔑 Login credentials:');
     console.log('  Email: admin@example.com');
     console.log('  Password: admin');

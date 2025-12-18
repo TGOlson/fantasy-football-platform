@@ -7,7 +7,8 @@ import {
   leagues,
   leagueSeasons,
   leagueSettings,
-  teams,
+  franchises,
+  franchiseSeasons,
   users,
   eq,
   desc,
@@ -20,17 +21,21 @@ import {
 import { STANDARD_SCORING } from '../../services/scoring-presets';
 
 export const leaguesRouter = router({
-  // Get all leagues for the current user (leagues where they own a team)
+  // Get all leagues for the current user (leagues where they own a franchise)
   list: protectedProcedure.query(async ({ ctx }) => {
     const db = getDatabase();
 
-    // Get all teams owned by this user
-    const userTeams = await db
-      .select({ leagueId: teams.leagueId })
-      .from(teams)
-      .where(eq(teams.ownerId, ctx.user.userId));
+    // Get all franchise seasons owned by this user
+    const userFranchiseSeasons = await db
+      .select({
+        franchiseId: franchiseSeasons.franchiseId,
+        leagueId: franchises.leagueId,
+      })
+      .from(franchiseSeasons)
+      .innerJoin(franchises, eq(franchiseSeasons.franchiseId, franchises.id))
+      .where(eq(franchiseSeasons.ownerId, ctx.user.userId));
 
-    const leagueIds = userTeams.map((t) => t.leagueId);
+    const leagueIds = [...new Set(userFranchiseSeasons.map((f) => f.leagueId))];
 
     if (leagueIds.length === 0) {
       return [];
@@ -49,7 +54,7 @@ export const leaguesRouter = router({
           .select()
           .from(leagueSeasons)
           .where(eq(leagueSeasons.leagueId, league.id))
-          .orderBy(desc(leagueSeasons.season))
+          .orderBy(desc(leagueSeasons.year))
           .limit(1);
 
         return {
@@ -62,7 +67,7 @@ export const leaguesRouter = router({
     return leaguesWithSeasons;
   }),
 
-  // Get league by slug with teams and settings for a specific season
+  // Get league by slug with franchises and settings for a specific season
   getBySlug: protectedProcedure
     .input(
       z.object({
@@ -92,17 +97,6 @@ export const leaguesRouter = router({
       // Verify league membership
       await requireLeagueMembership(ctx.user.userId, { leagueId });
 
-      // Get commissioner info
-      const [commissioner] = await db
-        .select({
-          id: users.id,
-          name: users.name,
-          email: users.email,
-        })
-        .from(users)
-        .where(eq(users.id, league.commissionerId))
-        .limit(1);
-
       // Get the specific season
       const [season] = await db
         .select()
@@ -110,7 +104,7 @@ export const leaguesRouter = router({
         .where(
           and(
             eq(leagueSeasons.leagueId, leagueId),
-            eq(leagueSeasons.season, input.season)
+            eq(leagueSeasons.year, input.season)
           )
         )
         .limit(1);
@@ -122,6 +116,17 @@ export const leaguesRouter = router({
         });
       }
 
+      // Get commissioner info
+      const [commissioner] = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        })
+        .from(users)
+        .where(eq(users.id, season.commissionerId))
+        .limit(1);
+
       // Get settings for this season
       const [settings] = await db
         .select()
@@ -129,23 +134,55 @@ export const leaguesRouter = router({
         .where(eq(leagueSettings.leagueSeasonId, season.id))
         .limit(1);
 
-      // Get teams for this league
-      const leagueTeams = await db
+      // Get franchises with their season data
+      const leagueFranchises = await db
         .select()
-        .from(teams)
-        .where(eq(teams.leagueId, leagueId));
+        .from(franchises)
+        .where(eq(franchises.leagueId, leagueId));
+
+      // Get franchise seasons for this season
+      const franchiseSeasonsData = await db
+        .select()
+        .from(franchiseSeasons)
+        .where(eq(franchiseSeasons.leagueSeasonId, season.id));
+
+      // Combine franchise with season data
+      const franchisesWithSeasons = await Promise.all(
+        leagueFranchises.map(async (franchise) => {
+          const fsSeason = franchiseSeasonsData.find(
+            (fs) => fs.franchiseId === franchise.id
+          );
+
+          let owner = null;
+          if (fsSeason) {
+            const [ownerData] = await db
+              .select({ id: users.id, name: users.name })
+              .from(users)
+              .where(eq(users.id, fsSeason.ownerId))
+              .limit(1);
+            owner = ownerData;
+          }
+
+          return {
+            id: franchise.id,
+            name: franchise.name,
+            owner,
+            franchiseSeason: fsSeason || null,
+          };
+        })
+      );
 
       return {
         ...league,
-        leagueId, // Include for auth purposes
+        leagueId,
         commissioner: commissioner || null,
         activeSeason: season,
         settings: settings || null,
-        teams: leagueTeams,
+        franchises: franchisesWithSeasons,
       };
     }),
 
-  // Get league by ID with teams and settings for active season
+  // Get league by ID with franchises and settings for active season
   getById: protectedProcedure
     .input(z.object({ leagueId: z.string() }))
     .query(async ({ input, ctx }) => {
@@ -168,24 +205,28 @@ export const leaguesRouter = router({
         });
       }
 
-      // Get commissioner info
-      const [commissioner] = await db
-        .select({
-          id: users.id,
-          name: users.name,
-          email: users.email,
-        })
-        .from(users)
-        .where(eq(users.id, league.commissionerId))
-        .limit(1);
-
       // Get active season (or most recent)
       const [activeSeason] = await db
         .select()
         .from(leagueSeasons)
         .where(eq(leagueSeasons.leagueId, input.leagueId))
-        .orderBy(desc(leagueSeasons.season))
+        .orderBy(desc(leagueSeasons.year))
         .limit(1);
+
+      // Get commissioner info
+      let commissioner = null;
+      if (activeSeason) {
+        const [commissionerData] = await db
+          .select({
+            id: users.id,
+            name: users.name,
+            email: users.email,
+          })
+          .from(users)
+          .where(eq(users.id, activeSeason.commissionerId))
+          .limit(1);
+        commissioner = commissionerData;
+      }
 
       // Get settings for the active season
       let settings = null;
@@ -198,18 +239,18 @@ export const leaguesRouter = router({
         settings = leagueSettingsData || null;
       }
 
-      // Get teams for this league
-      const leagueTeams = await db
+      // Get franchises for this league
+      const leagueFranchises = await db
         .select()
-        .from(teams)
-        .where(eq(teams.leagueId, input.leagueId));
+        .from(franchises)
+        .where(eq(franchises.leagueId, input.leagueId));
 
       return {
         ...league,
-        commissioner: commissioner || null,
+        commissioner,
         activeSeason: activeSeason || null,
         settings,
-        teams: leagueTeams,
+        franchises: leagueFranchises,
       };
     }),
 
@@ -219,7 +260,6 @@ export const leaguesRouter = router({
       z.object({
         name: z.string().min(1, 'League name is required'),
         season: z.number().int().min(2020, 'Season must be 2020 or later'),
-        teamCount: z.number().int().min(2).max(20).optional(),
         rosterPositions: z.custom<RosterPositionsJson>().optional(),
         scoringRules: z.custom<ScoringRulesJson>().optional(),
       })
@@ -230,23 +270,23 @@ export const leaguesRouter = router({
       // Generate unique slug for the league
       const slug = await generateUniqueSlug(input.name);
 
-      // Create the league (commissioner is current user)
+      // Create the league
       const [newLeague] = await db
         .insert(leagues)
         .values({
           name: input.name,
           slug,
-          commissionerId: ctx.user.userId,
         })
         .returning();
 
-      // Create the first season
+      // Create the first season (commissioner is current user)
       const [newSeason] = await db
         .insert(leagueSeasons)
         .values({
           leagueId: newLeague.id,
-          season: input.season,
+          year: input.season,
           status: 'setup',
+          commissionerId: ctx.user.userId,
         })
         .returning();
 
@@ -262,19 +302,16 @@ export const leaguesRouter = router({
 
       await db.insert(leagueSettings).values({
         leagueSeasonId: newSeason.id,
-        teamCount: input.teamCount || 10,
         rosterPositions: input.rosterPositions || defaultRosterPositions,
-        // TODO: should probably just require scoring rules as input
         scoringRules: input.scoringRules || STANDARD_SCORING,
       });
 
       return {
         id: newLeague.id,
         name: newLeague.name,
-        commissionerId: newLeague.commissionerId,
-        season: newSeason.season,
+        slug: newLeague.slug,
+        season: newSeason.year,
         createdAt: newLeague.createdAt,
-        updatedAt: newLeague.updatedAt,
       };
     }),
 
@@ -307,14 +344,15 @@ export const leaguesRouter = router({
       }
 
       // Build update object with only provided fields
-      const updateData: { name?: string; slug?: string; updatedAt: Date } = {
-        updatedAt: new Date(),
-      };
+      const updateData: { name?: string; slug?: string } = {};
 
       if (input.name !== undefined) {
         updateData.name = input.name;
-        // Regenerate slug if name changes
         updateData.slug = await generateUniqueSlug(input.name);
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return existingLeague;
       }
 
       // Update the league
@@ -328,9 +366,7 @@ export const leaguesRouter = router({
         id: updatedLeague.id,
         name: updatedLeague.name,
         slug: updatedLeague.slug,
-        commissionerId: updatedLeague.commissionerId,
         createdAt: updatedLeague.createdAt,
-        updatedAt: updatedLeague.updatedAt,
       };
     }),
 });

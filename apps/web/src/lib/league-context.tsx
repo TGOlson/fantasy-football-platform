@@ -12,10 +12,10 @@ type LeagueContextValue = {
   };
   leagueSeason: {
     id: string;
-    season: number;
+    year: number;
     status: string;
   };
-  myTeam: {
+  myFranchise: {
     id: string;
     name: string;
   } | null;
@@ -44,7 +44,7 @@ export function LeagueProvider({ children }: LeagueProviderProps) {
   // Fetch all seasons to determine most recent year
   const { data: leagues } = trpc.leagues.list.useQuery();
   const currentLeagueFromList = leagues?.find((l) => l.slug === leagueSlug);
-  const mostRecentLeagueYear = currentLeagueFromList?.currentSeason?.season ?? season ?? new Date().getFullYear();
+  const mostRecentLeagueYear = currentLeagueFromList?.currentSeason?.year ?? season ?? new Date().getFullYear();
 
   if (!leagueSlug || !season) {
     return (
@@ -73,8 +73,10 @@ export function LeagueProvider({ children }: LeagueProviderProps) {
     );
   }
 
-  // Find user's team in this league
-  const myTeam = leagueData.teams?.find((t) => t.ownerId === user?.id);
+  // Find user's franchise in this league
+  const myFranchise = leagueData.franchises?.find(
+    (f) => f.owner?.id === user?.id
+  );
 
   const value: LeagueContextValue = {
     league: {
@@ -84,11 +86,11 @@ export function LeagueProvider({ children }: LeagueProviderProps) {
     },
     leagueSeason: {
       id: leagueData.activeSeason!.id,
-      season: leagueData.activeSeason!.season,
+      year: leagueData.activeSeason!.year,
       status: leagueData.activeSeason!.status,
     },
-    myTeam: myTeam ? { id: myTeam.id, name: myTeam.name } : null,
-    isCommissioner: leagueData.commissionerId === user?.id,
+    myFranchise: myFranchise ? { id: myFranchise.id, name: myFranchise.name } : null,
+    isCommissioner: leagueData.commissioner?.id === user?.id,
     isHistoricalYear: season < mostRecentLeagueYear,
     mostRecentLeagueYear,
   };

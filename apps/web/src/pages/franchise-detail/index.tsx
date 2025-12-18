@@ -6,17 +6,17 @@ import { DataTable } from 'mantine-datatable';
 import { loader } from './loader';
 import { PageHeader, StatCard, PlayerCell, PositionBadge, HistoricalBanner } from '@/components/ui';
 
-export function TeamDetailPage() {
-  const { team } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+export function FranchiseDetailPage() {
+  const { franchise } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
   const { leagueSlug, year } = useParams<{ leagueSlug: string; year: string }>();
   const { league, isHistoricalYear, mostRecentLeagueYear } = useLeague();
 
-  const starters = team.roster?.filter((p) => p.slotType !== 'BENCH') || [];
-  const bench = team.roster?.filter((p) => p.slotType === 'BENCH') || [];
+  const starters = franchise.lineup?.filter((p) => p.slotType !== 'BENCH') || [];
+  const bench = franchise.lineup?.filter((p) => p.slotType === 'BENCH') || [];
 
   // Build record string
-  const record = team.teamSeason
-    ? `${team.teamSeason.wins}-${team.teamSeason.losses}-${team.teamSeason.ties}`
+  const record = franchise.franchiseSeason
+    ? `${franchise.franchiseSeason.wins}-${franchise.franchiseSeason.losses}-${franchise.franchiseSeason.ties}`
     : '0-0-0';
 
   return (
@@ -25,18 +25,18 @@ export function TeamDetailPage() {
         {isHistoricalYear && (
           <HistoricalBanner
             year={parseInt(year!)}
-            currentYearPath={`/${leagueSlug}/${mostRecentLeagueYear}/teams/${team.id}`}
+            currentYearPath={`/${leagueSlug}/${mostRecentLeagueYear}/franchises/${franchise.id}`}
           />
         )}
 
         {/* Header */}
         <PageHeader
-          title={team.name}
-          subtitle={`Owner: ${team.owner?.name || 'Unknown'}`}
+          title={franchise.name}
+          subtitle={`Owner: ${franchise.owner?.name || 'Unknown'}`}
           breadcrumbs={[
             { label: league.name, to: `/${leagueSlug}/${year}` },
-            { label: 'Teams' },
-            { label: team.name },
+            { label: 'Franchises' },
+            { label: franchise.name },
           ]}
           badges={
             <Badge size="lg" variant="light" color="violet">
@@ -49,14 +49,14 @@ export function TeamDetailPage() {
         <SimpleGrid cols={{ base: 2, sm: 4 }}>
           <StatCard
             label="Points For"
-            value={team.teamSeason?.pointsFor || '0.00'}
+            value={franchise.franchiseSeason?.pointsFor || '0.00'}
           />
           <StatCard
             label="Points Against"
-            value={team.teamSeason?.pointsAgainst || '0.00'}
+            value={franchise.franchiseSeason?.pointsAgainst || '0.00'}
           />
-          <StatCard label="Wins" value={team.teamSeason?.wins || 0} />
-          <StatCard label="Losses" value={team.teamSeason?.losses || 0} />
+          <StatCard label="Wins" value={franchise.franchiseSeason?.wins || 0} />
+          <StatCard label="Losses" value={franchise.franchiseSeason?.losses || 0} />
         </SimpleGrid>
 
         {/* Starting Lineup */}
@@ -125,13 +125,13 @@ export function TeamDetailPage() {
                   ),
                 },
                 {
-                  accessor: 'score',
+                  accessor: 'pointsScored',
                   title: 'Score',
                   width: 70,
                   textAlign: 'right',
-                  render: () => (
+                  render: (record) => (
                     <Text size="sm" fw={600}>
-                      -
+                      {record.pointsScored || '-'}
                     </Text>
                   ),
                 },
@@ -202,13 +202,13 @@ export function TeamDetailPage() {
                   ),
                 },
                 {
-                  accessor: 'score',
+                  accessor: 'pointsScored',
                   title: 'Score',
                   width: 70,
                   textAlign: 'right',
-                  render: () => (
+                  render: (record) => (
                     <Text size="sm" fw={600}>
-                      -
+                      {record.pointsScored || '-'}
                     </Text>
                   ),
                 },

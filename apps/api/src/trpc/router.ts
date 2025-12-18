@@ -2,22 +2,24 @@ import { router } from './trpc';
 import { healthRouter } from './routers/health';
 import { authRouter } from './routers/auth';
 import { leaguesRouter } from './routers/leagues';
-import { teamsRouter } from './routers/teams';
+import { franchisesRouter } from './routers/franchises';
 import { playersRouter } from './routers/players';
-import { rostersRouter } from './routers/rosters';
+import { lineupsRouter } from './routers/lineups';
 import { matchupsRouter } from './routers/matchups';
 import { scoringRouter } from './routers/scoring';
+import { standingsRouter } from './routers/standings';
 
 // Root app router - combines all sub-routers
 export const appRouter = router({
   health: healthRouter,
   auth: authRouter,
   leagues: leaguesRouter,
-  teams: teamsRouter,
+  franchises: franchisesRouter,
   players: playersRouter,
-  rosters: rostersRouter,
+  lineups: lineupsRouter,
   matchups: matchupsRouter,
   scoring: scoringRouter,
+  standings: standingsRouter,
 });
 
 // Export type definition of API for frontend

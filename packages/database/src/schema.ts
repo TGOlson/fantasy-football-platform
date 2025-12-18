@@ -1,5 +1,6 @@
 import { pgTable, text, integer, timestamp, jsonb, boolean, decimal, unique } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import type { ScoringRules } from '@fantasy-platform/types';
 
 // =============================================================================
 // USERS
@@ -19,31 +20,47 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
 // =============================================================================
-// LEAGUES (Franchise Model)
+// LEAGUES
 // =============================================================================
 
 export const leagues = pgTable('leagues', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
-  commissionerId: text('commissioner_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const leaguesRelations = relations(leagues, ({ one, many }) => ({
-  commissioner: one(users, {
-    fields: [leagues.commissionerId],
-    references: [users.id],
-  }),
+export const leaguesRelations = relations(leagues, ({ many }) => ({
+  franchises: many(franchises),
   seasons: many(leagueSeasons),
-  teams: many(teams),
 }));
 
 export type League = typeof leagues.$inferSelect;
 export type NewLeague = typeof leagues.$inferInsert;
+
+// =============================================================================
+// FRANCHISES (permanent seats in a league)
+// =============================================================================
+
+export const franchises = pgTable('franchises', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  leagueId: text('league_id')
+    .notNull()
+    .references(() => leagues.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const franchisesRelations = relations(franchises, ({ one, many }) => ({
+  league: one(leagues, {
+    fields: [franchises.leagueId],
+    references: [leagues.id],
+  }),
+  franchiseSeasons: many(franchiseSeasons),
+}));
+
+export type Franchise = typeof franchises.$inferSelect;
+export type NewFranchise = typeof franchises.$inferInsert;
 
 // =============================================================================
 // LEAGUE SEASONS
@@ -54,10 +71,12 @@ export const leagueSeasons = pgTable('league_seasons', {
   leagueId: text('league_id')
     .notNull()
     .references(() => leagues.id, { onDelete: 'cascade' }),
-  season: integer('season').notNull(), // Year: 2024, 2025, etc.
+  year: integer('year').notNull(),
   status: text('status').notNull().default('setup'), // setup, active, completed, archived
+  commissionerId: text('commissioner_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export const leagueSeasonsRelations = relations(leagueSeasons, ({ one, many }) => ({
@@ -65,8 +84,12 @@ export const leagueSeasonsRelations = relations(leagueSeasons, ({ one, many }) =
     fields: [leagueSeasons.leagueId],
     references: [leagues.id],
   }),
+  commissioner: one(users, {
+    fields: [leagueSeasons.commissionerId],
+    references: [users.id],
+  }),
   settings: one(leagueSettings),
-  teamSeasons: many(teamSeasons),
+  franchiseSeasons: many(franchiseSeasons),
   matchups: many(matchups),
 }));
 
@@ -77,7 +100,6 @@ export type NewLeagueSeason = typeof leagueSeasons.$inferInsert;
 // LEAGUE SETTINGS
 // =============================================================================
 
-// Type for roster positions JSON
 export type RosterPositionsJson = {
   QB?: number;
   RB?: number;
@@ -89,10 +111,6 @@ export type RosterPositionsJson = {
   DEF?: number;
 };
 
-// Import scoring rules type from @fantasy-platform/types
-import type { ScoringRules } from '@fantasy-platform/types';
-
-// Re-export for backward compatibility
 export type ScoringRulesJson = ScoringRules;
 
 export const leagueSettings = pgTable('league_settings', {
@@ -101,12 +119,11 @@ export const leagueSettings = pgTable('league_settings', {
     .notNull()
     .unique()
     .references(() => leagueSeasons.id, { onDelete: 'cascade' }),
-  teamCount: integer('team_count').notNull().default(10),
+  scoringRules: jsonb('scoring_rules').$type<ScoringRulesJson>().notNull(),
   rosterPositions: jsonb('roster_positions').$type<RosterPositionsJson>().notNull(),
   playoffTeams: integer('playoff_teams').notNull().default(4),
   playoffStartWeek: integer('playoff_start_week').notNull().default(15),
   tradeDeadlineWeek: integer('trade_deadline_week').notNull().default(11),
-  scoringRules: jsonb('scoring_rules').$type<ScoringRulesJson>().notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -122,54 +139,21 @@ export type LeagueSettings = typeof leagueSettings.$inferSelect;
 export type NewLeagueSettings = typeof leagueSettings.$inferInsert;
 
 // =============================================================================
-// TEAMS (Franchise Model)
+// FRANCHISE SEASONS (a franchise's participation in a specific year)
 // =============================================================================
 
-export const teams = pgTable('teams', {
+export const franchiseSeasons = pgTable('franchise_seasons', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  leagueId: text('league_id')
+  franchiseId: text('franchise_id')
     .notNull()
-    .references(() => leagues.id, { onDelete: 'cascade' }),
-  ownerId: text('owner_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-  // One user can only own one team per league
-  uniqueOwnerPerLeague: unique().on(table.leagueId, table.ownerId),
-}));
-
-export const teamsRelations = relations(teams, ({ one, many }) => ({
-  league: one(leagues, {
-    fields: [teams.leagueId],
-    references: [leagues.id],
-  }),
-  owner: one(users, {
-    fields: [teams.ownerId],
-    references: [users.id],
-  }),
-  teamSeasons: many(teamSeasons),
-}));
-
-export type Team = typeof teams.$inferSelect;
-export type NewTeam = typeof teams.$inferInsert;
-
-// =============================================================================
-// TEAM SEASONS
-// =============================================================================
-
-export const teamSeasons = pgTable('team_seasons', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  teamId: text('team_id')
-    .notNull()
-    .references(() => teams.id, { onDelete: 'cascade' }),
+    .references(() => franchises.id, { onDelete: 'cascade' }),
   leagueSeasonId: text('league_season_id')
     .notNull()
     .references(() => leagueSeasons.id, { onDelete: 'cascade' }),
-  isActive: boolean('is_active').notNull().default(true),
-  finalRank: integer('final_rank'), // Nullable until season ends
+  ownerId: text('owner_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  // Cached standings data
   wins: integer('wins').notNull().default(0),
   losses: integer('losses').notNull().default(0),
   ties: integer('ties').notNull().default(0),
@@ -177,24 +161,109 @@ export const teamSeasons = pgTable('team_seasons', {
   pointsAgainst: decimal('points_against', { precision: 10, scale: 2 }).notNull().default('0'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
-export const teamSeasonsRelations = relations(teamSeasons, ({ one, many }) => ({
-  team: one(teams, {
-    fields: [teamSeasons.teamId],
-    references: [teams.id],
-  }),
-  leagueSeason: one(leagueSeasons, {
-    fields: [teamSeasons.leagueSeasonId],
-    references: [leagueSeasons.id],
-  }),
-  rosterPlayers: many(rosterPlayers),
-  matchupsAsTeam1: many(matchups, { relationName: 'team1' }),
-  matchupsAsTeam2: many(matchups, { relationName: 'team2' }),
+}, (table) => ({
+  uniqueFranchisePerSeason: unique().on(table.franchiseId, table.leagueSeasonId),
 }));
 
-export type TeamSeason = typeof teamSeasons.$inferSelect;
-export type NewTeamSeason = typeof teamSeasons.$inferInsert;
+export const franchiseSeasonsRelations = relations(franchiseSeasons, ({ one, many }) => ({
+  franchise: one(franchises, {
+    fields: [franchiseSeasons.franchiseId],
+    references: [franchises.id],
+  }),
+  leagueSeason: one(leagueSeasons, {
+    fields: [franchiseSeasons.leagueSeasonId],
+    references: [leagueSeasons.id],
+  }),
+  owner: one(users, {
+    fields: [franchiseSeasons.ownerId],
+    references: [users.id],
+  }),
+  weeklyLineups: many(weeklyLineups),
+  homeMatchups: many(matchups, { relationName: 'home' }),
+  awayMatchups: many(matchups, { relationName: 'away' }),
+  transactions: many(rosterTransactions),
+}));
+
+export type FranchiseSeason = typeof franchiseSeasons.$inferSelect;
+export type NewFranchiseSeason = typeof franchiseSeasons.$inferInsert;
+
+// =============================================================================
+// MATCHUPS
+// =============================================================================
+
+export const matchups = pgTable('matchups', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  leagueSeasonId: text('league_season_id')
+    .notNull()
+    .references(() => leagueSeasons.id, { onDelete: 'cascade' }),
+  weekNumber: integer('week_number').notNull(),
+  homeFranchiseSeasonId: text('home_franchise_season_id')
+    .notNull()
+    .references(() => franchiseSeasons.id, { onDelete: 'cascade' }),
+  awayFranchiseSeasonId: text('away_franchise_season_id')
+    .references(() => franchiseSeasons.id, { onDelete: 'cascade' }), // Nullable for BYE weeks
+  homeScore: decimal('home_score', { precision: 10, scale: 2 }),
+  awayScore: decimal('away_score', { precision: 10, scale: 2 }),
+  isPlayoff: boolean('is_playoff').notNull().default(false),
+  completedAt: timestamp('completed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const matchupsRelations = relations(matchups, ({ one }) => ({
+  leagueSeason: one(leagueSeasons, {
+    fields: [matchups.leagueSeasonId],
+    references: [leagueSeasons.id],
+  }),
+  homeFranchiseSeason: one(franchiseSeasons, {
+    fields: [matchups.homeFranchiseSeasonId],
+    references: [franchiseSeasons.id],
+    relationName: 'home',
+  }),
+  awayFranchiseSeason: one(franchiseSeasons, {
+    fields: [matchups.awayFranchiseSeasonId],
+    references: [franchiseSeasons.id],
+    relationName: 'away',
+  }),
+}));
+
+export type Matchup = typeof matchups.$inferSelect;
+export type NewMatchup = typeof matchups.$inferInsert;
+
+// =============================================================================
+// WEEKLY LINEUPS
+// =============================================================================
+
+export const weeklyLineups = pgTable('weekly_lineups', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  franchiseSeasonId: text('franchise_season_id')
+    .notNull()
+    .references(() => franchiseSeasons.id, { onDelete: 'cascade' }),
+  weekNumber: integer('week_number').notNull(),
+  playerId: text('player_id')
+    .notNull()
+    .references(() => players.id, { onDelete: 'cascade' }),
+  slotType: text('slot_type').notNull(), // QB, RB, WR, TE, FLEX, K, DEF, BENCH
+  pointsScored: decimal('points_scored', { precision: 10, scale: 2 }), // Cached
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  uniquePlayerPerWeek: unique().on(table.franchiseSeasonId, table.weekNumber, table.playerId),
+}));
+
+export const weeklyLineupsRelations = relations(weeklyLineups, ({ one }) => ({
+  franchiseSeason: one(franchiseSeasons, {
+    fields: [weeklyLineups.franchiseSeasonId],
+    references: [franchiseSeasons.id],
+  }),
+  player: one(players, {
+    fields: [weeklyLineups.playerId],
+    references: [players.id],
+  }),
+}));
+
+export type WeeklyLineup = typeof weeklyLineups.$inferSelect;
+export type NewWeeklyLineup = typeof weeklyLineups.$inferInsert;
 
 // =============================================================================
 // PLAYERS
@@ -202,7 +271,7 @@ export type NewTeamSeason = typeof teamSeasons.$inferInsert;
 
 export const players = pgTable('players', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  nflId: text('nfl_id').unique(), // External NFL player ID
+  nflId: text('nfl_id').unique(),
   name: text('name').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -211,7 +280,8 @@ export const players = pgTable('players', {
 export const playersRelations = relations(players, ({ many }) => ({
   playerSeasons: many(playerSeasons),
   weeklyStats: many(playerWeeklyStats),
-  rosterPlayers: many(rosterPlayers),
+  weeklyProjections: many(playerWeeklyProjections),
+  weeklyLineups: many(weeklyLineups),
 }));
 
 export type Player = typeof players.$inferSelect;
@@ -227,13 +297,15 @@ export const playerSeasons = pgTable('player_seasons', {
     .notNull()
     .references(() => players.id, { onDelete: 'cascade' }),
   season: integer('season').notNull(),
-  nflTeam: text('nfl_team').notNull(), // One of NFL_TEAMS
-  position: text('position').notNull(), // One of POSITIONS
-  status: text('status').notNull().default('active'), // One of PLAYER_STATUSES
+  nflTeam: text('nfl_team').notNull(),
+  position: text('position').notNull(), // QB, RB, WR, TE, K, DEF
+  status: text('status').notNull().default('active'),
   jerseyNumber: integer('jersey_number'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  uniquePlayerSeason: unique().on(table.playerId, table.season),
+}));
 
 export const playerSeasonsRelations = relations(playerSeasons, ({ one }) => ({
   player: one(players, {
@@ -256,17 +328,17 @@ export const playerWeeklyStats = pgTable('player_weekly_stats', {
     .references(() => players.id, { onDelete: 'cascade' }),
   season: integer('season').notNull(),
   weekNumber: integer('week_number').notNull(),
-  // Passing stats
+  // Passing
   passingYards: integer('passing_yards'),
   passingTds: integer('passing_tds'),
   passingInts: integer('passing_ints'),
   completions: integer('completions'),
   attempts: integer('attempts'),
-  // Rushing stats
+  // Rushing
   rushingYards: integer('rushing_yards'),
   rushingTds: integer('rushing_tds'),
   rushingAttempts: integer('rushing_attempts'),
-  // Receiving stats
+  // Receiving
   receptions: integer('receptions'),
   receivingYards: integer('receiving_yards'),
   receivingTds: integer('receiving_tds'),
@@ -276,7 +348,9 @@ export const playerWeeklyStats = pgTable('player_weekly_stats', {
   twoPointConversions: integer('two_point_conversions'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  uniquePlayerWeek: unique().on(table.playerId, table.season, table.weekNumber),
+}));
 
 export const playerWeeklyStatsRelations = relations(playerWeeklyStats, ({ one }) => ({
   player: one(players, {
@@ -289,74 +363,115 @@ export type PlayerWeeklyStat = typeof playerWeeklyStats.$inferSelect;
 export type NewPlayerWeeklyStat = typeof playerWeeklyStats.$inferInsert;
 
 // =============================================================================
-// ROSTER PLAYERS
+// PLAYER WEEKLY PROJECTIONS
 // =============================================================================
 
-export const rosterPlayers = pgTable('roster_players', {
+export type ProjectedStatsJson = {
+  passingYards?: number;
+  passingTds?: number;
+  rushingYards?: number;
+  rushingTds?: number;
+  receptions?: number;
+  receivingYards?: number;
+  receivingTds?: number;
+};
+
+export const playerWeeklyProjections = pgTable('player_weekly_projections', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  teamSeasonId: text('team_season_id')
-    .notNull()
-    .references(() => teamSeasons.id, { onDelete: 'cascade' }),
   playerId: text('player_id')
     .notNull()
     .references(() => players.id, { onDelete: 'cascade' }),
-  slotType: text('slot_type').notNull(), // One of ROSTER_SLOTS
-  acquiredAt: timestamp('acquired_at').defaultNow().notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  season: integer('season').notNull(),
+  weekNumber: integer('week_number').notNull(),
+  projectedPoints: decimal('projected_points', { precision: 10, scale: 2 }).notNull(),
+  projectedStats: jsonb('projected_stats').$type<ProjectedStatsJson>(),
+  source: text('source').notNull(), // 'espn', 'fantasypros', 'numberfire', etc.
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  uniquePlayerWeekSource: unique().on(table.playerId, table.season, table.weekNumber, table.source),
+}));
 
-export const rosterPlayersRelations = relations(rosterPlayers, ({ one }) => ({
-  teamSeason: one(teamSeasons, {
-    fields: [rosterPlayers.teamSeasonId],
-    references: [teamSeasons.id],
-  }),
+export const playerWeeklyProjectionsRelations = relations(playerWeeklyProjections, ({ one }) => ({
   player: one(players, {
-    fields: [rosterPlayers.playerId],
+    fields: [playerWeeklyProjections.playerId],
     references: [players.id],
   }),
 }));
 
-export type RosterPlayer = typeof rosterPlayers.$inferSelect;
-export type NewRosterPlayer = typeof rosterPlayers.$inferInsert;
+export type PlayerWeeklyProjection = typeof playerWeeklyProjections.$inferSelect;
+export type NewPlayerWeeklyProjection = typeof playerWeeklyProjections.$inferInsert;
 
 // =============================================================================
-// MATCHUPS
+// NFL GAMES
 // =============================================================================
 
-export const matchups = pgTable('matchups', {
+export const nflGames = pgTable('nfl_games', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  season: integer('season').notNull(),
+  weekNumber: integer('week_number').notNull(),
+  homeTeam: text('home_team').notNull(),
+  awayTeam: text('away_team').notNull(),
+  kickoffAt: timestamp('kickoff_at').notNull(),
+  homeScore: integer('home_score'),
+  awayScore: integer('away_score'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  uniqueGame: unique().on(table.season, table.weekNumber, table.homeTeam, table.awayTeam),
+}));
+
+export type NflGame = typeof nflGames.$inferSelect;
+export type NewNflGame = typeof nflGames.$inferInsert;
+
+// =============================================================================
+// ROSTER TRANSACTIONS
+// =============================================================================
+
+export type TransactionDetailsJson = {
+  // For trades
+  otherFranchiseSeasonId?: string;
+  sentPlayerIds?: string[];
+  receivedPlayerIds?: string[];
+  // For waivers
+  bidAmount?: number;
+  waiverPriority?: number;
+  // For draft
+  round?: number;
+  pick?: number;
+  draftId?: string;
+};
+
+export const rosterTransactions = pgTable('roster_transactions', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   leagueSeasonId: text('league_season_id')
     .notNull()
     .references(() => leagueSeasons.id, { onDelete: 'cascade' }),
-  weekNumber: integer('week_number').notNull(),
-  team1SeasonId: text('team1_season_id')
+  franchiseSeasonId: text('franchise_season_id')
     .notNull()
-    .references(() => teamSeasons.id, { onDelete: 'cascade' }),
-  team2SeasonId: text('team2_season_id')
-    .references(() => teamSeasons.id, { onDelete: 'cascade' }), // Nullable for BYE weeks
-  team1Score: decimal('team1_score', { precision: 10, scale: 2 }),
-  team2Score: decimal('team2_score', { precision: 10, scale: 2 }),
+    .references(() => franchiseSeasons.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(), // 'add', 'drop', 'trade', 'waiver', 'draft'
+  playerId: text('player_id')
+    .notNull()
+    .references(() => players.id, { onDelete: 'cascade' }),
+  weekNumber: integer('week_number').notNull(),
+  details: jsonb('details').$type<TransactionDetailsJson>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const matchupsRelations = relations(matchups, ({ one }) => ({
+export const rosterTransactionsRelations = relations(rosterTransactions, ({ one }) => ({
   leagueSeason: one(leagueSeasons, {
-    fields: [matchups.leagueSeasonId],
+    fields: [rosterTransactions.leagueSeasonId],
     references: [leagueSeasons.id],
   }),
-  team1Season: one(teamSeasons, {
-    fields: [matchups.team1SeasonId],
-    references: [teamSeasons.id],
-    relationName: 'team1',
+  franchiseSeason: one(franchiseSeasons, {
+    fields: [rosterTransactions.franchiseSeasonId],
+    references: [franchiseSeasons.id],
   }),
-  team2Season: one(teamSeasons, {
-    fields: [matchups.team2SeasonId],
-    references: [teamSeasons.id],
-    relationName: 'team2',
+  player: one(players, {
+    fields: [rosterTransactions.playerId],
+    references: [players.id],
   }),
 }));
 
-export type Matchup = typeof matchups.$inferSelect;
-export type NewMatchup = typeof matchups.$inferInsert;
+export type RosterTransaction = typeof rosterTransactions.$inferSelect;
+export type NewRosterTransaction = typeof rosterTransactions.$inferInsert;
