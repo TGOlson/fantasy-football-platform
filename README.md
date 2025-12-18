@@ -23,12 +23,6 @@ packages/
   types/            # Shared TypeScript types
 ```
 
-**Key files:**
-
-- `packages/database/src/schema.ts` - Database schema
-- `apps/api/src/trpc/router.ts` - API routes
-- `apps/web/src/lib/trpc.ts` - Frontend API client
-
 ## Getting Started
 
 **Prerequisites:** Node.js >= 18, pnpm >= 10.26.0, Docker
@@ -73,14 +67,6 @@ docker compose down       # Stop
 docker compose down -v    # Reset (deletes data)
 ```
 
-## Environment Variables
-
-Pre-configured in `apps/web/.env` and `apps/api/.env`.
-
-```
-DATABASE_URL=postgresql://fantasy:fantasy_dev_password@localhost:5432/fantasy_platform
-```
-
 TODO:
 
 - fix lint errors
@@ -89,4 +75,4 @@ TODO:
 - clean up endpoints, make them smaller, more single task specific
 - review working-docs/features.md, ensure "done" is correct, start on next set
 - write unit tests for any complicated logic
-- figure out e2e testing story
+- stand up a test db so we don't need to wrap everything in txns
