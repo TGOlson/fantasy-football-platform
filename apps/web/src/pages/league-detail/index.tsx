@@ -124,7 +124,7 @@ export function LeagueDetailPage() {
                         index < (league.settings?.playoffTeams || 4);
                       return (
                         <Table.Tr
-                          key={franchise.franchiseSeasonId}
+                          key={franchise.teamId}
                           component={Link}
                           // @ts-expect-error deal with this later
                           to={`/${leagueSlug}/${year}/franchises/${franchise.franchiseId}`}

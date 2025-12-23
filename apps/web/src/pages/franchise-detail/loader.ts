@@ -23,7 +23,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
   const season = parseInt(params.year || new Date().getFullYear().toString());
 
-  const [league, franchise, settings] = await Promise.all([
+  const [league, franchise, lineup] = await Promise.all([
     trpcClient.leagues.getBySlug.query({
       slug: params.leagueSlug!,
       season,
@@ -31,17 +31,17 @@ export async function loader({ params }: LoaderFunctionArgs) {
     trpcClient.franchises.getById.query({
       franchiseId: params.franchiseId!,
       season,
-      weekNumber: 1, // TODO: Get current week
     }),
-    trpcClient.leagues.getSettings.query({
-      slug: params.leagueSlug!,
+    trpcClient.lineups.getByFranchiseWeek.query({
+      franchiseId: params.franchiseId!,
+      weekNumber: 1, // TODO: current week
       season,
     }),
   ]);
 
-  if (!league || !franchise || !settings) {
+  if (!league || !franchise || !lineup) {
     throw new Response('Franchise or league not found', { status: 404 });
   }
 
-  return { league, franchise, settings };
+  return { franchise, settings: league.settings, lineup };
 }

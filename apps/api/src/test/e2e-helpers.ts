@@ -1,7 +1,4 @@
-import {
-  getDatabase,
-  type DBClient,
-} from '@fantasy-platform/database/client';
+import { getDatabase, type DBClient } from '@fantasy-platform/database/client';
 import { users } from '@fantasy-platform/database/schema';
 import { appRouter } from '../trpc/router';
 import type { Context } from '../trpc/context';

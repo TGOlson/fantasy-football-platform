@@ -70,19 +70,8 @@ docker compose down -v    # Reset (deletes data)
 TODO:
 
 - fix lint errors
-- come up w/ standard type for roster settings (inc flex)
-  - think there are examples of this scattered around the code
 - clean up endpoints, make them smaller, more single task specific
 - review working-docs/features.md, ensure "done" is correct, start on next set
 - write unit tests for any complicated logic
 - stand up a test db so we don't need to wrap everything in txns
-- is the concept of a franchise useful?
 - use react-form for form state
-
-Major data model decisions:
-
-- roster slot type (object or flat string)
-- scoring types
-  - flattened (easier db and key types)
-  - nested (more logical structure, need to translate db)
-  - which is more extensible

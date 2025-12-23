@@ -1,7 +1,7 @@
 import { type DBClient } from '@fantasy-platform/database/client';
 import {
   matchups,
-  franchiseSeasons,
+  teams,
   franchises,
   users,
   eq,
@@ -12,7 +12,7 @@ import {
 // ============================================================================
 
 type StandingsEntry = {
-  franchiseSeasonId: string;
+  teamId: string;
   franchiseId: string;
   franchiseName: string;
   ownerName: string;
@@ -29,21 +29,21 @@ type StandingsEntry = {
 // ============================================================================
 
 /**
- * Calculate standings from matchup results and update franchise_seasons table.
+ * Calculate standings from matchup results and update teams table.
  * This should be called after matchups are scored.
  */
 export async function calculateStandings(
   db: DBClient,
   leagueSeasonId: string
 ): Promise<StandingsEntry[]> {
-  // Get all franchise seasons for this league season
-  const allFranchiseSeasons = await db
+  // Get all teams for this league season
+  const allTeams = await db
     .select()
-    .from(franchiseSeasons)
-    .where(eq(franchiseSeasons.leagueSeasonId, leagueSeasonId));
+    .from(teams)
+    .where(eq(teams.leagueSeasonId, leagueSeasonId));
 
-  // Initialize stats for each franchise
-  const franchiseStats = new Map<
+  // Initialize stats for each team
+  const teamStats = new Map<
     string,
     {
       wins: number;
@@ -54,8 +54,8 @@ export async function calculateStandings(
     }
   >();
 
-  for (const fs of allFranchiseSeasons) {
-    franchiseStats.set(fs.id, {
+  for (const team of allTeams) {
+    teamStats.set(team.id, {
       wins: 0,
       losses: 0,
       ties: 0,
@@ -78,17 +78,17 @@ export async function calculateStandings(
     // Skip unscored matchups
     if (homeScore === null) continue;
 
-    const homeStats = franchiseStats.get(matchup.homeFranchiseSeasonId);
+    const homeStats = teamStats.get(matchup.homeTeamId);
     if (homeStats) {
       homeStats.pointsFor += homeScore;
     }
 
     // If it's a BYE week, no opponent
-    if (!matchup.awayFranchiseSeasonId || awayScore === null) {
+    if (!matchup.awayTeamId || awayScore === null) {
       continue;
     }
 
-    const awayStats = franchiseStats.get(matchup.awayFranchiseSeasonId);
+    const awayStats = teamStats.get(matchup.awayTeamId);
 
     // Update points against
     if (homeStats) {
@@ -113,10 +113,10 @@ export async function calculateStandings(
     }
   }
 
-  // Update franchise_seasons table with calculated stats
-  for (const [franchiseSeasonId, stats] of franchiseStats) {
+  // Update teams table with calculated stats
+  for (const [teamId, stats] of teamStats) {
     await db
-      .update(franchiseSeasons)
+      .update(teams)
       .set({
         wins: stats.wins,
         losses: stats.losses,
@@ -125,34 +125,34 @@ export async function calculateStandings(
         pointsAgainst: stats.pointsAgainst.toFixed(2),
         updatedAt: new Date(),
       })
-      .where(eq(franchiseSeasons.id, franchiseSeasonId));
+      .where(eq(teams.id, teamId));
   }
 
   // Build standings response with franchise details
   const standings: StandingsEntry[] = [];
 
-  for (const fs of allFranchiseSeasons) {
-    const stats = franchiseStats.get(fs.id)!;
+  for (const team of allTeams) {
+    const stats = teamStats.get(team.id)!;
 
     // Get franchise details
     const [franchise] = await db
       .select()
       .from(franchises)
-      .where(eq(franchises.id, fs.franchiseId))
+      .where(eq(franchises.id, team.franchiseId))
       .limit(1);
 
     // Get owner details
     const [owner] = await db
       .select({ name: users.name })
       .from(users)
-      .where(eq(users.id, fs.ownerId))
+      .where(eq(users.id, team.ownerId))
       .limit(1);
 
     const totalGames = stats.wins + stats.losses + stats.ties;
     const winPct = totalGames > 0 ? stats.wins / totalGames : 0;
 
     standings.push({
-      franchiseSeasonId: fs.id,
+      teamId: team.id,
       franchiseId: franchise?.id || '',
       franchiseName: franchise?.name || 'Unknown',
       ownerName: owner?.name || 'Unknown',
@@ -176,48 +176,48 @@ export async function calculateStandings(
 }
 
 /**
- * Get current standings without recalculating (reads from franchise_seasons table).
+ * Get current standings without recalculating (reads from teams table).
  */
 export async function getStandings(
   db: DBClient,
   leagueSeasonId: string
 ): Promise<StandingsEntry[]> {
-  // Get all franchise seasons with franchise and owner info
-  const allFranchiseSeasons = await db
+  // Get all teams with franchise and owner info
+  const allTeams = await db
     .select()
-    .from(franchiseSeasons)
-    .where(eq(franchiseSeasons.leagueSeasonId, leagueSeasonId));
+    .from(teams)
+    .where(eq(teams.leagueSeasonId, leagueSeasonId));
 
   const standings: StandingsEntry[] = [];
 
-  for (const fs of allFranchiseSeasons) {
+  for (const team of allTeams) {
     // Get franchise details
     const [franchise] = await db
       .select()
       .from(franchises)
-      .where(eq(franchises.id, fs.franchiseId))
+      .where(eq(franchises.id, team.franchiseId))
       .limit(1);
 
     // Get owner details
     const [owner] = await db
       .select({ name: users.name })
       .from(users)
-      .where(eq(users.id, fs.ownerId))
+      .where(eq(users.id, team.ownerId))
       .limit(1);
 
-    const totalGames = fs.wins + fs.losses + fs.ties;
-    const winPct = totalGames > 0 ? fs.wins / totalGames : 0;
+    const totalGames = team.wins + team.losses + team.ties;
+    const winPct = totalGames > 0 ? team.wins / totalGames : 0;
 
     standings.push({
-      franchiseSeasonId: fs.id,
+      teamId: team.id,
       franchiseId: franchise?.id || '',
       franchiseName: franchise?.name || 'Unknown',
       ownerName: owner?.name || 'Unknown',
-      wins: fs.wins,
-      losses: fs.losses,
-      ties: fs.ties,
-      pointsFor: parseFloat(fs.pointsFor) || 0,
-      pointsAgainst: parseFloat(fs.pointsAgainst) || 0,
+      wins: team.wins,
+      losses: team.losses,
+      ties: team.ties,
+      pointsFor: parseFloat(team.pointsFor) || 0,
+      pointsAgainst: parseFloat(team.pointsAgainst) || 0,
       winPct: Math.round(winPct * 1000) / 1000,
     });
   }

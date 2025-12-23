@@ -7,13 +7,10 @@ import {
 } from '../../lib/auth';
 import {
   franchises,
-  franchiseSeasons,
+  teams,
   users,
   leagues,
   leagueSeasons,
-  weeklyLineups,
-  players,
-  playerSeasons,
   eq,
   and,
   desc,
@@ -26,7 +23,6 @@ export const franchisesRouter = router({
       z.object({
         franchiseId: z.string(),
         season: z.number().int().optional(),
-        weekNumber: z.number().int().optional(),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -58,8 +54,8 @@ export const franchisesRouter = router({
         .where(eq(leagues.id, franchise.leagueId))
         .limit(1);
 
-      // Get the franchise season
-      let franchiseSeasonData;
+      // Get the team
+      let teamData;
       if (input.season) {
         const [leagueSeason] = await db
           .select()
@@ -73,13 +69,13 @@ export const franchisesRouter = router({
           .limit(1);
 
         if (leagueSeason) {
-          [franchiseSeasonData] = await db
+          [teamData] = await db
             .select()
-            .from(franchiseSeasons)
+            .from(teams)
             .where(
               and(
-                eq(franchiseSeasons.franchiseId, franchise.id),
-                eq(franchiseSeasons.leagueSeasonId, leagueSeason.id)
+                eq(teams.franchiseId, franchise.id),
+                eq(teams.leagueSeasonId, leagueSeason.id)
               )
             )
             .limit(1);
@@ -94,13 +90,13 @@ export const franchisesRouter = router({
           .limit(1);
 
         if (recentLeagueSeason) {
-          [franchiseSeasonData] = await db
+          [teamData] = await db
             .select()
-            .from(franchiseSeasons)
+            .from(teams)
             .where(
               and(
-                eq(franchiseSeasons.franchiseId, franchise.id),
-                eq(franchiseSeasons.leagueSeasonId, recentLeagueSeason.id)
+                eq(teams.franchiseId, franchise.id),
+                eq(teams.leagueSeasonId, recentLeagueSeason.id)
               )
             )
             .limit(1);
@@ -109,7 +105,7 @@ export const franchisesRouter = router({
 
       // Get owner info
       let owner = null;
-      if (franchiseSeasonData) {
+      if (teamData) {
         const [ownerData] = await db
           .select({
             id: users.id,
@@ -117,51 +113,16 @@ export const franchisesRouter = router({
             email: users.email,
           })
           .from(users)
-          .where(eq(users.id, franchiseSeasonData.ownerId))
+          .where(eq(users.id, teamData.ownerId))
           .limit(1);
         owner = ownerData;
-      }
-
-      // Get lineup for specific week if franchise season exists
-      let lineup: any[] = [];
-      if (franchiseSeasonData && input.weekNumber) {
-        const lineupData = await db
-          .select({
-            id: weeklyLineups.id,
-            rosterSlotIndex: weeklyLineups.rosterSlotIndex,
-            weekNumber: weeklyLineups.weekNumber,
-            pointsScored: weeklyLineups.pointsScored,
-            playerId: players.id,
-            playerName: players.name,
-            playerNflId: players.nflId,
-            position: playerSeasons.position,
-            nflTeam: playerSeasons.nflTeam,
-          })
-          .from(weeklyLineups)
-          .innerJoin(players, eq(weeklyLineups.playerId, players.id))
-          .leftJoin(
-            playerSeasons,
-            and(
-              eq(players.id, playerSeasons.playerId),
-              eq(playerSeasons.season, input.season || 2024)
-            )
-          )
-          .where(
-            and(
-              eq(weeklyLineups.franchiseSeasonId, franchiseSeasonData.id),
-              eq(weeklyLineups.weekNumber, input.weekNumber)
-            )
-          );
-
-        lineup = lineupData;
       }
 
       return {
         ...franchise,
         owner,
         league: league || null,
-        franchiseSeason: franchiseSeasonData || null,
-        lineup,
+        team: teamData || null,
       };
     }),
 
@@ -235,25 +196,25 @@ export const franchisesRouter = router({
           .limit(1);
       }
 
-      // Get owner info and franchise season for each franchise
+      // Get owner info and team for each franchise
       const franchisesWithDetails = await Promise.all(
         leagueFranchises.map(async (franchise) => {
           let owner = null;
-          let franchiseSeasonData = null;
+          let teamData = null;
 
           if (leagueSeason) {
-            [franchiseSeasonData] = await db
+            [teamData] = await db
               .select()
-              .from(franchiseSeasons)
+              .from(teams)
               .where(
                 and(
-                  eq(franchiseSeasons.franchiseId, franchise.id),
-                  eq(franchiseSeasons.leagueSeasonId, leagueSeason.id)
+                  eq(teams.franchiseId, franchise.id),
+                  eq(teams.leagueSeasonId, leagueSeason.id)
                 )
               )
               .limit(1);
 
-            if (franchiseSeasonData) {
+            if (teamData) {
               const [ownerData] = await db
                 .select({
                   id: users.id,
@@ -261,7 +222,7 @@ export const franchisesRouter = router({
                   email: users.email,
                 })
                 .from(users)
-                .where(eq(users.id, franchiseSeasonData.ownerId))
+                .where(eq(users.id, teamData.ownerId))
                 .limit(1);
               owner = ownerData;
             }
@@ -270,7 +231,7 @@ export const franchisesRouter = router({
           return {
             ...franchise,
             owner,
-            franchiseSeason: franchiseSeasonData,
+            team: teamData,
           };
         })
       );

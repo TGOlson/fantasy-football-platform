@@ -94,10 +94,13 @@ export function LeagueScoringSettingsPage() {
     if (!localRules) return;
     setLocalRules({
       ...localRules,
-      twoPointConversions: {
-        type: 'base',
-        value: newValue,
-      } as BaseScoringValue,
+      misc: {
+        ...localRules.misc,
+        twoPointConversions: {
+          type: 'base',
+          value: newValue,
+        } as BaseScoringValue,
+      },
     });
     setIsDirty(true);
   };
@@ -254,16 +257,16 @@ export function LeagueScoringSettingsPage() {
             <NumberInput
               label="Fumbles Lost (points)"
               description="Usually negative (e.g., -2)"
-              value={getBaseValue(localRules.fumbles?.lost)}
+              value={getBaseValue(localRules.misc.fumblesLost)}
               onChange={(val) =>
-                updateBaseValue('fumbles', 'lost', Number(val))
+                updateBaseValue('misc', 'fumblesLost', Number(val))
               }
               min={-10}
               max={10}
             />
             <NumberInput
               label="2-Point Conversions (points)"
-              value={getBaseValue(localRules.twoPointConversions)}
+              value={getBaseValue(localRules.misc.twoPointConversions)}
               onChange={(val) => updateTwoPointValue(Number(val))}
               min={0}
               max={10}

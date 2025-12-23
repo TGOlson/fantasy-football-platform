@@ -189,89 +189,90 @@ export function PlayerDetailPage() {
                     </Badge>
                   ),
                 },
-                ...(player.position === 'QB'
-                  ? [
-                      {
-                        accessor: 'passingYards',
-                        title: 'Pass Yds',
-                        textAlign: 'right' as const,
-                        render: (record: any) => record.passingYards || '-',
-                      },
-                      {
-                        accessor: 'passingTds',
-                        title: 'Pass TDs',
-                        textAlign: 'right' as const,
-                        render: (record: any) => record.passingTds || '-',
-                      },
-                      {
-                        accessor: 'passingInts',
-                        title: 'INTs',
-                        textAlign: 'right' as const,
-                        render: (record: any) => record.passingInts || '-',
-                      },
-                      {
-                        accessor: 'completions',
-                        title: 'Comp/Att',
-                        textAlign: 'right' as const,
-                        render: (record: any) =>
-                          record.completions && record.attempts
-                            ? `${record.completions}/${record.attempts}`
-                            : '-',
-                      },
-                    ]
-                  : []),
-                ...(player.position === 'RB' || player.position === 'QB'
-                  ? [
-                      {
-                        accessor: 'rushingYards',
-                        title: 'Rush Yds',
-                        textAlign: 'right' as const,
-                        render: (record: any) => record.rushingYards || '-',
-                      },
-                      {
-                        accessor: 'rushingTds',
-                        title: 'Rush TDs',
-                        textAlign: 'right' as const,
-                        render: (record: any) => record.rushingTds || '-',
-                      },
-                      {
-                        accessor: 'rushingAttempts',
-                        title: 'Rush Att',
-                        textAlign: 'right' as const,
-                        render: (record: any) => record.rushingAttempts || '-',
-                      },
-                    ]
-                  : []),
-                ...(player.position === 'WR' ||
-                player.position === 'TE' ||
-                player.position === 'RB'
-                  ? [
-                      {
-                        accessor: 'receptions',
-                        title: 'Rec',
-                        textAlign: 'right' as const,
-                        render: (record: any) => record.receptions || '-',
-                      },
-                      {
-                        accessor: 'receivingYards',
-                        title: 'Rec Yds',
-                        textAlign: 'right' as const,
-                        render: (record: any) => record.receivingYards || '-',
-                      },
-                      {
-                        accessor: 'receivingTds',
-                        title: 'Rec TDs',
-                        textAlign: 'right' as const,
-                        render: (record: any) => record.receivingTds || '-',
-                      },
-                      {
-                        accessor: 'targets',
-                        title: 'Targets',
-                        textAlign: 'right' as const,
-                        render: (record: any) => record.targets || '-',
-                      },
-                    ]
-                  : []),
+                // TODO: position-specific stat columns
+                // ...(player.position === 'QB'
+                //   ? [
+                {
+                  accessor: 'passingYards',
+                  title: 'Pass Yds',
+                  textAlign: 'right' as const,
+                  render: (record) => record.passingYards || '-',
+                },
+                {
+                  accessor: 'passingTds',
+                  title: 'Pass TDs',
+                  textAlign: 'right' as const,
+                  render: (record) => record.passingTds || '-',
+                },
+                {
+                  accessor: 'passingInts',
+                  title: 'INTs',
+                  textAlign: 'right' as const,
+                  render: (record) => record.passingInts || '-',
+                },
+                {
+                  accessor: 'completions',
+                  title: 'Comp/Att',
+                  textAlign: 'right' as const,
+                  render: (record) =>
+                    record.completions && record.attempts
+                      ? `${record.completions}/${record.attempts}`
+                      : '-',
+                },
+                // ]
+                // : []),
+                // ...(player.position === 'RB' || player.position === 'QB'
+                //   ? [
+                {
+                  accessor: 'rushingYards',
+                  title: 'Rush Yds',
+                  textAlign: 'right' as const,
+                  render: (record) => record.rushingYards || '-',
+                },
+                {
+                  accessor: 'rushingTds',
+                  title: 'Rush TDs',
+                  textAlign: 'right' as const,
+                  render: (record) => record.rushingTds || '-',
+                },
+                {
+                  accessor: 'rushingAttempts',
+                  title: 'Rush Att',
+                  textAlign: 'right' as const,
+                  render: (record) => record.rushingAttempts || '-',
+                },
+                //   ]
+                // : []),
+                // ...(player.position === 'WR' ||
+                // player.position === 'TE' ||
+                // player.position === 'RB'
+                //   ? [
+                {
+                  accessor: 'receptions',
+                  title: 'Rec',
+                  textAlign: 'right' as const,
+                  render: (record) => record.receptions || '-',
+                },
+                {
+                  accessor: 'receivingYards',
+                  title: 'Rec Yds',
+                  textAlign: 'right' as const,
+                  render: (record) => record.receivingYards || '-',
+                },
+                {
+                  accessor: 'receivingTds',
+                  title: 'Rec TDs',
+                  textAlign: 'right' as const,
+                  render: (record) => record.receivingTds || '-',
+                },
+                {
+                  accessor: 'targets',
+                  title: 'Targets',
+                  textAlign: 'right' as const,
+                  render: (record) => record.targets || '-',
+                },
+                //   ]
+                // : []),
                 {
                   accessor: 'fumblesLost',
                   title: 'Fumbles',

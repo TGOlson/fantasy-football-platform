@@ -10,7 +10,7 @@ import {
   franchises,
   leagueSeasons,
   leagueSettings,
-  franchiseSeasons,
+  teams,
   players,
   playerSeasons,
   playerWeeklyStats,
@@ -92,7 +92,7 @@ async function seed() {
     await db.delete(playerWeeklyStats);
     await db.delete(playerSeasons);
     await db.delete(players);
-    await db.delete(franchiseSeasons);
+    await db.delete(teams);
     await db.delete(leagueSettings);
     await db.delete(leagueSeasons);
     await db.delete(franchises);
@@ -290,13 +290,13 @@ async function seed() {
     console.log('✓ Created league settings (TE Premium scoring)');
 
     // =========================================================================
-    // FRANCHISE SEASONS
+    // TEAMS
     // =========================================================================
-    console.log('\n📊 Creating franchise seasons...');
+    console.log('\n📊 Creating teams...');
 
     const userList = [user1, user2, user3, user4, user5, user6, user7, user8];
-    const createdFranchiseSeasons = await db
-      .insert(franchiseSeasons)
+    const createdTeams = await db
+      .insert(teams)
       .values(
         createdFranchises.map((franchise, i) => ({
           franchiseId: franchise.id,
@@ -306,9 +306,7 @@ async function seed() {
       )
       .returning();
 
-    console.log(
-      `✓ Created ${createdFranchiseSeasons.length} franchise seasons`
-    );
+    console.log(`✓ Created ${createdTeams.length} teams`);
 
     // =========================================================================
     // PLAYERS (from CSV seed data)
@@ -489,7 +487,7 @@ async function seed() {
 
     const regularSeasonWeeks = 10;
     const allLineupEntries: {
-      franchiseSeasonId: string;
+      teamId: string;
       weekNumber: number;
       playerId: string;
       rosterSlotIndex: number;
@@ -501,7 +499,7 @@ async function seed() {
       wrIdx = 0,
       teIdx = 0;
 
-    for (const fs of createdFranchiseSeasons) {
+    for (const team of createdTeams) {
       // Build roster for this franchise
       const qb1 = playersByPosition.QB[qbIdx++];
       const qb2 = playersByPosition.QB[qbIdx++];
@@ -522,49 +520,49 @@ async function seed() {
         // Starters
         if (qb1)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: qb1,
             rosterSlotIndex: 0, // QB slot
           });
         if (rb1)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: rb1,
             rosterSlotIndex: 1, // RB1 slot
           });
         if (rb2)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: rb2,
             rosterSlotIndex: 2, // RB2 slot
           });
         if (wr1)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: wr1,
             rosterSlotIndex: 3, // WR1 slot
           });
         if (wr2)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: wr2,
             rosterSlotIndex: 4, // WR2 slot
           });
         if (te1)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: te1,
             rosterSlotIndex: 5, // TE slot
           });
         if (rb3)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: rb3,
             rosterSlotIndex: 6, // FLEX slot
@@ -572,35 +570,35 @@ async function seed() {
         // Bench
         if (qb2)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: qb2,
             rosterSlotIndex: 7, // Bench slot
           });
         if (rb4)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: rb4,
             rosterSlotIndex: 7, // Bench slot (same index, multiple bench spots)
           });
         if (wr3)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: wr3,
             rosterSlotIndex: 7, // Bench slot
           });
         if (wr4)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: wr4,
             rosterSlotIndex: 7, // Bench slot
           });
         if (te2)
           allLineupEntries.push({
-            franchiseSeasonId: fs.id,
+            teamId: team.id,
             weekNumber: week,
             playerId: te2,
             rosterSlotIndex: 7, // Bench slot
@@ -640,8 +638,8 @@ async function seed() {
       return schedule;
     }
 
-    const franchiseSeasonIds = createdFranchiseSeasons.map((fs) => fs.id);
-    const baseSchedule = generateRoundRobin(franchiseSeasonIds);
+    const teamIds = createdTeams.map((team) => team.id);
+    const baseSchedule = generateRoundRobin(teamIds);
 
     const fullSchedule: { home: string; away: string }[][] = [];
     let iteration = 0;
@@ -661,8 +659,8 @@ async function seed() {
       weekMatchups.map((m) => ({
         leagueSeasonId: season2024.id,
         weekNumber: weekIndex + 1,
-        homeFranchiseSeasonId: m.home,
-        awayFranchiseSeasonId: m.away,
+        homeTeamId: m.home,
+        awayTeamId: m.away,
         isPlayoff: false,
       }))
     );
@@ -721,11 +719,11 @@ async function seed() {
       .from(playerWeeklyStats)
       .where(eq(playerWeeklyStats.season, 2024));
 
-    const lineupsByFranchiseWeek = new Map<string, typeof allLineups>();
+    const lineupsByTeamWeek = new Map<string, typeof allLineups>();
     for (const l of allLineups) {
-      const key = `${l.franchiseSeasonId}-${l.weekNumber}`;
-      if (!lineupsByFranchiseWeek.has(key)) lineupsByFranchiseWeek.set(key, []);
-      lineupsByFranchiseWeek.get(key)!.push(l);
+      const key = `${l.teamId}-${l.weekNumber}`;
+      if (!lineupsByTeamWeek.has(key)) lineupsByTeamWeek.set(key, []);
+      lineupsByTeamWeek.get(key)!.push(l);
     }
 
     const statsByPlayerWeek = new Map<string, (typeof allStats)[0]>();
@@ -738,12 +736,8 @@ async function seed() {
       positionByPlayer.set(ps.playerId, ps.position);
     }
 
-    function getFranchiseScore(
-      franchiseSeasonId: string,
-      week: number
-    ): number {
-      const lineup =
-        lineupsByFranchiseWeek.get(`${franchiseSeasonId}-${week}`) || [];
+    function getTeamScore(teamId: string, week: number): number {
+      const lineup = lineupsByTeamWeek.get(`${teamId}-${week}`) || [];
       // Starters are slots 0-6 (based on rosterSlots config)
       const starters = lineup.filter((l) => l.rosterSlotIndex < 7);
       let total = 0;
@@ -756,12 +750,9 @@ async function seed() {
     }
 
     for (const matchup of allMatchups) {
-      const homeScore = getFranchiseScore(
-        matchup.homeFranchiseSeasonId,
-        matchup.weekNumber
-      );
-      const awayScore = matchup.awayFranchiseSeasonId
-        ? getFranchiseScore(matchup.awayFranchiseSeasonId, matchup.weekNumber)
+      const homeScore = getTeamScore(matchup.homeTeamId, matchup.weekNumber);
+      const awayScore = matchup.awayTeamId
+        ? getTeamScore(matchup.awayTeamId, matchup.weekNumber)
         : null;
 
       await db
@@ -787,7 +778,7 @@ async function seed() {
       .from(matchups)
       .where(eq(matchups.leagueSeasonId, season2024.id));
 
-    const franchiseStats = new Map<
+    const teamStats = new Map<
       string,
       {
         wins: number;
@@ -797,8 +788,8 @@ async function seed() {
         pointsAgainst: number;
       }
     >();
-    for (const fs of createdFranchiseSeasons) {
-      franchiseStats.set(fs.id, {
+    for (const team of createdTeams) {
+      teamStats.set(team.id, {
         wins: 0,
         losses: 0,
         ties: 0,
@@ -811,10 +802,8 @@ async function seed() {
       const homeScore = m.homeScore ? parseFloat(m.homeScore) : 0;
       const awayScore = m.awayScore ? parseFloat(m.awayScore) : 0;
 
-      const homeStats = franchiseStats.get(m.homeFranchiseSeasonId)!;
-      const awayStats = m.awayFranchiseSeasonId
-        ? franchiseStats.get(m.awayFranchiseSeasonId)
-        : null;
+      const homeStats = teamStats.get(m.homeTeamId)!;
+      const awayStats = m.awayTeamId ? teamStats.get(m.awayTeamId) : null;
 
       homeStats.pointsFor += homeScore;
       if (awayStats) {
@@ -835,9 +824,9 @@ async function seed() {
       }
     }
 
-    for (const [fsId, stats] of franchiseStats) {
+    for (const [teamId, stats] of teamStats) {
       await db
-        .update(franchiseSeasons)
+        .update(teams)
         .set({
           wins: stats.wins,
           losses: stats.losses,
@@ -846,11 +835,11 @@ async function seed() {
           pointsAgainst: stats.pointsAgainst.toFixed(2),
           updatedAt: new Date(),
         })
-        .where(eq(franchiseSeasons.id, fsId));
+        .where(eq(teams.id, teamId));
     }
 
-    const standingsList = Array.from(franchiseStats.entries())
-      .map(([fsId, stats]) => ({ fsId, ...stats }))
+    const standingsList = Array.from(teamStats.entries())
+      .map(([teamId, stats]) => ({ teamId, ...stats }))
       .sort((a, b) =>
         b.wins !== a.wins ? b.wins - a.wins : b.pointsFor - a.pointsFor
       );
@@ -872,7 +861,7 @@ async function seed() {
     console.log('  - 1 league (The Championship League)');
     console.log('  - 8 franchises');
     console.log('  - 1 season (2024, active)');
-    console.log('  - 8 franchise seasons with standings');
+    console.log('  - 8 teams with standings');
     console.log(`  - ${createdPlayers.length} NFL players`);
     console.log(`  - ${weeklyStatsToInsert.length} weekly stat entries`);
     console.log(`  - ${nflGamesToInsert.length} NFL games`);

@@ -5,6 +5,7 @@
 **"Serious redraft" leagues** — not casual ESPN users, not dynasty (yet).
 
 These are redraft leagues that:
+
 - Want scoring rules ESPN/Yahoo/Sleeper can't handle
 - Have commissioners frustrated by platform limitations
 - Are willing to pay for flexibility
@@ -13,17 +14,18 @@ These are redraft leagues that:
 
 **Scoring engine flexibility.** The platform wins on:
 
-| Feature | Why It Matters |
-|---------|----------------|
-| Median scoring | High demand, ESPN doesn't support natively |
-| Position-specific scoring | TE premium, superflex differentials |
-| Conditional bonuses | 100-yard games, 40+ yard TDs |
-| IDP support | ESPN's IDP is notoriously bad |
-| Clean UX | MFL has flexibility but terrible interface |
+| Feature                   | Why It Matters                             |
+| ------------------------- | ------------------------------------------ |
+| Median scoring            | High demand, ESPN doesn't support natively |
+| Position-specific scoring | TE premium, superflex differentials        |
+| Conditional bonuses       | 100-yard games, 40+ yard TDs               |
+| IDP support               | ESPN's IDP is notoriously bad              |
+| Clean UX                  | MFL has flexibility but terrible interface |
 
 **Position:** "MFL's power, Sleeper's usability" — for leagues that outgrew ESPN.
 
 **Tagline options:**
+
 - "Your league's rules, not ESPN's"
 - "Fantasy infrastructure for commissioners who need more"
 
@@ -35,11 +37,11 @@ These are redraft leagues that:
 
 ## Realistic Expectations
 
-| Year | Leagues | Focus |
-|------|---------|-------|
-| 1 | 50-150 | Validate that people will pay |
-| 2 | 200-600 | Word of mouth, retention proof |
-| 3-5 | 1,000-3,000 | Scale if retention holds |
+| Year | Leagues     | Focus                          |
+| ---- | ----------- | ------------------------------ |
+| 1    | 50-150      | Validate that people will pay  |
+| 2    | 200-600     | Word of mouth, retention proof |
+| 3-5  | 1,000-3,000 | Scale if retention holds       |
 
 ## Expansion Path
 

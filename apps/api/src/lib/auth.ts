@@ -65,7 +65,7 @@ export async function comparePassword(
 import { type DBClient } from '@fantasy-platform/database/client';
 import {
   franchises,
-  franchiseSeasons,
+  teams,
   leagueSeasons,
   eq,
   and,
@@ -90,20 +90,15 @@ export async function checkLeagueMembership(
 
   if (!franchise) return false;
 
-  // Check if user owns a franchise season in this league
-  const [fs] = await db
+  // Check if user owns a team in this league
+  const [team] = await db
     .select()
-    .from(franchiseSeasons)
-    .innerJoin(franchises, eq(franchiseSeasons.franchiseId, franchises.id))
-    .where(
-      and(
-        eq(franchises.leagueId, leagueId),
-        eq(franchiseSeasons.ownerId, userId)
-      )
-    )
+    .from(teams)
+    .innerJoin(franchises, eq(teams.franchiseId, franchises.id))
+    .where(and(eq(franchises.leagueId, leagueId), eq(teams.ownerId, userId)))
     .limit(1);
 
-  return !!fs;
+  return !!team;
 }
 
 /**
@@ -114,18 +109,13 @@ export async function checkFranchiseOwnership(
   userId: string,
   franchiseId: string
 ): Promise<boolean> {
-  const [fs] = await db
+  const [team] = await db
     .select()
-    .from(franchiseSeasons)
-    .where(
-      and(
-        eq(franchiseSeasons.franchiseId, franchiseId),
-        eq(franchiseSeasons.ownerId, userId)
-      )
-    )
+    .from(teams)
+    .where(and(eq(teams.franchiseId, franchiseId), eq(teams.ownerId, userId)))
     .limit(1);
 
-  return !!fs;
+  return !!team;
 }
 
 /**

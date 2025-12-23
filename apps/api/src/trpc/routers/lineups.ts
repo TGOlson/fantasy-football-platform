@@ -3,7 +3,7 @@ import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import {
   weeklyLineups,
-  franchiseSeasons,
+  teams,
   franchises,
   players,
   playerSeasons,
@@ -40,8 +40,8 @@ export const lineupsRouter = router({
         });
       }
 
-      // Get the franchise season
-      let franchiseSeasonData;
+      // Get the team
+      let teamData;
       if (input.season) {
         const [leagueSeason] = await db
           .select()
@@ -55,13 +55,13 @@ export const lineupsRouter = router({
           .limit(1);
 
         if (leagueSeason) {
-          [franchiseSeasonData] = await db
+          [teamData] = await db
             .select()
-            .from(franchiseSeasons)
+            .from(teams)
             .where(
               and(
-                eq(franchiseSeasons.franchiseId, franchise.id),
-                eq(franchiseSeasons.leagueSeasonId, leagueSeason.id)
+                eq(teams.franchiseId, franchise.id),
+                eq(teams.leagueSeasonId, leagueSeason.id)
               )
             )
             .limit(1);
@@ -75,23 +75,23 @@ export const lineupsRouter = router({
           .limit(1);
 
         if (recentLeagueSeason) {
-          [franchiseSeasonData] = await db
+          [teamData] = await db
             .select()
-            .from(franchiseSeasons)
+            .from(teams)
             .where(
               and(
-                eq(franchiseSeasons.franchiseId, franchise.id),
-                eq(franchiseSeasons.leagueSeasonId, recentLeagueSeason.id)
+                eq(teams.franchiseId, franchise.id),
+                eq(teams.leagueSeasonId, recentLeagueSeason.id)
               )
             )
             .limit(1);
         }
       }
 
-      if (!franchiseSeasonData) {
+      if (!teamData) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Franchise season not found',
+          message: 'Team not found',
         });
       }
 
@@ -120,7 +120,7 @@ export const lineupsRouter = router({
         )
         .where(
           and(
-            eq(weeklyLineups.franchiseSeasonId, franchiseSeasonData.id),
+            eq(weeklyLineups.teamId, teamData.id),
             eq(weeklyLineups.weekNumber, input.weekNumber)
           )
         );
@@ -143,14 +143,11 @@ export const lineupsRouter = router({
       const [lineupEntry] = await db
         .select({
           id: weeklyLineups.id,
-          franchiseSeasonId: weeklyLineups.franchiseSeasonId,
-          ownerId: franchiseSeasons.ownerId,
+          teamId: weeklyLineups.teamId,
+          ownerId: teams.ownerId,
         })
         .from(weeklyLineups)
-        .innerJoin(
-          franchiseSeasons,
-          eq(weeklyLineups.franchiseSeasonId, franchiseSeasons.id)
-        )
+        .innerJoin(teams, eq(weeklyLineups.teamId, teams.id))
         .where(eq(weeklyLineups.id, input.lineupId))
         .limit(1);
 
@@ -210,7 +207,7 @@ export const lineupsRouter = router({
         });
       }
 
-      // Get franchise season
+      // Get team
       const [leagueSeason] = await db
         .select()
         .from(leagueSeasons)
@@ -229,26 +226,26 @@ export const lineupsRouter = router({
         });
       }
 
-      const [franchiseSeason] = await db
+      const [team] = await db
         .select()
-        .from(franchiseSeasons)
+        .from(teams)
         .where(
           and(
-            eq(franchiseSeasons.franchiseId, franchise.id),
-            eq(franchiseSeasons.leagueSeasonId, leagueSeason.id)
+            eq(teams.franchiseId, franchise.id),
+            eq(teams.leagueSeasonId, leagueSeason.id)
           )
         )
         .limit(1);
 
-      if (!franchiseSeason) {
+      if (!team) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Franchise season not found',
+          message: 'Team not found',
         });
       }
 
       // Verify ownership
-      if (franchiseSeason.ownerId !== ctx.user.userId) {
+      if (team.ownerId !== ctx.user.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You do not own this franchise',
@@ -261,7 +258,7 @@ export const lineupsRouter = router({
         .from(weeklyLineups)
         .where(
           and(
-            eq(weeklyLineups.franchiseSeasonId, franchiseSeason.id),
+            eq(weeklyLineups.teamId, team.id),
             eq(weeklyLineups.weekNumber, input.weekNumber),
             eq(weeklyLineups.playerId, input.playerId)
           )
@@ -279,7 +276,7 @@ export const lineupsRouter = router({
       const [newEntry] = await db
         .insert(weeklyLineups)
         .values({
-          franchiseSeasonId: franchiseSeason.id,
+          teamId: team.id,
           weekNumber: input.weekNumber,
           playerId: input.playerId,
           rosterSlotIndex: input.rosterSlotIndex,
@@ -303,13 +300,10 @@ export const lineupsRouter = router({
       const [lineupEntry] = await db
         .select({
           id: weeklyLineups.id,
-          ownerId: franchiseSeasons.ownerId,
+          ownerId: teams.ownerId,
         })
         .from(weeklyLineups)
-        .innerJoin(
-          franchiseSeasons,
-          eq(weeklyLineups.franchiseSeasonId, franchiseSeasons.id)
-        )
+        .innerJoin(teams, eq(weeklyLineups.teamId, teams.id))
         .where(eq(weeklyLineups.id, input.lineupId))
         .limit(1);
 

@@ -32,7 +32,7 @@ function getScoreStyle(score: string | number | null | undefined) {
 }
 
 export function FranchiseDetailPage() {
-  const { franchise, settings } = useLoaderData() as Awaited<
+  const { franchise, settings, lineup } = useLoaderData() as Awaited<
     ReturnType<typeof loader>
   >;
   const { leagueSlug, year } = useParams<{
@@ -46,14 +46,13 @@ export function FranchiseDetailPage() {
     settings.rosterSlots?.filter((slot) => slot.type !== 'bench').length || 0;
 
   const starters =
-    franchise.lineup?.filter((p) => p.rosterSlotIndex < starterSlotCount) || [];
+    lineup?.filter((p) => p.rosterSlotIndex < starterSlotCount) || [];
   const bench =
-    franchise.lineup?.filter((p) => p.rosterSlotIndex >= starterSlotCount) ||
-    [];
+    lineup?.filter((p) => p.rosterSlotIndex >= starterSlotCount) || [];
 
-  const wins = franchise.franchiseSeason?.wins || 0;
-  const losses = franchise.franchiseSeason?.losses || 0;
-  const ties = franchise.franchiseSeason?.ties || 0;
+  const wins = franchise.team?.wins || 0;
+  const losses = franchise.team?.losses || 0;
+  const ties = franchise.team?.ties || 0;
   const record = `${wins}-${losses}-${ties}`;
 
   // Record badge - semantic color for quick scan
@@ -113,11 +112,11 @@ export function FranchiseDetailPage() {
         <SimpleGrid cols={{ base: 2, sm: 4 }}>
           <StatCard
             label="Points For"
-            value={franchise.franchiseSeason?.pointsFor || '0.00'}
+            value={franchise.team?.pointsFor || '0.00'}
           />
           <StatCard
             label="Points Against"
-            value={franchise.franchiseSeason?.pointsAgainst || '0.00'}
+            value={franchise.team?.pointsAgainst || '0.00'}
           />
           <Paper withBorder shadow="xs" p="sm">
             <Text size="xs" c="dimmed" fw={500} mb={2}>
