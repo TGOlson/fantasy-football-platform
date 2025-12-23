@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { LoginPage } from '@/pages/login';
 import { RegisterPage } from '@/pages/register';
 import { DashboardPage } from '@/pages/dashboard';
@@ -7,7 +7,6 @@ import { FranchiseDetailPage } from '@/pages/franchise-detail';
 import { PlayersPage } from '@/pages/players';
 import { PlayerDetailPage } from '@/pages/player-detail';
 import { LeagueScoringSettingsPage } from '@/pages/league-scoring-settings';
-import { LeagueLayout } from '@/components/layouts/league-layout';
 import { ErrorPage } from '@/components/error-page';
 
 // Import loaders from colocated files
@@ -17,6 +16,7 @@ import { loader as leagueScoringSettingsLoader } from '@/pages/league-scoring-se
 import { loader as franchiseDetailLoader } from '@/pages/franchise-detail/loader';
 import { loader as playersLoader } from '@/pages/players/loader';
 import { loader as playerDetailLoader } from '@/pages/player-detail/loader';
+import { LeagueProvider } from './providers/league-provider';
 
 export const router = createBrowserRouter([
   // Public routes
@@ -40,7 +40,11 @@ export const router = createBrowserRouter([
   // League routes (wrapped in LeagueLayout for context)
   {
     path: '/:leagueSlug/:year',
-    element: <LeagueLayout />,
+    element: (
+      <LeagueProvider>
+        <Outlet />
+      </LeagueProvider>
+    ),
     errorElement: <ErrorPage />,
     children: [
       {

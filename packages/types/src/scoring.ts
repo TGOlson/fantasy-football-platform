@@ -1,17 +1,58 @@
 // ============================================================================
+// PLAYER STAT COLUMNS
+// ============================================================================
+// These define the stat columns that exist in playerWeeklyStats.
+// Grouped by category for semantic clarity, but the DB schema is flat.
+
+export type PassingStatColumn =
+  | 'passingYards'
+  | 'passingTds'
+  | 'passingInts'
+  | 'completions'
+  | 'attempts';
+
+export type RushingStatColumn =
+  | 'rushingYards'
+  | 'rushingTds'
+  | 'rushingAttempts';
+
+export type ReceivingStatColumn =
+  | 'receptions'
+  | 'receivingYards'
+  | 'receivingTds'
+  | 'targets';
+
+export type MiscStatColumn = 'fumblesLost' | 'twoPointConversions';
+
+export type PlayerStatColumn =
+  | PassingStatColumn
+  | RushingStatColumn
+  | ReceivingStatColumn
+  | MiscStatColumn;
+
+// Type representing a player's weekly stats (flat structure matching DB)
+export type PlayerWeeklyStat = {
+  [K in PlayerStatColumn]: number | null;
+};
+
+// ============================================================================
 // CONDITION SYSTEM (for bonuses)
 // ============================================================================
 
-export type Condition = {
-  stat: string; // "passingYards", "passingTds", "receptions", etc.
-  operator: '>=' | '>' | '<=' | '<' | '==';
-  value: number;
-};
+export type Condition<TStatColumn extends PlayerStatColumn = PlayerStatColumn> =
+  {
+    stat: TStatColumn; // Type-safe stat column reference
+    operator: '>=' | '>' | '<=' | '<' | '==';
+    value: number;
+  };
 
-export type Bonus = {
+// Category-specific bonus (can only reference stats from that category)
+export type CategoryBonus<
+  TStatColumn extends PlayerStatColumn = PlayerStatColumn,
+> = {
   name?: string; // Optional: "300 Yard Club" (for UI display)
   points: number; // Points to award
-  when: Condition[]; // Always grouped by AND operator, can be a single value
+  when: Condition<TStatColumn>[];
 };
 
 // ============================================================================
@@ -48,26 +89,38 @@ export type ScoringRules = {
     touchdowns: ScoringValue;
     interceptions: ScoringValue;
     completions: ScoringValue;
-    bonuses: Bonus[];
+    bonuses: CategoryBonus<PassingStatColumn>[];
   };
   rushing: {
     yards: ScoringValue;
     touchdowns: ScoringValue;
     attempts: ScoringValue;
-    bonuses: Bonus[];
+    bonuses: CategoryBonus<RushingStatColumn>[];
   };
   receiving: {
     receptions: ScoringValue;
     yards: ScoringValue;
     touchdowns: ScoringValue;
     targets: ScoringValue;
-    bonuses: Bonus[];
+    bonuses: CategoryBonus<ReceivingStatColumn>[];
   };
-  fumbles: {
-    lost: ScoringValue;
+  misc: {
+    fumblesLost: ScoringValue;
+    twoPointConversions: ScoringValue;
+    bonuses: CategoryBonus<MiscStatColumn>[];
   };
-  twoPointConversions: ScoringValue;
+  // Cross-category bonuses that can reference stats from multiple categories
+  // e.g., "300 pass yards + 50 rush yards"
+  bonuses: CategoryBonus<PlayerStatColumn>[];
 };
+
+// TODO: Add support for tiered scoring (e.g., team defense points allowed tiers)
+// This would add a new ScoringValue type like:
+// type TieredScoringValue = {
+//   type: 'tiered';
+//   tiers: Array<{ min: number; max: number; points: number }>;
+// };
+// Useful for defense scoring where points/yards allowed use brackets instead of linear scoring
 
 // ============================================================================
 // SCORE BREAKDOWN (for UI transparency)

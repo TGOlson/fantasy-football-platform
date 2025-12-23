@@ -1,8 +1,8 @@
 import { useLoaderData, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/app-layout';
-import { useLeague } from '@/lib/league-context';
-import { trpc } from '@/lib/trpc';
+import { useLeague } from '@/providers/league-provider';
+import { trpc } from '@/hooks/trpc';
 import {
   Text,
   Paper,

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useLoaderData, useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
-import { useLeague } from '@/lib/league-context';
-import { trpc } from '@/lib/trpc';
+import { useLeague } from '@/providers/league-provider';
+import { trpc } from '@/hooks/trpc';
 import {
   Title,
   Text,
@@ -401,15 +401,12 @@ export function LeagueDetailPage() {
                   Roster Positions
                 </Title>
                 <SimpleGrid cols={2}>
-                  {league.settings?.rosterPositions &&
-                    Object.entries(league.settings.rosterPositions).map(
-                      ([position, count]) => (
-                        <Group key={position} justify="space-between">
-                          <Text c="dimmed">{position}</Text>
-                          <Text fw={500}>{count}</Text>
-                        </Group>
-                      )
-                    )}
+                  {league.settings.rosterSlots.map((slot, index) => (
+                    <Group key={index} justify="space-between">
+                      {/* TODO: better grouping and rendering */}
+                      <Text c="dimmed">{JSON.stringify(slot)}</Text>
+                    </Group>
+                  ))}
                 </SimpleGrid>
               </Paper>
 

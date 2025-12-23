@@ -1,6 +1,6 @@
 import { useLoaderData, useParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
-import { useLeague } from '@/lib/league-context';
+import { useLeague } from '@/providers/league-provider';
 import {
   Text,
   Paper,
@@ -32,16 +32,24 @@ function getScoreStyle(score: string | number | null | undefined) {
 }
 
 export function FranchiseDetailPage() {
-  const { franchise } = useLoaderData() as Awaited<ReturnType<typeof loader>>;
+  const { franchise, settings } = useLoaderData() as Awaited<
+    ReturnType<typeof loader>
+  >;
   const { leagueSlug, year } = useParams<{
     leagueSlug: string;
     year: string;
   }>();
   const { league, isHistoricalYear, mostRecentLeagueYear } = useLeague();
 
+  // Get the number of starter slots (all non-bench slots)
+  const starterSlotCount =
+    settings.rosterSlots?.filter((slot) => slot.type !== 'bench').length || 0;
+
   const starters =
-    franchise.lineup?.filter((p) => p.slotType !== 'BENCH') || [];
-  const bench = franchise.lineup?.filter((p) => p.slotType === 'BENCH') || [];
+    franchise.lineup?.filter((p) => p.rosterSlotIndex < starterSlotCount) || [];
+  const bench =
+    franchise.lineup?.filter((p) => p.rosterSlotIndex >= starterSlotCount) ||
+    [];
 
   const wins = franchise.franchiseSeason?.wins || 0;
   const losses = franchise.franchiseSeason?.losses || 0;
@@ -168,19 +176,26 @@ export function FranchiseDetailPage() {
               }}
               columns={[
                 {
-                  accessor: 'slotType',
+                  accessor: 'rosterSlotIndex',
                   title: 'Slot',
                   width: 55,
-                  render: (record) => (
-                    <Badge
-                      size="xs"
-                      variant="light"
-                      color="gray"
-                      styles={{ root: { fontWeight: 600 } }}
-                    >
-                      {record.slotType}
-                    </Badge>
-                  ),
+                  render: (record) => {
+                    const slot = settings.rosterSlots?.[record.rosterSlotIndex];
+                    const slotLabel =
+                      slot?.type === 'starter'
+                        ? slot.positions.join('/')
+                        : 'BENCH';
+                    return (
+                      <Badge
+                        size="xs"
+                        variant="light"
+                        color="gray"
+                        styles={{ root: { fontWeight: 600 } }}
+                      >
+                        {slotLabel}
+                      </Badge>
+                    );
+                  },
                 },
                 {
                   accessor: 'playerName',

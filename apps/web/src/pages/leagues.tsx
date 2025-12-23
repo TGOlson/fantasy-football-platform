@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
-import { trpc } from '@/lib/trpc';
+import { trpc } from '@/hooks/trpc';
 import {
   Button,
   Title,

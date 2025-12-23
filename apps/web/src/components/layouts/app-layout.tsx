@@ -24,9 +24,9 @@ import {
   IconLogout,
   IconSelector,
 } from '@tabler/icons-react';
-import { useAuth } from '@/lib/auth-context';
-import { useLeagueOptional } from '@/lib/league-context';
-import { trpc } from '@/lib/trpc';
+import { useAuth } from '@/providers/auth-provider';
+import { useLeagueOptional } from '@/providers/league-provider';
+import { trpc } from '@/hooks/trpc';
 
 type AppLayoutProps = {
   children: ReactNode;

@@ -1,5 +1,5 @@
 import { Stack, Text, Group, Badge, Divider, Paper } from '@mantine/core';
-import type { ScoreBreakdownItem } from '@fantasy-platform/types';
+import type { ScoreBreakdownItem } from '@fantasy-platform/types/scoring';
 
 type ScoreBreakdownProps = {
   breakdown: ScoreBreakdownItem[];

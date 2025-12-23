@@ -9,9 +9,9 @@ import {
   leagueSeasons,
   eq,
   and,
-} from '@fantasy-platform/database';
+} from '@fantasy-platform/database/schema';
 import { calculateScore } from '../../services/scoring-engine';
-import type { Position } from '@fantasy-platform/types';
+import type { Position } from '@fantasy-platform/types/player';
 
 export const scoringRouter = router({
   // Calculate score for a single player in a specific week

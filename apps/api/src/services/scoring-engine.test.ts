@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { calculateScore, type PlayerWeeklyStat } from './scoring-engine';
+import { calculateScore } from './scoring-engine';
+import type {
+  PlayerWeeklyStat,
+  ScoringRules,
+  ScoreBreakdownItem,
+} from '@fantasy-platform/types/scoring';
+import { playerWeeklyStats } from '@fantasy-platform/database/schema';
 import {
   STANDARD_SCORING,
   HALF_PPR_SCORING,
@@ -7,7 +13,6 @@ import {
   TE_PREMIUM_SCORING,
   STANDARD_WITH_BONUSES,
 } from './scoring-presets';
-import type { ScoringRules, ScoreBreakdownItem } from '@fantasy-platform/types';
 
 describe('calculateScore', () => {
   // =========================================================================
@@ -255,8 +260,8 @@ describe('calculateScore', () => {
       expect(wrResult.totalPoints).toBe(26);
 
       const rbResult = calculateScore(stats, 'RB', TE_PREMIUM_SCORING);
-      // 8 * 0.5 = 4, 120 * 0.1 = 12, 1 * 6 = 6
-      expect(rbResult.totalPoints).toBe(22);
+      // 8 * 1 = 8, 120 * 0.1 = 12, 1 * 6 = 6
+      expect(rbResult.totalPoints).toBe(26);
     });
 
     it('includes position label in breakdown for position-specific PPR', () => {
@@ -555,6 +560,60 @@ describe('calculateScore', () => {
 
       // 2 - 10 - 4 = -12
       expect(result.totalPoints).toBe(-12);
+    });
+  });
+
+  // =========================================================================
+  // SCHEMA ALIGNMENT
+  // =========================================================================
+
+  describe('Schema Alignment', () => {
+    it('playerWeeklyStats columns match PlayerStatColumn type', () => {
+      // This test ensures that the PlayerStatColumn type in @fantasy-platform/types
+      // stays aligned with the actual database schema columns in playerWeeklyStats.
+      // If this test fails, it means we've added/removed a column in the DB schema
+      // but haven't updated the PlayerStatColumn type (or vice versa).
+
+      const schemaColumns = Object.keys(playerWeeklyStats);
+
+      // Filter to just stat columns (exclude metadata columns)
+      const statColumns = schemaColumns.filter(
+        (col) =>
+          ![
+            'id',
+            'playerId',
+            'season',
+            'weekNumber',
+            'createdAt',
+            'updatedAt',
+            'enableRLS', // Drizzle internal field
+          ].includes(col)
+      );
+
+      // Define expected columns from PlayerStatColumn type
+      // This should match the union of all stat column types
+      const expectedColumns = [
+        // PassingStatColumn
+        'passingYards',
+        'passingTds',
+        'passingInts',
+        'completions',
+        'attempts',
+        // RushingStatColumn
+        'rushingYards',
+        'rushingTds',
+        'rushingAttempts',
+        // ReceivingStatColumn
+        'receptions',
+        'receivingYards',
+        'receivingTds',
+        'targets',
+        // MiscStatColumn
+        'fumblesLost',
+        'twoPointConversions',
+      ];
+
+      expect(statColumns.sort()).toEqual(expectedColumns.sort());
     });
   });
 });

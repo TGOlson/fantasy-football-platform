@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
-import { trpc } from './trpc';
-import { useAuth } from './auth-context';
+import { trpc } from '../hooks/trpc';
+import { useAuth } from './auth-provider';
 import { Center, Loader, Text, Stack } from '@mantine/core';
 
 type LeagueContextValue = {

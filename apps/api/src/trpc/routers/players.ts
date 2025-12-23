@@ -9,7 +9,7 @@ import {
   and,
   like,
   desc,
-} from '@fantasy-platform/database';
+} from '@fantasy-platform/database/schema';
 
 export const playersRouter = router({
   // Get all players with filtering

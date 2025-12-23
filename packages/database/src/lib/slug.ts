@@ -1,5 +1,5 @@
-import { leagues, eq } from '../index';
-import type { DBClient } from '../index';
+import { leagues, eq } from '../schema';
+import type { DBClient } from '../client';
 
 /**
  * Convert a string to a URL-friendly slug

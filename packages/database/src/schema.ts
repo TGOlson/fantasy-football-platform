@@ -9,7 +9,27 @@ import {
   unique,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import type { ScoringRules } from '@fantasy-platform/types';
+import type { RosterSlot } from '@fantasy-platform/types/roster';
+import type { ScoringRules } from '@fantasy-platform/types/scoring';
+
+// Export commonly used Drizzle operators
+export {
+  eq,
+  and,
+  or,
+  ne,
+  gt,
+  gte,
+  lt,
+  lte,
+  isNull,
+  isNotNull,
+  inArray,
+  notInArray,
+  like,
+  desc,
+  asc,
+} from 'drizzle-orm';
 
 // =============================================================================
 // USERS
@@ -89,7 +109,7 @@ export const leagueSeasons = pgTable('league_seasons', {
     .notNull()
     .references(() => leagues.id, { onDelete: 'cascade' }),
   year: integer('year').notNull(),
-  status: text('status').notNull().default('setup'), // setup, active, completed, archived
+  status: text('status').notNull(), // setup, active, completed, archived, TODO: enum?
   commissionerId: text('commissioner_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
@@ -120,19 +140,6 @@ export type NewLeagueSeason = typeof leagueSeasons.$inferInsert;
 // LEAGUE SETTINGS
 // =============================================================================
 
-export type RosterPositionsJson = {
-  QB?: number;
-  RB?: number;
-  WR?: number;
-  TE?: number;
-  FLEX?: number;
-  BENCH?: number;
-  K?: number;
-  DEF?: number;
-};
-
-export type ScoringRulesJson = ScoringRules;
-
 export const leagueSettings = pgTable('league_settings', {
   id: text('id')
     .primaryKey()
@@ -141,13 +148,12 @@ export const leagueSettings = pgTable('league_settings', {
     .notNull()
     .unique()
     .references(() => leagueSeasons.id, { onDelete: 'cascade' }),
-  scoringRules: jsonb('scoring_rules').$type<ScoringRulesJson>().notNull(),
-  rosterPositions: jsonb('roster_positions')
-    .$type<RosterPositionsJson>()
-    .notNull(),
-  playoffTeams: integer('playoff_teams').notNull().default(4),
-  playoffStartWeek: integer('playoff_start_week').notNull().default(15),
-  tradeDeadlineWeek: integer('trade_deadline_week').notNull().default(11),
+  scoringRules: jsonb('scoring_rules').$type<ScoringRules>().notNull(),
+  rosterSlots: jsonb('roster_slots').$type<RosterSlot[]>().notNull(),
+  // TODO: max number of a position on roster
+  playoffTeams: integer('playoff_teams').notNull(),
+  playoffStartWeek: integer('playoff_start_week').notNull(),
+  tradeDeadlineWeek: integer('trade_deadline_week').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -250,7 +256,7 @@ export const matchups = pgTable('matchups', {
   ), // Nullable for BYE weeks
   homeScore: decimal('home_score', { precision: 10, scale: 2 }),
   awayScore: decimal('away_score', { precision: 10, scale: 2 }),
-  isPlayoff: boolean('is_playoff').notNull().default(false),
+  isPlayoff: boolean('is_playoff').notNull(),
   completedAt: timestamp('completed_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -293,7 +299,7 @@ export const weeklyLineups = pgTable(
     playerId: text('player_id')
       .notNull()
       .references(() => players.id, { onDelete: 'cascade' }),
-    slotType: text('slot_type').notNull(), // QB, RB, WR, TE, FLEX, K, DEF, BENCH
+    rosterSlotIndex: integer('roster_slot_index').notNull(),
     pointsScored: decimal('points_scored', { precision: 10, scale: 2 }), // Cached
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -360,8 +366,9 @@ export const playerSeasons = pgTable(
       .references(() => players.id, { onDelete: 'cascade' }),
     season: integer('season').notNull(),
     nflTeam: text('nfl_team').notNull(),
+    // position: pgEnum('position', POSITIONS), // QB, RB, WR, TE, K, DEF
     position: text('position').notNull(), // QB, RB, WR, TE, K, DEF
-    status: text('status').notNull().default('active'),
+    status: text('status').notNull(),
     jerseyNumber: integer('jersey_number'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

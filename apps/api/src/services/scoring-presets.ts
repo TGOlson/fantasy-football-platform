@@ -1,4 +1,4 @@
-import type { ScoringRules } from '@fantasy-platform/types';
+import type { ScoringRules } from '@fantasy-platform/types/scoring';
 
 // ============================================================================
 // PRESET SCORING TEMPLATES
@@ -25,10 +25,12 @@ export const STANDARD_SCORING: ScoringRules = {
     targets: { type: 'base', value: 0 },
     bonuses: [],
   },
-  fumbles: {
-    lost: { type: 'base', value: -2 },
+  misc: {
+    fumblesLost: { type: 'base', value: -2 },
+    twoPointConversions: { type: 'base', value: 2 },
+    bonuses: [],
   },
-  twoPointConversions: { type: 'base', value: 2 },
+  bonuses: [],
 };
 
 export const HALF_PPR_SCORING: ScoringRules = {
@@ -53,12 +55,9 @@ export const TE_PREMIUM_SCORING: ScoringRules = {
     ...STANDARD_SCORING.receiving,
     receptions: {
       type: 'position-specific',
-      default: 0.5,
+      default: 1.0,
       byPosition: {
         TE: 1.5,
-        WR: 1.0,
-        // TODO: this seems wrong?
-        RB: 0.5,
       },
     },
   },

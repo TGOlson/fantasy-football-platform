@@ -1,5 +1,5 @@
 import { AppLayout } from '@/components/layouts/app-layout';
-import { trpc } from '@/lib/trpc';
+import { trpc } from '@/hooks/trpc';
 import { Title, Text, SimpleGrid, Paper, Stack, Anchor } from '@mantine/core';
 import { Link } from 'react-router-dom';
 

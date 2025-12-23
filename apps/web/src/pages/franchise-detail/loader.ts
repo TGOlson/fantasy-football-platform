@@ -23,7 +23,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
   const season = parseInt(params.year || new Date().getFullYear().toString());
 
-  const [league, franchise] = await Promise.all([
+  const [league, franchise, settings] = await Promise.all([
     trpcClient.leagues.getBySlug.query({
       slug: params.leagueSlug!,
       season,
@@ -33,11 +33,15 @@ export async function loader({ params }: LoaderFunctionArgs) {
       season,
       weekNumber: 1, // TODO: Get current week
     }),
+    trpcClient.leagues.getSettings.query({
+      slug: params.leagueSlug!,
+      season,
+    }),
   ]);
 
-  if (!league || !franchise) {
+  if (!league || !franchise || !settings) {
     throw new Response('Franchise or league not found', { status: 404 });
   }
 
-  return { league, franchise };
+  return { league, franchise, settings };
 }

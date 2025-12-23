@@ -10,8 +10,8 @@ import {
   Container,
   Alert,
 } from '@mantine/core';
-import { useAuth } from '@/lib/auth-context';
-import { trpc } from '@/lib/trpc';
+import { useAuth } from '@/providers/auth-provider';
+import { trpc } from '@/hooks/trpc';
 
 export function RegisterPage() {
   const [name, setName] = useState('');

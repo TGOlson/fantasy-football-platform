@@ -1,7 +1,7 @@
 import { useLoaderData, useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts/app-layout';
-import { trpc } from '@/lib/trpc';
+import { trpc } from '@/hooks/trpc';
 import {
   Title,
   Text,
@@ -18,7 +18,7 @@ import type {
   ScoringRules,
   BaseScoringValue,
   ScoringValue,
-} from '@fantasy-platform/types';
+} from '@fantasy-platform/types/scoring';
 import { loader } from './loader';
 
 export function LeagueScoringSettingsPage() {
@@ -56,6 +56,7 @@ export function LeagueScoringSettingsPage() {
     },
   });
 
+  // TODO: use react-form here to handle form state
   const [localRules, setLocalRules] = useState<ScoringRules | null>(null);
 
   // Initialize local rules when data loads

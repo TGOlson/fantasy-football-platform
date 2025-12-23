@@ -17,7 +17,7 @@ import {
   eq,
   and,
   desc,
-} from '@fantasy-platform/database';
+} from '@fantasy-platform/database/schema';
 
 export const franchisesRouter = router({
   // Get franchise by ID with lineup for current season (requires league membership)
@@ -128,7 +128,7 @@ export const franchisesRouter = router({
         const lineupData = await db
           .select({
             id: weeklyLineups.id,
-            slotType: weeklyLineups.slotType,
+            rosterSlotIndex: weeklyLineups.rosterSlotIndex,
             weekNumber: weeklyLineups.weekNumber,
             pointsScored: weeklyLineups.pointsScored,
             playerId: players.id,

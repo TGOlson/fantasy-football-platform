@@ -11,6 +11,7 @@ Fantasy football platform for serious redraft leagues that have outgrown ESPN/Ya
 **Target:** Commissioners of engaged leagues willing to pay for flexibility. Not casual users, not dynasty (yet).
 
 **Roadmap:**
+
 - Now: Scoring engine for serious redraft
 - Soon: Keepers, then IDP
 - Later: Full dynasty
@@ -52,6 +53,13 @@ Fantasy football platform for serious redraft leagues that have outgrown ESPN/Ya
 - Don't run `pnpm` commands (eg. `dev`, `typecheck`)—ask the user to run these
 - **Testing:** Don't write tests unless asked. Can suggest tests conceptually.
 - **Ask first:** Before creating files outside existing patterns or major refactors. No need to ask for standard pattern implementations.
+- Use react-hook-form for form state, don't manage form state manually
+
+## Code Organization
+
+- **No re-exports.** Import from source files directly (e.g., `@fantasy-platform/types/player`). Use wildcard package exports so paths stay clean.
+- **Feature isolation.** Prefer adding new files over spreading changes across many files. If a feature requires changing 3+ files or core abstractions, discuss options first.
+- **Propose alternatives.** Product features and UX patterns are open to discussion—suggest better approaches when you see them.
 
 ## Reference Docs
 

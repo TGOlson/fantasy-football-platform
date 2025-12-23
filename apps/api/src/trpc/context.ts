@@ -1,5 +1,5 @@
 import type { CreateExpressContextOptions } from '@trpc/server/adapters/express';
-import { getDatabase } from '@fantasy-platform/database';
+import { getDatabase } from '@fantasy-platform/database/client';
 import { verifyToken } from '../lib/auth';
 
 // Context is created for each request

@@ -1,11 +1,11 @@
+import { type DBClient } from '@fantasy-platform/database/client';
 import {
   matchups,
   franchiseSeasons,
   franchises,
   users,
   eq,
-  type DBClient,
-} from '@fantasy-platform/database';
+} from '@fantasy-platform/database/schema';
 
 // ============================================================================
 // TYPES

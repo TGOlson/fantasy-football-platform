@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/app-layout';
-import { useLeague } from '@/lib/league-context';
-import { trpc } from '@/lib/trpc';
-import { POSITIONS, NFL_TEAMS } from '@fantasy-platform/types';
+import { useLeague } from '@/providers/league-provider';
+import { trpc } from '@/hooks/trpc';
+import { POSITIONS, NFL_TEAMS } from '@fantasy-platform/types/player';
 import {
   TextInput,
   Select,
@@ -100,7 +100,7 @@ export function PlayersPage() {
                 />
                 <Select
                   placeholder="Team"
-                  data={[...NFL_TEAMS]}
+                  data={[...NFL_TEAMS.map((t) => t.code)]}
                   value={team}
                   onChange={setTeam}
                   clearable

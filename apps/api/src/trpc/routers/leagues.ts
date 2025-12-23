@@ -13,11 +13,11 @@ import {
   desc,
   and,
   inArray,
-  generateUniqueSlug,
-  type ScoringRulesJson,
-  type RosterPositionsJson,
-} from '@fantasy-platform/database';
-import { STANDARD_SCORING } from '../../services/scoring-presets';
+} from '@fantasy-platform/database/schema';
+import { generateUniqueSlug } from '@fantasy-platform/database/lib/slug';
+import { CURRENT_SEASON } from '@fantasy-platform/types/player';
+import type { RosterSlots } from '@fantasy-platform/types/roster';
+import type { ScoringRules } from '@fantasy-platform/types/scoring';
 
 export const leaguesRouter = router({
   // Get all leagues for the current user (leagues where they own a franchise)
@@ -260,9 +260,12 @@ export const leaguesRouter = router({
     .input(
       z.object({
         name: z.string().min(1, 'League name is required'),
-        season: z.number().int().min(2020, 'Season must be 2020 or later'),
-        rosterPositions: z.custom<RosterPositionsJson>().optional(),
-        scoringRules: z.custom<ScoringRulesJson>().optional(),
+        // TODO: validate input json
+        rosterSlots: z.custom<RosterSlots>(),
+        scoringRules: z.custom<ScoringRules>(),
+        playoffTeams: z.number(),
+        playoffStartWeek: z.number(),
+        tradeDeadlineWeek: z.number(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -285,26 +288,19 @@ export const leaguesRouter = router({
         .insert(leagueSeasons)
         .values({
           leagueId: newLeague.id,
-          year: input.season,
+          year: CURRENT_SEASON,
           status: 'setup',
           commissionerId: ctx.user.userId,
         })
         .returning();
 
-      // Create default settings
-      const defaultRosterPositions: RosterPositionsJson = {
-        QB: 1,
-        RB: 2,
-        WR: 2,
-        TE: 1,
-        FLEX: 1,
-        BENCH: 6,
-      };
-
       await db.insert(leagueSettings).values({
         leagueSeasonId: newSeason.id,
-        rosterPositions: input.rosterPositions || defaultRosterPositions,
-        scoringRules: input.scoringRules || STANDARD_SCORING,
+        rosterSlots: input.rosterSlots,
+        scoringRules: input.scoringRules,
+        playoffTeams: input.playoffTeams,
+        playoffStartWeek: input.playoffStartWeek,
+        tradeDeadlineWeek: input.tradeDeadlineWeek,
       });
 
       return {

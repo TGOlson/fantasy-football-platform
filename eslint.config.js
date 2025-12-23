@@ -59,7 +59,7 @@ export default defineConfig([
         {
           paths: [
             {
-              name: '@fantasy-platform/database',
+              name: '@fantasy-platform/database/client',
               importNames: ['getDatabase'],
               message:
                 'Use ctx.db instead of getDatabase() for testability. Only context.ts and test helpers should import getDatabase.',

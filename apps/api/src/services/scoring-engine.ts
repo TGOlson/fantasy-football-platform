@@ -1,33 +1,13 @@
+import type { Position } from '@fantasy-platform/types/player';
 import type {
   ScoringRules,
   ScoringValue,
-  Bonus,
   Condition,
+  CategoryBonus,
   ScoreBreakdown,
   ScoreBreakdownItem,
-  Position,
-} from '@fantasy-platform/types';
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-export type PlayerWeeklyStat = {
-  passingYards: number | null;
-  passingTds: number | null;
-  passingInts: number | null;
-  completions: number | null;
-  attempts: number | null;
-  rushingYards: number | null;
-  rushingTds: number | null;
-  rushingAttempts: number | null;
-  receptions: number | null;
-  receivingYards: number | null;
-  receivingTds: number | null;
-  targets: number | null;
-  fumblesLost: number | null;
-  twoPointConversions: number | null;
-};
+  PlayerWeeklyStat,
+} from '@fantasy-platform/types/scoring';
 
 // ============================================================================
 // MAIN CALCULATION FUNCTION
@@ -88,34 +68,32 @@ export function calculateScore(
   );
   totalPoints += receivingPoints;
 
-  // FUMBLES
-  const fumblesLost = stats.fumblesLost || 0;
-  const fumblePoints =
-    fumblesLost * getScoringValue(rules.fumbles.lost, position);
+  // MISC (fumbles, 2PT conversions, etc.)
+  const miscPoints = calculateCategoryScore(
+    stats,
+    position,
+    rules.misc,
+    'misc',
+    {
+      fumblesLost: stats.fumblesLost,
+      twoPointConversions: stats.twoPointConversions,
+    },
+    breakdown
+  );
+  totalPoints += miscPoints;
 
-  if (fumblesLost !== 0) {
-    breakdown.push({
-      category: 'Fumbles Lost',
-      statValue: fumblesLost,
-      pointValue: roundToTwo(fumblePoints),
-    });
-  }
-
-  totalPoints += fumblePoints;
-
-  // TWO-POINT CONVERSIONS
-  const twoPointers = stats.twoPointConversions || 0;
-  const conversionPoints =
-    twoPointers * getScoringValue(rules.twoPointConversions, position);
-
-  if (twoPointers !== 0) {
-    breakdown.push({
-      category: '2-Point Conversions',
-      statValue: twoPointers,
-      pointValue: roundToTwo(conversionPoints),
-    });
-
-    totalPoints += conversionPoints;
+  // CROSS-CATEGORY BONUSES
+  for (const bonus of rules.bonuses) {
+    if (evaluateBonus(stats, bonus)) {
+      const bonusName = bonus.name || formatBonusName(bonus);
+      breakdown.push({
+        category: bonusName,
+        statValue: null,
+        pointValue: roundToTwo(bonus.points),
+        isBonus: true,
+      });
+      totalPoints += bonus.points;
+    }
   }
 
   return {
@@ -131,7 +109,7 @@ export function calculateScore(
 function calculateCategoryScore(
   stats: PlayerWeeklyStat,
   position: Position,
-  categoryRules: Record<string, ScoringValue | Bonus[] | undefined>,
+  categoryRules: Record<string, ScoringValue | CategoryBonus[] | undefined>,
   categoryName: string,
   statValues: Record<string, number | null>,
   breakdown: ScoreBreakdownItem[]
@@ -164,7 +142,7 @@ function calculateCategoryScore(
   }
 
   // Calculate bonuses
-  const bonuses = categoryRules.bonuses as Bonus[] | undefined;
+  const bonuses = categoryRules.bonuses as CategoryBonus[] | undefined;
   if (bonuses) {
     for (const bonus of bonuses) {
       if (evaluateBonus(stats, bonus)) {
@@ -202,7 +180,7 @@ function getScoringValue(
   return 0;
 }
 
-function evaluateBonus(stats: PlayerWeeklyStat, bonus: Bonus): boolean {
+function evaluateBonus(stats: PlayerWeeklyStat, bonus: CategoryBonus): boolean {
   return bonus.when.every((condition: Condition) =>
     evaluateCondition(stats, condition)
   );
@@ -212,7 +190,8 @@ function evaluateCondition(
   stats: PlayerWeeklyStat,
   condition: Condition
 ): boolean {
-  const statValue = (stats as any)[condition.stat] || 0;
+  // Now type-safe! condition.stat is guaranteed to be a valid PlayerStatColumn
+  const statValue = stats[condition.stat] || 0;
 
   switch (condition.operator) {
     case '>=':
@@ -248,6 +227,8 @@ function formatStatLabel(
     'receiving.yards': 'Receiving Yards',
     'receiving.touchdowns': 'Receiving TDs',
     'receiving.targets': 'Targets',
+    'misc.fumblesLost': 'Fumbles Lost',
+    'misc.twoPointConversions': '2-Point Conversions',
   };
 
   const label = baseLabels[`${categoryName}.${statKey}`] || statKey;
@@ -268,7 +249,7 @@ function formatStatLabel(
   return label;
 }
 
-function formatBonusName(bonus: Bonus): string {
+function formatBonusName(bonus: CategoryBonus): string {
   const statLabels: Record<string, string> = {
     passingYards: 'Pass Yards',
     passingTds: 'Pass TDs',

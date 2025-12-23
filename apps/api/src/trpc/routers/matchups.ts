@@ -10,7 +10,7 @@ import {
   eq,
   and,
   desc,
-} from '@fantasy-platform/database';
+} from '@fantasy-platform/database/schema';
 
 export const matchupsRouter = router({
   // Get matchups for a league/week

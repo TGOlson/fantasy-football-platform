@@ -3,8 +3,8 @@ import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getDatabase } from '../client';
 import {
-  getDatabase,
   users,
   leagues,
   franchises,
@@ -18,19 +18,20 @@ import {
   matchups,
   nflGames,
   eq,
-  generateUniqueSlug,
-} from './index';
-import type { ScoringRules } from '@fantasy-platform/types';
+} from '../schema';
+import { generateUniqueSlug } from '../lib/slug';
+import type { ScoringRules } from '@fantasy-platform/types/scoring';
+import { NFL_TEAMS } from '@fantasy-platform/types/player';
 
 // Load environment variables
 dotenv.config({ path: '../../.env' });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const SEED_DATA_DIR = path.join(__dirname, '../seed-data');
+const SEED_DATA_DIR = path.join(__dirname, './seed-data');
 
 // Helper to parse CSV
-function parseCSV(filePath: string): any[] {
+function parseCSV(filePath: string): Record<string, string | null>[] {
   const content = fs.readFileSync(filePath, 'utf8');
   const lines = content.trim().split('\n');
   const headers = lines[0].split(',');
@@ -53,7 +54,7 @@ function parseCSV(filePath: string): any[] {
     }
     values.push(currentValue);
 
-    const row: any = {};
+    const row: Record<string, string | null> = {};
     headers.forEach((header, index) => {
       const value = values[index]?.trim();
       row[header] = value === '' ? null : value;
@@ -61,6 +62,18 @@ function parseCSV(filePath: string): any[] {
     return row;
   });
 }
+
+const getValue = (row: Record<string, string | null>, key: string) => {
+  const value = row[key];
+
+  if (!value) {
+    throw new Error(
+      `Unable to find key: "${key}" in row: ${JSON.stringify(row)}`
+    );
+  }
+
+  return value;
+};
 
 async function seed() {
   console.log('🌱 Seeding database...');
@@ -248,16 +261,27 @@ async function seed() {
           },
         ],
       },
-      fumbles: {
-        lost: { type: 'base', value: -2 },
+      misc: {
+        fumblesLost: { type: 'base', value: -2 },
+        twoPointConversions: { type: 'base', value: 2 },
+        bonuses: [],
       },
-      twoPointConversions: { type: 'base', value: 2 },
+      bonuses: [],
     };
 
     await db.insert(leagueSettings).values({
       leagueSeasonId: season2024.id,
       scoringRules,
-      rosterPositions: { QB: 1, RB: 2, WR: 2, TE: 1, FLEX: 1, BENCH: 5 },
+      rosterSlots: [
+        { type: 'starter', positions: ['QB'] },
+        { type: 'starter', positions: ['RB'] },
+        { type: 'starter', positions: ['RB'] },
+        { type: 'starter', positions: ['WR'] },
+        { type: 'starter', positions: ['WR'] },
+        { type: 'starter', positions: ['TE'] },
+        { type: 'starter', positions: ['RB', 'WR', 'TE'] },
+        { type: 'bench' },
+      ],
       playoffTeams: 4,
       playoffStartWeek: 15,
       tradeDeadlineWeek: 11,
@@ -306,7 +330,10 @@ async function seed() {
     const createdPlayers = await db
       .insert(players)
       .values(
-        playerData.map((p, i) => ({ nflId: `espn_${i + 1}`, name: p.name }))
+        playerData.map((p, i) => ({
+          nflId: `espn_${i + 1}`,
+          name: getValue(p, 'name'),
+        }))
       )
       .returning();
 
@@ -316,10 +343,10 @@ async function seed() {
       createdPlayers.map((player, i) => ({
         playerId: player.id,
         season: 2024,
-        nflTeam: playerData[i].team,
-        position: playerData[i].position,
+        nflTeam: getValue(playerData[i], 'team'),
+        position: getValue(playerData[i], 'position'),
         status: 'active',
-        jerseyNumber: parseInt(playerData[i].jersey_number),
+        jerseyNumber: parseInt(getValue(playerData[i], 'jersey_number')),
       }))
     );
 
@@ -346,7 +373,7 @@ async function seed() {
     const weeklyStatsToInsert = statsData.map((stat) => ({
       playerId: playerNameToId.get(stat.player_name)!,
       season: 2024,
-      weekNumber: parseInt(stat.week_number),
+      weekNumber: parseInt(getValue(stat, 'week_number')),
       passingYards: stat.passing_yards ? parseInt(stat.passing_yards) : null,
       passingTds: stat.passing_tds ? parseInt(stat.passing_tds) : null,
       passingInts: stat.passing_ints ? parseInt(stat.passing_ints) : null,
@@ -379,41 +406,6 @@ async function seed() {
     // =========================================================================
     console.log('\n🏟️  Creating NFL game schedule...');
 
-    const nflTeams = [
-      'KC',
-      'BUF',
-      'BAL',
-      'CIN',
-      'MIA',
-      'NYJ',
-      'NE',
-      'LV',
-      'DEN',
-      'LAC',
-      'HOU',
-      'JAX',
-      'IND',
-      'TEN',
-      'CLE',
-      'PIT',
-      'PHI',
-      'DAL',
-      'NYG',
-      'WAS',
-      'SF',
-      'SEA',
-      'LAR',
-      'ARI',
-      'GB',
-      'MIN',
-      'DET',
-      'CHI',
-      'TB',
-      'NO',
-      'ATL',
-      'CAR',
-    ];
-
     const nflGamesToInsert: {
       season: number;
       weekNumber: number;
@@ -424,7 +416,7 @@ async function seed() {
 
     for (let week = 1; week <= 10; week++) {
       // Create 16 games per week (32 teams / 2)
-      const shuffled = [...nflTeams].sort(() => Math.random() - 0.5);
+      const shuffled = [...NFL_TEAMS].sort(() => Math.random() - 0.5);
       for (let i = 0; i < 16; i++) {
         const homeTeam = shuffled[i * 2];
         const awayTeam = shuffled[i * 2 + 1];
@@ -463,8 +455,8 @@ async function seed() {
         nflGamesToInsert.push({
           season: 2024,
           weekNumber: week,
-          homeTeam,
-          awayTeam,
+          homeTeam: homeTeam.code,
+          awayTeam: awayTeam.code,
           kickoffAt,
         });
       }
@@ -500,7 +492,7 @@ async function seed() {
       franchiseSeasonId: string;
       weekNumber: number;
       playerId: string;
-      slotType: string;
+      rosterSlotIndex: number;
     }[] = [];
 
     // Assign players to franchises (each franchise gets unique players)
@@ -510,8 +502,6 @@ async function seed() {
       teIdx = 0;
 
     for (const fs of createdFranchiseSeasons) {
-      const rosterPlayerIds: string[] = [];
-
       // Build roster for this franchise
       const qb1 = playersByPosition.QB[qbIdx++];
       const qb2 = playersByPosition.QB[qbIdx++];
@@ -527,6 +517,7 @@ async function seed() {
       const te2 = playersByPosition.TE[teIdx++];
 
       // Create lineup for each week (same lineup each week for simplicity)
+      // Slot indices match rosterSlots array: [QB, RB, RB, WR, WR, TE, FLEX, BENCH...]
       for (let week = 1; week <= regularSeasonWeeks; week++) {
         // Starters
         if (qb1)
@@ -534,49 +525,49 @@ async function seed() {
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: qb1,
-            slotType: 'QB',
+            rosterSlotIndex: 0, // QB slot
           });
         if (rb1)
           allLineupEntries.push({
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: rb1,
-            slotType: 'RB',
+            rosterSlotIndex: 1, // RB1 slot
           });
         if (rb2)
           allLineupEntries.push({
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: rb2,
-            slotType: 'RB',
+            rosterSlotIndex: 2, // RB2 slot
           });
         if (wr1)
           allLineupEntries.push({
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: wr1,
-            slotType: 'WR',
+            rosterSlotIndex: 3, // WR1 slot
           });
         if (wr2)
           allLineupEntries.push({
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: wr2,
-            slotType: 'WR',
+            rosterSlotIndex: 4, // WR2 slot
           });
         if (te1)
           allLineupEntries.push({
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: te1,
-            slotType: 'TE',
+            rosterSlotIndex: 5, // TE slot
           });
         if (rb3)
           allLineupEntries.push({
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: rb3,
-            slotType: 'FLEX',
+            rosterSlotIndex: 6, // FLEX slot
           });
         // Bench
         if (qb2)
@@ -584,35 +575,35 @@ async function seed() {
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: qb2,
-            slotType: 'BENCH',
+            rosterSlotIndex: 7, // Bench slot
           });
         if (rb4)
           allLineupEntries.push({
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: rb4,
-            slotType: 'BENCH',
+            rosterSlotIndex: 7, // Bench slot (same index, multiple bench spots)
           });
         if (wr3)
           allLineupEntries.push({
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: wr3,
-            slotType: 'BENCH',
+            rosterSlotIndex: 7, // Bench slot
           });
         if (wr4)
           allLineupEntries.push({
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: wr4,
-            slotType: 'BENCH',
+            rosterSlotIndex: 7, // Bench slot
           });
         if (te2)
           allLineupEntries.push({
             franchiseSeasonId: fs.id,
             weekNumber: week,
             playerId: te2,
-            slotType: 'BENCH',
+            rosterSlotIndex: 7, // Bench slot
           });
       }
     }
@@ -672,6 +663,7 @@ async function seed() {
         weekNumber: weekIndex + 1,
         homeFranchiseSeasonId: m.home,
         awayFranchiseSeasonId: m.away,
+        isPlayoff: false,
       }))
     );
 
@@ -746,15 +738,14 @@ async function seed() {
       positionByPlayer.set(ps.playerId, ps.position);
     }
 
-    const STARTER_SLOTS = ['QB', 'RB', 'WR', 'TE', 'FLEX'];
-
     function getFranchiseScore(
       franchiseSeasonId: string,
       week: number
     ): number {
       const lineup =
         lineupsByFranchiseWeek.get(`${franchiseSeasonId}-${week}`) || [];
-      const starters = lineup.filter((l) => STARTER_SLOTS.includes(l.slotType));
+      // Starters are slots 0-6 (based on rosterSlots config)
+      const starters = lineup.filter((l) => l.rosterSlotIndex < 7);
       let total = 0;
       for (const starter of starters) {
         const stats = statsByPlayerWeek.get(`${starter.playerId}-${week}`);

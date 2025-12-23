@@ -21,7 +21,9 @@ function getJwtSecret(): string {
  */
 export function signToken(payload: JwtPayload): string {
   const secret = getJwtSecret();
-  const expiresIn = (process.env.JWT_EXPIRES_IN as any) || '7d';
+
+  // TODO: this type is kind of wrong, it should be ms.StringValue but can't figure out how to import it
+  const expiresIn = (process.env.JWT_EXPIRES_IN as `${number}`) || '7d';
 
   return jwt.sign(payload, secret, { expiresIn });
 }
@@ -60,7 +62,7 @@ export async function comparePassword(
 // ============================================================================
 // AUTH HELPERS
 // ============================================================================
-
+import { type DBClient } from '@fantasy-platform/database/client';
 import {
   franchises,
   franchiseSeasons,
@@ -68,8 +70,7 @@ import {
   eq,
   and,
   users,
-  type DBClient,
-} from '@fantasy-platform/database';
+} from '@fantasy-platform/database/schema';
 import { TRPCError } from '@trpc/server';
 
 /**

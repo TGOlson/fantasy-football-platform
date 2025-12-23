@@ -11,7 +11,7 @@ import {
   eq,
   and,
   desc,
-} from '@fantasy-platform/database';
+} from '@fantasy-platform/database/schema';
 
 export const lineupsRouter = router({
   // Get lineup for a franchise for a specific week
@@ -99,7 +99,7 @@ export const lineupsRouter = router({
       const lineup = await db
         .select({
           id: weeklyLineups.id,
-          slotType: weeklyLineups.slotType,
+          rosterSlotIndex: weeklyLineups.rosterSlotIndex,
           weekNumber: weeklyLineups.weekNumber,
           pointsScored: weeklyLineups.pointsScored,
           playerId: players.id,
@@ -133,7 +133,7 @@ export const lineupsRouter = router({
     .input(
       z.object({
         lineupId: z.string(),
-        slotType: z.enum(['QB', 'RB', 'WR', 'TE', 'FLEX', 'BENCH', 'K', 'DEF']),
+        rosterSlotIndex: z.number().int().min(0),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -169,11 +169,11 @@ export const lineupsRouter = router({
         });
       }
 
-      // Update slot type
+      // Update roster slot index
       const [updated] = await db
         .update(weeklyLineups)
         .set({
-          slotType: input.slotType,
+          rosterSlotIndex: input.rosterSlotIndex,
           updatedAt: new Date(),
         })
         .where(eq(weeklyLineups.id, input.lineupId))
@@ -189,7 +189,7 @@ export const lineupsRouter = router({
         franchiseId: z.string(),
         playerId: z.string(),
         weekNumber: z.number().int().min(1).max(18),
-        slotType: z.enum(['QB', 'RB', 'WR', 'TE', 'FLEX', 'BENCH', 'K', 'DEF']),
+        rosterSlotIndex: z.number().int().min(0),
         season: z.number().int().optional(),
       })
     )
@@ -282,7 +282,7 @@ export const lineupsRouter = router({
           franchiseSeasonId: franchiseSeason.id,
           weekNumber: input.weekNumber,
           playerId: input.playerId,
-          slotType: input.slotType,
+          rosterSlotIndex: input.rosterSlotIndex,
         })
         .returning();
 

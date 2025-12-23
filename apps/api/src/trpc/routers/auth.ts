@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
-import { users, eq } from '@fantasy-platform/database';
+import { users, eq } from '@fantasy-platform/database/schema';
 import { hashPassword, comparePassword, signToken } from '../../lib/auth';
 
 export const authRouter = router({
