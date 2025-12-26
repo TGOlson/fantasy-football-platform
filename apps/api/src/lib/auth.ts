@@ -63,42 +63,26 @@ export async function comparePassword(
 // AUTH HELPERS
 // ============================================================================
 import { type DBClient } from '@fantasy-platform/database/client';
-import {
-  franchises,
-  teams,
-  leagueSeasons,
-  eq,
-  and,
-  users,
-} from '@fantasy-platform/database/schema';
 import { TRPCError } from '@trpc/server';
 
 /**
- * Check if a user is a member of a league (owns a franchise in the league)
+ * Check if a user is a member of a league (owns a team in the league)
  */
 export async function checkLeagueMembership(
   db: DBClient,
   userId: string,
   leagueId: string
 ): Promise<boolean> {
-  // Check if user owns any franchise in this league
-  const [franchise] = await db
-    .select()
-    .from(franchises)
-    .where(eq(franchises.leagueId, leagueId))
-    .limit(1);
+  const team = await db.query.teams.findFirst({
+    where: (teams, { eq }) => eq(teams.ownerId, userId),
+    with: {
+      franchise: {
+        columns: { leagueId: true },
+      },
+    },
+  });
 
-  if (!franchise) return false;
-
-  // Check if user owns a team in this league
-  const [team] = await db
-    .select()
-    .from(teams)
-    .innerJoin(franchises, eq(teams.franchiseId, franchises.id))
-    .where(and(eq(franchises.leagueId, leagueId), eq(teams.ownerId, userId)))
-    .limit(1);
-
-  return !!team;
+  return team?.franchise.leagueId === leagueId;
 }
 
 /**
@@ -109,11 +93,10 @@ export async function checkFranchiseOwnership(
   userId: string,
   franchiseId: string
 ): Promise<boolean> {
-  const [team] = await db
-    .select()
-    .from(teams)
-    .where(and(eq(teams.franchiseId, franchiseId), eq(teams.ownerId, userId)))
-    .limit(1);
+  const team = await db.query.teams.findFirst({
+    where: (teams, { eq, and }) =>
+      and(eq(teams.franchiseId, franchiseId), eq(teams.ownerId, userId)),
+  });
 
   return !!team;
 }
@@ -126,16 +109,13 @@ export async function checkLeagueAdmin(
   userId: string,
   leagueId: string
 ): Promise<boolean> {
-  const [season] = await db
-    .select()
-    .from(leagueSeasons)
-    .where(
+  const season = await db.query.leagueSeasons.findFirst({
+    where: (leagueSeasons, { eq, and }) =>
       and(
         eq(leagueSeasons.leagueId, leagueId),
         eq(leagueSeasons.commissionerId, userId)
-      )
-    )
-    .limit(1);
+      ),
+  });
 
   return !!season;
 }
@@ -147,11 +127,10 @@ export async function checkSiteAdmin(
   db: DBClient,
   userId: string
 ): Promise<boolean> {
-  const [user] = await db
-    .select({ isSiteAdmin: users.isSiteAdmin })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  const user = await db.query.users.findFirst({
+    where: (users, { eq }) => eq(users.id, userId),
+    columns: { isSiteAdmin: true },
+  });
 
   return user?.isSiteAdmin ?? false;
 }
@@ -160,85 +139,52 @@ export async function checkSiteAdmin(
 // AUTHORIZATION HELPERS (throw TRPCError on failure)
 // ============================================================================
 
-type LeagueIdentifiers = {
-  leagueId?: string;
-  leagueSeasonId?: string;
-  franchiseId?: string;
-};
-
 /**
- * Require that a user is a member of a league. Resolves the leagueId from various identifiers.
+ * Require that a user is a member of a league.
  * Site admins always pass this check.
- * @returns The resolved leagueId
- * @throws TRPCError if not authorized or if league/season/franchise not found
+ * @throws TRPCError if not authorized
  */
 export async function requireLeagueMembership(
   db: DBClient,
   userId: string,
-  identifiers: LeagueIdentifiers
-): Promise<string> {
-  let resolvedLeagueId = identifiers.leagueId;
-
-  // Resolve leagueId from leagueSeasonId if needed
-  if (!resolvedLeagueId && identifiers.leagueSeasonId) {
-    const [season] = await db
-      .select({ leagueId: leagueSeasons.leagueId })
-      .from(leagueSeasons)
-      .where(eq(leagueSeasons.id, identifiers.leagueSeasonId))
-      .limit(1);
-
-    if (!season) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'League season not found',
-      });
-    }
-
-    resolvedLeagueId = season.leagueId;
-  }
-
-  // Resolve leagueId from franchiseId if needed
-  if (!resolvedLeagueId && identifiers.franchiseId) {
-    const [franchise] = await db
-      .select({ leagueId: franchises.leagueId })
-      .from(franchises)
-      .where(eq(franchises.id, identifiers.franchiseId))
-      .limit(1);
-
-    if (!franchise) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Franchise not found',
-      });
-    }
-
-    resolvedLeagueId = franchise.leagueId;
-  }
-
-  if (!resolvedLeagueId) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: 'leagueId, leagueSeasonId, or franchiseId is required',
-    });
-  }
-
-  // Check if site admin - they have access to everything
+  leagueId: string
+): Promise<void> {
   const isSiteAdmin = await checkSiteAdmin(db, userId);
-  if (isSiteAdmin) {
-    return resolvedLeagueId;
-  }
+  if (isSiteAdmin) return;
 
-  // Check league membership
-  const isMember = await checkLeagueMembership(db, userId, resolvedLeagueId);
-
+  const isMember = await checkLeagueMembership(db, userId, leagueId);
   if (!isMember) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'You do not have access to this league',
     });
   }
+}
 
-  return resolvedLeagueId;
+/**
+ * Require that a user owns a specific team.
+ * Site admins always pass this check.
+ * @throws TRPCError if not authorized
+ */
+export async function requireTeamOwnership(
+  db: DBClient,
+  userId: string,
+  teamId: string
+): Promise<void> {
+  const isSiteAdmin = await checkSiteAdmin(db, userId);
+  if (isSiteAdmin) return;
+
+  const team = await db.query.teams.findFirst({
+    where: (teams, { eq, and }) =>
+      and(eq(teams.id, teamId), eq(teams.ownerId, userId)),
+  });
+
+  if (!team) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'You do not own this team',
+    });
+  }
 }
 
 /**
@@ -251,15 +197,10 @@ export async function requireFranchiseOwnership(
   userId: string,
   franchiseId: string
 ): Promise<void> {
-  // Check if site admin - they have access to everything
   const isSiteAdmin = await checkSiteAdmin(db, userId);
-  if (isSiteAdmin) {
-    return;
-  }
+  if (isSiteAdmin) return;
 
-  // Check franchise ownership
   const isOwner = await checkFranchiseOwnership(db, userId, franchiseId);
-
   if (!isOwner) {
     throw new TRPCError({
       code: 'FORBIDDEN',
@@ -270,58 +211,98 @@ export async function requireFranchiseOwnership(
 
 /**
  * Require that a user is a league admin (commissioner).
- * Resolves the leagueId from leagueId or leagueSeasonId.
  * Site admins always pass this check.
- * @returns The resolved leagueId
- * @throws TRPCError if not authorized or if league/season not found
+ * @throws TRPCError if not authorized
  */
 export async function requireLeagueAdmin(
   db: DBClient,
   userId: string,
-  identifiers: { leagueId?: string; leagueSeasonId?: string }
-): Promise<string> {
-  let resolvedLeagueId = identifiers.leagueId;
-
-  // Resolve leagueId from leagueSeasonId if needed
-  if (!resolvedLeagueId && identifiers.leagueSeasonId) {
-    const [season] = await db
-      .select({ leagueId: leagueSeasons.leagueId })
-      .from(leagueSeasons)
-      .where(eq(leagueSeasons.id, identifiers.leagueSeasonId))
-      .limit(1);
-
-    if (!season) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'League season not found',
-      });
-    }
-
-    resolvedLeagueId = season.leagueId;
-  }
-
-  if (!resolvedLeagueId) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: 'leagueId or leagueSeasonId is required',
-    });
-  }
-
-  // Check if site admin - they have access to everything
+  leagueId: string
+): Promise<void> {
   const isSiteAdmin = await checkSiteAdmin(db, userId);
-  if (isSiteAdmin) {
-    return resolvedLeagueId;
-  }
+  if (isSiteAdmin) return;
 
-  // Check if user is league admin
-  const isAdmin = await checkLeagueAdmin(db, userId, resolvedLeagueId);
-
+  const isAdmin = await checkLeagueAdmin(db, userId, leagueId);
   if (!isAdmin) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'You must be the league commissioner to perform this action',
     });
   }
+}
 
-  return resolvedLeagueId;
+// ============================================================================
+// CONVENIENCE WRAPPERS (resolve IDs then check permissions)
+// ============================================================================
+
+/**
+ * Require league membership by leagueSeasonId (resolves leagueId first).
+ * @throws TRPCError if season not found or not authorized
+ */
+export async function requireLeagueSeasonMembership(
+  db: DBClient,
+  userId: string,
+  leagueSeasonId: string
+): Promise<void> {
+  const season = await db.query.leagueSeasons.findFirst({
+    where: (leagueSeasons, { eq }) => eq(leagueSeasons.id, leagueSeasonId),
+    columns: { leagueId: true },
+  });
+
+  if (!season) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'League season not found',
+    });
+  }
+
+  await requireLeagueMembership(db, userId, season.leagueId);
+}
+
+/**
+ * Require league membership by franchiseId (resolves leagueId first).
+ * @throws TRPCError if franchise not found or not authorized
+ */
+export async function requireFranchiseMembership(
+  db: DBClient,
+  userId: string,
+  franchiseId: string
+): Promise<void> {
+  const franchise = await db.query.franchises.findFirst({
+    where: (franchises, { eq }) => eq(franchises.id, franchiseId),
+    columns: { leagueId: true },
+  });
+
+  if (!franchise) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Franchise not found',
+    });
+  }
+
+  await requireLeagueMembership(db, userId, franchise.leagueId);
+}
+
+/**
+ * Require league admin by leagueSeasonId (resolves leagueId first).
+ * @throws TRPCError if season not found or not authorized
+ */
+export async function requireLeagueSeasonAdmin(
+  db: DBClient,
+  userId: string,
+  leagueSeasonId: string
+): Promise<void> {
+  const season = await db.query.leagueSeasons.findFirst({
+    where: (leagueSeasons, { eq }) => eq(leagueSeasons.id, leagueSeasonId),
+    columns: { leagueId: true },
+  });
+
+  if (!season) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'League season not found',
+    });
+  }
+
+  await requireLeagueAdmin(db, userId, season.leagueId);
 }

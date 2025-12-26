@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
-import { users, eq } from '@fantasy-platform/database/schema';
+import { users } from '@fantasy-platform/database/schema';
 import { hashPassword, comparePassword, signToken } from '../../lib/auth';
 
 export const authRouter = router({
@@ -18,13 +18,11 @@ export const authRouter = router({
       const { db } = ctx;
 
       // Check if user already exists
-      const existingUser = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, input.email))
-        .limit(1);
+      const existingUser = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.email, input.email),
+      });
 
-      if (existingUser.length > 0) {
+      if (existingUser) {
         throw new TRPCError({
           code: 'CONFLICT',
           message: 'User with this email already exists',
@@ -72,11 +70,9 @@ export const authRouter = router({
       const { db } = ctx;
 
       // Find user by email
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, input.email))
-        .limit(1);
+      const user = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.email, input.email),
+      });
 
       if (!user) {
         throw new TRPCError({
@@ -119,11 +115,9 @@ export const authRouter = router({
     const { db } = ctx;
 
     // ctx.user is guaranteed to exist because of protectedProcedure
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, ctx.user.userId))
-      .limit(1);
+    const user = await db.query.users.findFirst({
+      where: (users, { eq }) => eq(users.id, ctx.user.userId),
+    });
 
     if (!user) {
       throw new TRPCError({

@@ -4,13 +4,10 @@ import { router, publicProcedure, protectedProcedure } from '../trpc';
 import {
   weeklyLineups,
   teams,
-  franchises,
   players,
   playerSeasons,
-  leagueSeasons,
   eq,
   and,
-  desc,
 } from '@fantasy-platform/database/schema';
 
 export const lineupsRouter = router({
@@ -20,18 +17,16 @@ export const lineupsRouter = router({
       z.object({
         franchiseId: z.string(),
         weekNumber: z.number().int().min(1).max(18),
-        season: z.number().int().optional(),
+        season: z.number().int(),
       })
     )
     .query(async ({ input, ctx }) => {
       const { db } = ctx;
 
       // Get the franchise
-      const [franchise] = await db
-        .select()
-        .from(franchises)
-        .where(eq(franchises.id, input.franchiseId))
-        .limit(1);
+      const franchise = await db.query.franchises.findFirst({
+        where: (franchises, { eq }) => eq(franchises.id, input.franchiseId),
+      });
 
       if (!franchise) {
         throw new TRPCError({
@@ -40,53 +35,28 @@ export const lineupsRouter = router({
         });
       }
 
-      // Get the team
-      let teamData;
-      if (input.season) {
-        const [leagueSeason] = await db
-          .select()
-          .from(leagueSeasons)
-          .where(
-            and(
-              eq(leagueSeasons.leagueId, franchise.leagueId),
-              eq(leagueSeasons.year, input.season)
-            )
-          )
-          .limit(1);
+      const leagueSeason = await db.query.leagueSeasons.findFirst({
+        where: (leagueSeasons, { and, eq }) =>
+          and(
+            eq(leagueSeasons.leagueId, franchise.leagueId),
+            eq(leagueSeasons.year, input.season)
+          ),
+      });
 
-        if (leagueSeason) {
-          [teamData] = await db
-            .select()
-            .from(teams)
-            .where(
-              and(
-                eq(teams.franchiseId, franchise.id),
-                eq(teams.leagueSeasonId, leagueSeason.id)
-              )
-            )
-            .limit(1);
-        }
-      } else {
-        const [recentLeagueSeason] = await db
-          .select()
-          .from(leagueSeasons)
-          .where(eq(leagueSeasons.leagueId, franchise.leagueId))
-          .orderBy(desc(leagueSeasons.year))
-          .limit(1);
-
-        if (recentLeagueSeason) {
-          [teamData] = await db
-            .select()
-            .from(teams)
-            .where(
-              and(
-                eq(teams.franchiseId, franchise.id),
-                eq(teams.leagueSeasonId, recentLeagueSeason.id)
-              )
-            )
-            .limit(1);
-        }
+      if (!leagueSeason) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'League season not found',
+        });
       }
+
+      const teamData = await db.query.teams.findFirst({
+        where: (teams, { and, eq }) =>
+          and(
+            eq(teams.franchiseId, franchise.id),
+            eq(teams.leagueSeasonId, leagueSeason.id)
+          ),
+      });
 
       if (!teamData) {
         throw new TRPCError({
@@ -194,11 +164,9 @@ export const lineupsRouter = router({
       const { db } = ctx;
 
       // Get the franchise
-      const [franchise] = await db
-        .select()
-        .from(franchises)
-        .where(eq(franchises.id, input.franchiseId))
-        .limit(1);
+      const franchise = await db.query.franchises.findFirst({
+        where: (franchises, { eq }) => eq(franchises.id, input.franchiseId),
+      });
 
       if (!franchise) {
         throw new TRPCError({
@@ -208,16 +176,13 @@ export const lineupsRouter = router({
       }
 
       // Get team
-      const [leagueSeason] = await db
-        .select()
-        .from(leagueSeasons)
-        .where(
+      const leagueSeason = await db.query.leagueSeasons.findFirst({
+        where: (leagueSeasons, { and, eq }) =>
           and(
             eq(leagueSeasons.leagueId, franchise.leagueId),
             eq(leagueSeasons.year, input.season || 2024)
-          )
-        )
-        .limit(1);
+          ),
+      });
 
       if (!leagueSeason) {
         throw new TRPCError({
@@ -226,16 +191,13 @@ export const lineupsRouter = router({
         });
       }
 
-      const [team] = await db
-        .select()
-        .from(teams)
-        .where(
+      const team = await db.query.teams.findFirst({
+        where: (teams, { and, eq }) =>
           and(
             eq(teams.franchiseId, franchise.id),
             eq(teams.leagueSeasonId, leagueSeason.id)
-          )
-        )
-        .limit(1);
+          ),
+      });
 
       if (!team) {
         throw new TRPCError({
@@ -253,17 +215,14 @@ export const lineupsRouter = router({
       }
 
       // Check if player already in lineup for this week
-      const [existing] = await db
-        .select()
-        .from(weeklyLineups)
-        .where(
+      const existing = await db.query.weeklyLineups.findFirst({
+        where: (weeklyLineups, { and, eq }) =>
           and(
             eq(weeklyLineups.teamId, team.id),
             eq(weeklyLineups.weekNumber, input.weekNumber),
             eq(weeklyLineups.playerId, input.playerId)
-          )
-        )
-        .limit(1);
+          ),
+      });
 
       if (existing) {
         throw new TRPCError({

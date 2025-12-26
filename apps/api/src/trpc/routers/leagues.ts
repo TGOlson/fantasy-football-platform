@@ -8,10 +8,7 @@ import {
   leagueSettings,
   franchises,
   teams,
-  users,
   eq,
-  desc,
-  and,
   inArray,
 } from '@fantasy-platform/database/schema';
 import { generateUniqueSlug } from '@fantasy-platform/database/lib/slug';
@@ -49,16 +46,15 @@ export const leaguesRouter = router({
     // For each league, get the most recent season
     const leaguesWithSeasons = await Promise.all(
       userLeagues.map(async (league) => {
-        const [recentSeason] = await db
-          .select()
-          .from(leagueSeasons)
-          .where(eq(leagueSeasons.leagueId, league.id))
-          .orderBy(desc(leagueSeasons.year))
-          .limit(1);
+        const recentSeason = await db.query.leagueSeasons.findFirst({
+          where: (leagueSeasons, { eq }) =>
+            eq(leagueSeasons.leagueId, league.id),
+          orderBy: (leagueSeasons, { desc }) => [desc(leagueSeasons.year)],
+        });
 
         return {
           ...league,
-          currentSeason: recentSeason || null,
+          currentSeason: recentSeason ?? null,
         };
       })
     );
@@ -78,11 +74,9 @@ export const leaguesRouter = router({
       const { db } = ctx;
 
       // Get the league by slug
-      const [league] = await db
-        .select()
-        .from(leagues)
-        .where(eq(leagues.slug, input.slug))
-        .limit(1);
+      const league = await db.query.leagues.findFirst({
+        where: (leagues, { eq }) => eq(leagues.slug, input.slug),
+      });
 
       if (!league) {
         throw new TRPCError({
@@ -94,19 +88,16 @@ export const leaguesRouter = router({
       const leagueId = league.id;
 
       // Verify league membership
-      await requireLeagueMembership(db, ctx.user.userId, { leagueId });
+      await requireLeagueMembership(db, ctx.user.userId, leagueId);
 
       // Get the specific season
-      const [season] = await db
-        .select()
-        .from(leagueSeasons)
-        .where(
+      const season = await db.query.leagueSeasons.findFirst({
+        where: (leagueSeasons, { eq, and }) =>
           and(
             eq(leagueSeasons.leagueId, leagueId),
             eq(leagueSeasons.year, input.season)
-          )
-        )
-        .limit(1);
+          ),
+      });
 
       if (!season) {
         throw new TRPCError({
@@ -116,22 +107,20 @@ export const leaguesRouter = router({
       }
 
       // Get commissioner info
-      const [commissioner] = await db
-        .select({
-          id: users.id,
-          name: users.name,
-          email: users.email,
-        })
-        .from(users)
-        .where(eq(users.id, season.commissionerId))
-        .limit(1);
+      const commissioner = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.id, season.commissionerId),
+        columns: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
 
       // Get settings for this season
-      const [settings] = await db
-        .select()
-        .from(leagueSettings)
-        .where(eq(leagueSettings.leagueSeasonId, season.id))
-        .limit(1);
+      const settings = await db.query.leagueSettings.findFirst({
+        where: (leagueSettings, { eq }) =>
+          eq(leagueSettings.leagueSeasonId, season.id),
+      });
 
       // Get franchises with their season data
       const leagueFranchises = await db
@@ -154,12 +143,10 @@ export const leaguesRouter = router({
 
           let owner = null;
           if (teamSeason) {
-            const [ownerData] = await db
-              .select({ id: users.id, name: users.name })
-              .from(users)
-              .where(eq(users.id, teamSeason.ownerId))
-              .limit(1);
-            owner = ownerData;
+            owner = await db.query.users.findFirst({
+              where: (users, { eq }) => eq(users.id, teamSeason.ownerId),
+              columns: { id: true, name: true },
+            });
           }
 
           return {
@@ -188,16 +175,12 @@ export const leaguesRouter = router({
       const { db } = ctx;
 
       // Verify league membership
-      await requireLeagueMembership(db, ctx.user.userId, {
-        leagueId: input.leagueId,
-      });
+      await requireLeagueMembership(db, ctx.user.userId, input.leagueId);
 
       // Get the league
-      const [league] = await db
-        .select()
-        .from(leagues)
-        .where(eq(leagues.id, input.leagueId))
-        .limit(1);
+      const league = await db.query.leagues.findFirst({
+        where: (leagues, { eq }) => eq(leagues.id, input.leagueId),
+      });
 
       if (!league) {
         throw new TRPCError({
@@ -207,37 +190,32 @@ export const leaguesRouter = router({
       }
 
       // Get active season (or most recent)
-      const [activeSeason] = await db
-        .select()
-        .from(leagueSeasons)
-        .where(eq(leagueSeasons.leagueId, input.leagueId))
-        .orderBy(desc(leagueSeasons.year))
-        .limit(1);
+      const activeSeason = await db.query.leagueSeasons.findFirst({
+        where: (leagueSeasons, { eq }) =>
+          eq(leagueSeasons.leagueId, input.leagueId),
+        orderBy: (leagueSeasons, { desc }) => [desc(leagueSeasons.year)],
+      });
 
       // Get commissioner info
       let commissioner = null;
       if (activeSeason) {
-        const [commissionerData] = await db
-          .select({
-            id: users.id,
-            name: users.name,
-            email: users.email,
-          })
-          .from(users)
-          .where(eq(users.id, activeSeason.commissionerId))
-          .limit(1);
-        commissioner = commissionerData;
+        commissioner = await db.query.users.findFirst({
+          where: (users, { eq }) => eq(users.id, activeSeason.commissionerId),
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        });
       }
 
       // Get settings for the active season
       let settings = null;
       if (activeSeason) {
-        const [leagueSettingsData] = await db
-          .select()
-          .from(leagueSettings)
-          .where(eq(leagueSettings.leagueSeasonId, activeSeason.id))
-          .limit(1);
-        settings = leagueSettingsData || null;
+        settings = await db.query.leagueSettings.findFirst({
+          where: (leagueSettings, { eq }) =>
+            eq(leagueSettings.leagueSeasonId, activeSeason.id),
+        });
       }
 
       // Get franchises for this league
@@ -324,16 +302,12 @@ export const leaguesRouter = router({
       const { db } = ctx;
 
       // Verify league admin
-      await requireLeagueAdmin(db, ctx.user.userId, {
-        leagueId: input.leagueId,
-      });
+      await requireLeagueAdmin(db, ctx.user.userId, input.leagueId);
 
       // Check if league exists
-      const [existingLeague] = await db
-        .select()
-        .from(leagues)
-        .where(eq(leagues.id, input.leagueId))
-        .limit(1);
+      const existingLeague = await db.query.leagues.findFirst({
+        where: (leagues, { eq }) => eq(leagues.id, input.leagueId),
+      });
 
       if (!existingLeague) {
         throw new TRPCError({

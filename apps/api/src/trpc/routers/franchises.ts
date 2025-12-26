@@ -2,19 +2,10 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import {
-  requireLeagueMembership,
+  requireFranchiseMembership,
   requireFranchiseOwnership,
 } from '../../lib/auth';
-import {
-  franchises,
-  teams,
-  users,
-  leagues,
-  leagueSeasons,
-  eq,
-  and,
-  desc,
-} from '@fantasy-platform/database/schema';
+import { franchises, eq } from '@fantasy-platform/database/schema';
 
 export const franchisesRouter = router({
   // Get franchise by ID with lineup for current season (requires league membership)
@@ -22,23 +13,19 @@ export const franchisesRouter = router({
     .input(
       z.object({
         franchiseId: z.string(),
-        season: z.number().int().optional(),
+        season: z.number().int(),
       })
     )
     .query(async ({ input, ctx }) => {
       const { db } = ctx;
 
       // Verify league membership
-      await requireLeagueMembership(db, ctx.user.userId, {
-        franchiseId: input.franchiseId,
-      });
+      await requireFranchiseMembership(db, ctx.user.userId, input.franchiseId);
 
       // Get the franchise
-      const [franchise] = await db
-        .select()
-        .from(franchises)
-        .where(eq(franchises.id, input.franchiseId))
-        .limit(1);
+      const franchise = await db.query.franchises.findFirst({
+        where: (franchises, { eq }) => eq(franchises.id, input.franchiseId),
+      });
 
       if (!franchise) {
         throw new TRPCError({
@@ -48,74 +35,45 @@ export const franchisesRouter = router({
       }
 
       // Get league info
-      const [league] = await db
-        .select()
-        .from(leagues)
-        .where(eq(leagues.id, franchise.leagueId))
-        .limit(1);
+      const league = await db.query.leagues.findFirst({
+        where: (leagues, { eq }) => eq(leagues.id, franchise.leagueId),
+      });
 
       // Get the team
-      let teamData;
-      if (input.season) {
-        const [leagueSeason] = await db
-          .select()
-          .from(leagueSeasons)
-          .where(
-            and(
-              eq(leagueSeasons.leagueId, franchise.leagueId),
-              eq(leagueSeasons.year, input.season)
-            )
-          )
-          .limit(1);
+      const leagueSeason = await db.query.leagueSeasons.findFirst({
+        where: (leagueSeasons, { eq, and }) =>
+          and(
+            eq(leagueSeasons.leagueId, franchise.leagueId),
+            eq(leagueSeasons.year, input.season)
+          ),
+      });
 
-        if (leagueSeason) {
-          [teamData] = await db
-            .select()
-            .from(teams)
-            .where(
-              and(
-                eq(teams.franchiseId, franchise.id),
-                eq(teams.leagueSeasonId, leagueSeason.id)
-              )
-            )
-            .limit(1);
-        }
-      } else {
-        // Get most recent season
-        const [recentLeagueSeason] = await db
-          .select()
-          .from(leagueSeasons)
-          .where(eq(leagueSeasons.leagueId, franchise.leagueId))
-          .orderBy(desc(leagueSeasons.year))
-          .limit(1);
-
-        if (recentLeagueSeason) {
-          [teamData] = await db
-            .select()
-            .from(teams)
-            .where(
-              and(
-                eq(teams.franchiseId, franchise.id),
-                eq(teams.leagueSeasonId, recentLeagueSeason.id)
-              )
-            )
-            .limit(1);
-        }
+      if (!leagueSeason) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'League seasons not found',
+        });
       }
+
+      const teamData = await db.query.teams.findFirst({
+        where: (teams, { eq, and }) =>
+          and(
+            eq(teams.franchiseId, franchise.id),
+            eq(teams.leagueSeasonId, leagueSeason.id)
+          ),
+      });
 
       // Get owner info
       let owner = null;
       if (teamData) {
-        const [ownerData] = await db
-          .select({
-            id: users.id,
-            name: users.name,
-            email: users.email,
-          })
-          .from(users)
-          .where(eq(users.id, teamData.ownerId))
-          .limit(1);
-        owner = ownerData;
+        owner = await db.query.users.findFirst({
+          where: (users, { eq }) => eq(users.id, teamData.ownerId),
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        });
       }
 
       return {
@@ -162,7 +120,7 @@ export const franchisesRouter = router({
     .input(
       z.object({
         leagueId: z.string(),
-        season: z.number().int().optional(),
+        season: z.number().int(),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -174,58 +132,43 @@ export const franchisesRouter = router({
         .from(franchises)
         .where(eq(franchises.leagueId, input.leagueId));
 
-      // Get season
-      let leagueSeason;
-      if (input.season) {
-        [leagueSeason] = await db
-          .select()
-          .from(leagueSeasons)
-          .where(
-            and(
-              eq(leagueSeasons.leagueId, input.leagueId),
-              eq(leagueSeasons.year, input.season)
-            )
-          )
-          .limit(1);
-      } else {
-        [leagueSeason] = await db
-          .select()
-          .from(leagueSeasons)
-          .where(eq(leagueSeasons.leagueId, input.leagueId))
-          .orderBy(desc(leagueSeasons.year))
-          .limit(1);
+      const leagueSeason = await db.query.leagueSeasons.findFirst({
+        where: (leagueSeasons, { eq, and }) =>
+          and(
+            eq(leagueSeasons.leagueId, input.leagueId),
+            eq(leagueSeasons.year, input.season)
+          ),
+      });
+
+      if (!leagueSeason) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'League season not found',
+        });
       }
 
       // Get owner info and team for each franchise
       const franchisesWithDetails = await Promise.all(
         leagueFranchises.map(async (franchise) => {
           let owner = null;
-          let teamData = null;
 
-          if (leagueSeason) {
-            [teamData] = await db
-              .select()
-              .from(teams)
-              .where(
-                and(
-                  eq(teams.franchiseId, franchise.id),
-                  eq(teams.leagueSeasonId, leagueSeason.id)
-                )
-              )
-              .limit(1);
+          const teamData = await db.query.teams.findFirst({
+            where: (teams, { eq, and }) =>
+              and(
+                eq(teams.franchiseId, franchise.id),
+                eq(teams.leagueSeasonId, leagueSeason.id)
+              ),
+          });
 
-            if (teamData) {
-              const [ownerData] = await db
-                .select({
-                  id: users.id,
-                  name: users.name,
-                  email: users.email,
-                })
-                .from(users)
-                .where(eq(users.id, teamData.ownerId))
-                .limit(1);
-              owner = ownerData;
-            }
+          if (teamData) {
+            owner = await db.query.users.findFirst({
+              where: (users, { eq }) => eq(users.id, teamData.ownerId),
+              columns: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            });
           }
 
           return {

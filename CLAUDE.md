@@ -46,6 +46,12 @@ Fantasy football platform for serious redraft leagues that have outgrown ESPN/Ya
 - No over-engineering—only build what's needed now
 - Keep TODOs in `TODO.md` files (root or relevant sub-dir)
 
+### Database Queries
+
+- Prefer `db.query.table.findFirst()` for single records (proper `T | undefined` typing)
+- Simple reads with relations: Use `db.query.table.findMany()` with `with` clause
+- Use SQL-like `db.select().from()` for joins, custom projections, and writes
+
 ## Development Notes
 
 - Early stage: we can break things freely, no backwards compatibility concerns

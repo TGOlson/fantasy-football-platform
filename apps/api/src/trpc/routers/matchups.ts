@@ -4,12 +4,8 @@ import { router, publicProcedure, protectedProcedure } from '../trpc';
 import {
   matchups,
   leagueSeasons,
-  teams,
-  franchises,
-  users,
   eq,
   and,
-  desc,
 } from '@fantasy-platform/database/schema';
 
 export const matchupsRouter = router({
@@ -26,26 +22,13 @@ export const matchupsRouter = router({
       const { db } = ctx;
 
       // Get league season
-      let leagueSeason;
-      if (input.season) {
-        [leagueSeason] = await db
-          .select()
-          .from(leagueSeasons)
-          .where(
-            and(
-              eq(leagueSeasons.leagueId, input.leagueId),
-              eq(leagueSeasons.year, input.season)
-            )
-          )
-          .limit(1);
-      } else {
-        [leagueSeason] = await db
-          .select()
-          .from(leagueSeasons)
-          .where(eq(leagueSeasons.leagueId, input.leagueId))
-          .orderBy(desc(leagueSeasons.year))
-          .limit(1);
-      }
+      const leagueSeason = await db.query.leagueSeasons.findFirst({
+        where: (leagueSeasons, { and, eq }) =>
+          and(
+            eq(leagueSeasons.leagueId, input.leagueId),
+            eq(leagueSeasons.year, input.season)
+          ),
+      });
 
       if (!leagueSeason) {
         throw new TRPCError({
@@ -69,27 +52,23 @@ export const matchupsRouter = router({
       const matchupsWithDetails = await Promise.all(
         weekMatchups.map(async (matchup) => {
           // Get home franchise details
-          const [homeTeam] = await db
-            .select()
-            .from(teams)
-            .where(eq(teams.id, matchup.homeTeamId))
-            .limit(1);
+          const homeTeam = await db.query.teams.findFirst({
+            where: (teams, { eq }) => eq(teams.id, matchup.homeTeamId),
+          });
 
-          const [homeFranchise] = homeTeam
-            ? await db
-                .select()
-                .from(franchises)
-                .where(eq(franchises.id, homeTeam.franchiseId))
-                .limit(1)
-            : [null];
+          const homeFranchise = homeTeam
+            ? await db.query.franchises.findFirst({
+                where: (franchises, { eq }) =>
+                  eq(franchises.id, homeTeam.franchiseId),
+              })
+            : null;
 
-          const [homeOwner] = homeTeam
-            ? await db
-                .select({ id: users.id, name: users.name })
-                .from(users)
-                .where(eq(users.id, homeTeam.ownerId))
-                .limit(1)
-            : [null];
+          const homeOwner = homeTeam
+            ? await db.query.users.findFirst({
+                where: (users, { eq }) => eq(users.id, homeTeam.ownerId),
+                columns: { id: true, name: true },
+              })
+            : null;
 
           // Get away franchise details (nullable for BYE weeks)
           let awayFranchise = null;
@@ -97,27 +76,24 @@ export const matchupsRouter = router({
           let awayTeam = null;
 
           if (matchup.awayTeamId) {
-            [awayTeam] = await db
-              .select()
-              .from(teams)
-              .where(eq(teams.id, matchup.awayTeamId))
-              .limit(1);
+            const awayTeamId = matchup.awayTeamId;
+            awayTeam = await db.query.teams.findFirst({
+              where: (teams, { eq }) => eq(teams.id, awayTeamId),
+            });
 
-            [awayFranchise] = awayTeam
-              ? await db
-                  .select()
-                  .from(franchises)
-                  .where(eq(franchises.id, awayTeam.franchiseId))
-                  .limit(1)
-              : [null];
+            awayFranchise = awayTeam
+              ? await db.query.franchises.findFirst({
+                  where: (franchises, { eq }) =>
+                    eq(franchises.id, awayTeam.franchiseId),
+                })
+              : null;
 
-            [awayOwner] = awayTeam
-              ? await db
-                  .select({ id: users.id, name: users.name })
-                  .from(users)
-                  .where(eq(users.id, awayTeam.ownerId))
-                  .limit(1)
-              : [null];
+            awayOwner = awayTeam
+              ? await db.query.users.findFirst({
+                  where: (users, { eq }) => eq(users.id, awayTeam.ownerId),
+                  columns: { id: true, name: true },
+                })
+              : null;
           }
 
           return {
@@ -164,11 +140,9 @@ export const matchupsRouter = router({
     .query(async ({ input, ctx }) => {
       const { db } = ctx;
 
-      const [matchup] = await db
-        .select()
-        .from(matchups)
-        .where(eq(matchups.id, input.id))
-        .limit(1);
+      const matchup = await db.query.matchups.findFirst({
+        where: (matchups, { eq }) => eq(matchups.id, input.id),
+      });
 
       if (!matchup) {
         throw new TRPCError({
@@ -178,55 +152,51 @@ export const matchupsRouter = router({
       }
 
       // Get home franchise details
-      const [homeTeam] = await db
-        .select()
-        .from(teams)
-        .where(eq(teams.id, matchup.homeTeamId))
-        .limit(1);
+      const homeTeam = await db.query.teams.findFirst({
+        where: (teams, { eq }) => eq(teams.id, matchup.homeTeamId),
+      });
 
-      const [homeFranchise] = homeTeam
-        ? await db
-            .select()
-            .from(franchises)
-            .where(eq(franchises.id, homeTeam.franchiseId))
-            .limit(1)
-        : [null];
+      const homeFranchise = homeTeam
+        ? await db.query.franchises.findFirst({
+            where: (franchises, { eq }) =>
+              eq(franchises.id, homeTeam.franchiseId),
+          })
+        : null;
 
-      const [homeOwner] = homeTeam
-        ? await db
-            .select({ id: users.id, name: users.name, email: users.email })
-            .from(users)
-            .where(eq(users.id, homeTeam.ownerId))
-            .limit(1)
-        : [null];
+      const homeOwner = homeTeam
+        ? await db.query.users.findFirst({
+            where: (users, { eq }) => eq(users.id, homeTeam.ownerId),
+            columns: { id: true, name: true, email: true },
+          })
+        : null;
 
       // Get away franchise details
       let awayFranchise = null;
       let awayOwner = null;
-      let awayTeam = null;
+      let awayTeam: Awaited<
+        ReturnType<typeof db.query.teams.findFirst>
+      > | null = null;
 
       if (matchup.awayTeamId) {
-        [awayTeam] = await db
-          .select()
-          .from(teams)
-          .where(eq(teams.id, matchup.awayTeamId))
-          .limit(1);
+        const awayTeamId = matchup.awayTeamId;
+        awayTeam = await db.query.teams.findFirst({
+          where: (teams, { eq }) => eq(teams.id, awayTeamId),
+        });
 
-        [awayFranchise] = awayTeam
-          ? await db
-              .select()
-              .from(franchises)
-              .where(eq(franchises.id, awayTeam.franchiseId))
-              .limit(1)
-          : [null];
+        const awayFranchiseId = awayTeam?.franchiseId;
 
-        [awayOwner] = awayTeam
-          ? await db
-              .select({ id: users.id, name: users.name, email: users.email })
-              .from(users)
-              .where(eq(users.id, awayTeam.ownerId))
-              .limit(1)
-          : [null];
+        awayFranchise = awayFranchiseId
+          ? await db.query.franchises.findFirst({
+              where: (franchises, { eq }) => eq(franchises.id, awayFranchiseId),
+            })
+          : null;
+
+        awayOwner = awayTeam
+          ? await db.query.users.findFirst({
+              where: (users, { eq }) => eq(users.id, awayTeam.ownerId),
+              columns: { id: true, name: true, email: true },
+            })
+          : null;
       }
 
       return {
