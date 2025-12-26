@@ -18,6 +18,7 @@ type LeagueContextValue = {
   myFranchise: {
     id: string;
     name: string;
+    teamId: string;
   } | null;
   isCommissioner: boolean;
   isHistoricalYear: boolean;
@@ -101,9 +102,14 @@ export function LeagueProvider({ children }: LeagueProviderProps) {
       year: leagueData.activeSeason!.year,
       status: leagueData.activeSeason!.status,
     },
-    myFranchise: myFranchise
-      ? { id: myFranchise.id, name: myFranchise.name }
-      : null,
+    myFranchise:
+      myFranchise && myFranchise.team
+        ? {
+            id: myFranchise.id,
+            name: myFranchise.name,
+            teamId: myFranchise.team.id,
+          }
+        : null,
     isCommissioner: leagueData.commissioner?.id === user?.id,
     isHistoricalYear: season < mostRecentLeagueYear,
     mostRecentLeagueYear,

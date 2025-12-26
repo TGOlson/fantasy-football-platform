@@ -127,7 +127,7 @@ export function LeagueDetailPage() {
                           key={franchise.teamId}
                           component={Link}
                           // @ts-expect-error deal with this later
-                          to={`/${leagueSlug}/${year}/franchises/${franchise.franchiseId}`}
+                          to={`/${leagueSlug}/${year}/teams/${franchise.teamId}`}
                           style={{ textDecoration: 'none', cursor: 'pointer' }}
                         >
                           <Table.Td>
@@ -197,23 +197,28 @@ export function LeagueDetailPage() {
                     ? `${franchiseStanding.wins}-${franchiseStanding.losses}-${franchiseStanding.ties}`
                     : '0-0-0';
 
+                  const teamId = franchise.team?.id;
+
                   return (
                     <Paper
                       key={franchise.id}
-                      component={Link}
-                      to={`/${leagueSlug}/${year}/franchises/${franchise.id}`}
+                      component={teamId ? Link : 'div'}
+                      to={teamId ? `/${leagueSlug}/${year}/teams/${teamId}` : undefined}
                       withBorder
                       p="md"
                       radius="md"
                       style={{
                         textDecoration: 'none',
                         color: 'inherit',
-                        cursor: 'pointer',
+                        cursor: teamId ? 'pointer' : 'default',
                         transition: 'border-color 0.2s',
+                        opacity: teamId ? 1 : 0.6,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor =
-                          'var(--mantine-color-violet-6)';
+                        if (teamId) {
+                          e.currentTarget.style.borderColor =
+                            'var(--mantine-color-violet-6)';
+                        }
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.borderColor = '';

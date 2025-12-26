@@ -3,6 +3,7 @@ import { healthRouter } from './routers/health';
 import { authRouter } from './routers/auth';
 import { leaguesRouter } from './routers/leagues';
 import { franchisesRouter } from './routers/franchises';
+import { teamsRouter } from './routers/teams';
 import { playersRouter } from './routers/players';
 import { lineupsRouter } from './routers/lineups';
 import { matchupsRouter } from './routers/matchups';
@@ -15,6 +16,7 @@ export const appRouter = router({
   auth: authRouter,
   leagues: leaguesRouter,
   franchises: franchisesRouter,
+  teams: teamsRouter,
   players: playersRouter,
   lineups: lineupsRouter,
   matchups: matchupsRouter,

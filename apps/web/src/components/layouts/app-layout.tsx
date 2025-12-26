@@ -213,11 +213,11 @@ export function AppLayout({ children }: AppLayoutProps) {
                 {myTeam ? (
                   <NavLink
                     component={Link}
-                    to={`${leagueBase}/franchises/${myTeam.id}`}
+                    to={`${leagueBase}/teams/${myTeam.teamId}`}
                     label="My Team"
                     leftSection={<IconUser size={18} />}
                     active={isActivePrefix(
-                      `${leagueBase}/franchises/${myTeam.id}`
+                      `${leagueBase}/teams/${myTeam.teamId}`
                     )}
                     variant="filled"
                   />

@@ -3,7 +3,7 @@ import { LoginPage } from '@/pages/login';
 import { RegisterPage } from '@/pages/register';
 import { DashboardPage } from '@/pages/dashboard';
 import { LeagueDetailPage } from '@/pages/league-detail';
-import { FranchiseDetailPage } from '@/pages/franchise-detail';
+import { TeamDetailPage } from '@/pages/team-detail';
 import { PlayersPage } from '@/pages/players';
 import { PlayerDetailPage } from '@/pages/player-detail';
 import { LeagueScoringSettingsPage } from '@/pages/league-scoring-settings';
@@ -13,7 +13,7 @@ import { ErrorPage } from '@/components/error-page';
 import { loader as dashboardLoader } from '@/pages/dashboard/loader';
 import { loader as leagueDetailLoader } from '@/pages/league-detail/loader';
 import { loader as leagueScoringSettingsLoader } from '@/pages/league-scoring-settings/loader';
-import { loader as franchiseDetailLoader } from '@/pages/franchise-detail/loader';
+import { loader as teamDetailLoader } from '@/pages/team-detail/loader';
 import { loader as playersLoader } from '@/pages/players/loader';
 import { loader as playerDetailLoader } from '@/pages/player-detail/loader';
 import { LeagueProvider } from './providers/league-provider';
@@ -58,9 +58,9 @@ export const router = createBrowserRouter([
         element: <LeagueScoringSettingsPage />,
       },
       {
-        path: 'franchises/:franchiseId',
-        loader: franchiseDetailLoader,
-        element: <FranchiseDetailPage />,
+        path: 'teams/:teamId',
+        loader: teamDetailLoader,
+        element: <TeamDetailPage />,
       },
       {
         path: 'players',

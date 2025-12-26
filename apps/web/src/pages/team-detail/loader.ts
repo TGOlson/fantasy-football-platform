@@ -12,7 +12,6 @@ async function requireAuth() {
     const user = await trpcClient.auth.me.query();
     return user;
   } catch (_error) {
-    // Token invalid or expired
     localStorage.removeItem('auth_token');
     throw redirect('/login');
   }
@@ -21,27 +20,36 @@ async function requireAuth() {
 export async function loader({ params }: LoaderFunctionArgs) {
   await requireAuth();
 
+  const teamId = params.teamId!;
   const season = parseInt(params.year || new Date().getFullYear().toString());
 
-  const [league, franchise, lineup] = await Promise.all([
+  // Fetch all data in parallel using simple routers
+  const [team, franchise, leagueSeason] = await Promise.all([
+    trpcClient.teams.getById.query({ teamId }),
+    trpcClient.teams.getFranchise.query({ teamId }),
+    trpcClient.teams.getLeagueSeason.query({ teamId }),
+  ]);
+
+  // Fetch league and standings
+  const [league, standings] = await Promise.all([
     trpcClient.leagues.getBySlug.query({
       slug: params.leagueSlug!,
       season,
     }),
-    trpcClient.franchises.getById.query({
-      franchiseId: params.franchiseId!,
-      season,
-    }),
-    trpcClient.lineups.getByFranchiseWeek.query({
-      franchiseId: params.franchiseId!,
-      weekNumber: 1, // TODO: current week
-      season,
+    trpcClient.standings.getByLeagueSeason.query({
+      leagueSeasonId: leagueSeason.id,
     }),
   ]);
 
-  if (!league || !franchise || !lineup) {
-    throw new Response('Franchise or league not found', { status: 404 });
+  if (!team || !franchise || !league) {
+    throw new Response('Team not found', { status: 404 });
   }
 
-  return { franchise, settings: league.settings, lineup };
+  return {
+    team,
+    franchise,
+    leagueSeason,
+    settings: league.settings,
+    standings,
+  };
 }
