@@ -14,12 +14,9 @@ import {
 } from '@mantine/core';
 import { IconSearch, IconFilter } from '@tabler/icons-react';
 import { DataTable } from 'mantine-datatable';
-import {
-  PageHeader,
-  PlayerCell,
-  PositionBadge,
-  HistoricalBanner,
-} from '@/components/ui';
+import { PageHeader } from '@/components/ui/page-header';
+import { PlayerCell } from '@/components/ui/player-cell';
+import { PositionBadge } from '@/components/ui/position-badge';
 
 export function PlayersPage() {
   const navigate = useNavigate();
@@ -27,8 +24,7 @@ export function PlayersPage() {
     leagueSlug: string;
     year: string;
   }>();
-  const { league, leagueSeason, isHistoricalYear, mostRecentLeagueYear } =
-    useLeague();
+  const { league, leagueSeason } = useLeague();
 
   const [search, setSearch] = useState('');
   const [position, setPosition] = useState<string | null>(null);
@@ -43,13 +39,6 @@ export function PlayersPage() {
 
   return (
     <Stack gap="xl">
-      {isHistoricalYear && (
-        <HistoricalBanner
-          year={leagueSeason.year}
-          currentYearPath={`/${leagueSlug}/${mostRecentLeagueYear}/players`}
-        />
-      )}
-
       <PageHeader
         title="Players"
         subtitle="Browse and search NFL players"

@@ -16,7 +16,8 @@ import {
   Select,
 } from '@mantine/core';
 import { loader } from './loader';
-import { PageHeader, StatCard } from '@/components/ui';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
 
 export function LeagueDetailPage() {
   const { league } = useLoaderData() as Awaited<ReturnType<typeof loader>>;

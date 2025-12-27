@@ -6,6 +6,9 @@ export type LeagueLoaderData = {
     id: string;
     name: string;
     slug: string;
+    settings?: {
+      playoffTeams?: number;
+    } | null;
   };
   leagueSeason: {
     id: string;
@@ -58,6 +61,11 @@ export async function leagueLoader({ params }: LoaderFunctionArgs) {
       id: leagueData.id,
       name: leagueData.name,
       slug: leagueData.slug,
+      settings: leagueData.settings
+        ? {
+            playoffTeams: leagueData.settings.playoffTeams,
+          }
+        : null,
     },
     leagueSeason: {
       id: leagueData.activeSeason!.id,

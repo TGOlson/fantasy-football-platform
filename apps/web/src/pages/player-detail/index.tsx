@@ -15,12 +15,9 @@ import {
 } from '@mantine/core';
 import { DataTable } from 'mantine-datatable';
 import { ScoreBreakdown } from '@/components/score-breakdown';
-import {
-  PageHeader,
-  PositionBadge,
-  StatCard,
-  HistoricalBanner,
-} from '@/components/ui';
+import { PageHeader } from '@/components/ui/page-header';
+import { PositionBadge } from '@/components/ui/position-badge';
+import { StatCard } from '@/components/ui/stat-card';
 import { loader } from './loader';
 
 export function PlayerDetailPage() {
