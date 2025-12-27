@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, publicProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 import {
   players,
   playerSeasons,
@@ -13,13 +13,18 @@ import {
 
 export const playersRouter = router({
   // Get all players with filtering
-  list: publicProcedure
+  list: protectedProcedure
     .input(
       z.object({
+        // TODO: should take in league id and filter out positions not used by the league
         season: z.number().int(),
-        position: z.string().optional(),
-        team: z.string().optional(),
-        search: z.string().optional(),
+        filters: z
+          .object({
+            position: z.string().optional(),
+            team: z.string().optional(),
+            search: z.string().optional(),
+          })
+          .optional(),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -28,17 +33,18 @@ export const playersRouter = router({
       // Build where conditions dynamically
       const conditions = [eq(playerSeasons.season, input.season)];
 
-      if (input.position) {
-        conditions.push(eq(playerSeasons.position, input.position));
+      const filters = input.filters;
+      if (filters?.position) {
+        conditions.push(eq(playerSeasons.position, filters.position));
       }
 
-      if (input.team) {
-        conditions.push(eq(playerSeasons.nflTeam, input.team));
+      if (filters?.team) {
+        conditions.push(eq(playerSeasons.nflTeam, filters.team));
       }
 
-      if (input.search) {
+      if (filters?.search) {
         // Search by player name (case-insensitive)
-        conditions.push(like(players.name, `%${input.search}%`));
+        conditions.push(like(players.name, `%${filters.search}%`));
       }
 
       // Query with join to playerSeasons
@@ -60,7 +66,7 @@ export const playersRouter = router({
     }),
 
   // Get single player by ID with season data
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -98,7 +104,7 @@ export const playersRouter = router({
     }),
 
   // Get weekly stats for a player
-  getStats: publicProcedure
+  getStats: protectedProcedure
     .input(
       z.object({
         id: z.string(),

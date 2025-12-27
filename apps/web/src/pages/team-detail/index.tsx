@@ -104,10 +104,7 @@ export function TeamDetailPage() {
                   boxShadow: '0 0 6px rgba(16, 185, 129, 0.5)',
                 }}
               />
-              <Text
-                size="xs"
-                style={{ color: '#6b7280', fontSize: 10 }}
-              >
+              <Text size="xs" style={{ color: '#6b7280', fontSize: 10 }}>
                 LIVE
               </Text>
             </Group>
@@ -538,7 +535,9 @@ export function TeamDetailPage() {
                 {starters.map((player, idx) => {
                   const slot = settings.rosterSlots?.[player.rosterSlotIndex];
                   const slotLabel =
-                    slot?.type === 'starter' ? slot.positions.join('/') : 'FLEX';
+                    slot?.type === 'starter'
+                      ? slot.positions.join('/')
+                      : 'FLEX';
                   const points = parseFloat(player.pointsScored || '0');
 
                   return (

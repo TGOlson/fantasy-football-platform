@@ -1,16 +1,11 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, publicProcedure, protectedProcedure } from '../trpc';
-import {
-  matchups,
-  leagueSeasons,
-  eq,
-  and,
-} from '@fantasy-platform/database/schema';
+import { router, protectedProcedure } from '../trpc';
+import { matchups, eq, and } from '@fantasy-platform/database/schema';
 
 export const matchupsRouter = router({
   // Get matchups for a league/week
-  getByLeagueWeek: publicProcedure
+  getByLeagueWeek: protectedProcedure
     .input(
       z.object({
         leagueId: z.string(),
@@ -73,7 +68,9 @@ export const matchupsRouter = router({
           // Get away franchise details (nullable for BYE weeks)
           let awayFranchise = null;
           let awayOwner = null;
-          let awayTeam = null;
+          let awayTeam: Awaited<
+            ReturnType<typeof db.query.teams.findFirst>
+          > | null = null;
 
           if (matchup.awayTeamId) {
             const awayTeamId = matchup.awayTeamId;
@@ -81,16 +78,19 @@ export const matchupsRouter = router({
               where: (teams, { eq }) => eq(teams.id, awayTeamId),
             });
 
-            awayFranchise = awayTeam
+            const awayTeamFranchiseId = awayTeam?.franchiseId;
+
+            awayFranchise = awayTeamFranchiseId
               ? await db.query.franchises.findFirst({
                   where: (franchises, { eq }) =>
-                    eq(franchises.id, awayTeam.franchiseId),
+                    eq(franchises.id, awayTeamFranchiseId),
                 })
               : null;
 
-            awayOwner = awayTeam
+            const awayTeamOwnerId = awayTeam?.ownerId;
+            awayOwner = awayTeamOwnerId
               ? await db.query.users.findFirst({
-                  where: (users, { eq }) => eq(users.id, awayTeam.ownerId),
+                  where: (users, { eq }) => eq(users.id, awayTeamOwnerId),
                   columns: { id: true, name: true },
                 })
               : null;
@@ -135,7 +135,7 @@ export const matchupsRouter = router({
     }),
 
   // Get matchup by ID with full details
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input, ctx }) => {
       const { db } = ctx;
@@ -191,9 +191,11 @@ export const matchupsRouter = router({
             })
           : null;
 
-        awayOwner = awayTeam
+        const awayTeamOwnerId = awayTeam?.ownerId;
+
+        awayOwner = awayTeamOwnerId
           ? await db.query.users.findFirst({
-              where: (users, { eq }) => eq(users.id, awayTeam.ownerId),
+              where: (users, { eq }) => eq(users.id, awayTeamOwnerId),
               columns: { id: true, name: true, email: true },
             })
           : null;
@@ -218,68 +220,5 @@ export const matchupsRouter = router({
             }
           : null,
       };
-    }),
-
-  // Update matchup scores (protected - commissioner can manually override)
-  updateScores: protectedProcedure
-    .input(
-      z.object({
-        matchupId: z.string(),
-        homeScore: z.number().optional(),
-        awayScore: z.number().optional(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      const { db } = ctx;
-
-      // Get matchup with league info
-      const [matchup] = await db
-        .select({
-          id: matchups.id,
-          leagueSeasonId: matchups.leagueSeasonId,
-          leagueId: leagueSeasons.leagueId,
-          commissionerId: leagueSeasons.commissionerId,
-        })
-        .from(matchups)
-        .innerJoin(leagueSeasons, eq(matchups.leagueSeasonId, leagueSeasons.id))
-        .where(eq(matchups.id, input.matchupId))
-        .limit(1);
-
-      if (!matchup) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Matchup not found',
-        });
-      }
-
-      // Verify commissioner
-      if (matchup.commissionerId !== ctx.user.userId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Only the commissioner can update matchup scores',
-        });
-      }
-
-      // Update scores
-      const updateData: {
-        updatedAt: Date;
-        homeScore?: string;
-        awayScore?: string;
-      } = { updatedAt: new Date() };
-
-      if (input.homeScore !== undefined) {
-        updateData.homeScore = input.homeScore.toString();
-      }
-      if (input.awayScore !== undefined) {
-        updateData.awayScore = input.awayScore.toString();
-      }
-
-      const [updated] = await db
-        .update(matchups)
-        .set(updateData)
-        .where(eq(matchups.id, input.matchupId))
-        .returning();
-
-      return updated;
     }),
 });

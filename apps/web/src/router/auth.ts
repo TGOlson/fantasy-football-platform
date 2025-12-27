@@ -1,7 +1,7 @@
 import { redirect } from 'react-router-dom';
 import { trpcClient } from '@/lib/trpc-client';
 
-async function requireAuth() {
+export async function requireAuth() {
   const token = localStorage.getItem('auth_token');
 
   if (!token) {
@@ -16,9 +16,4 @@ async function requireAuth() {
     localStorage.removeItem('auth_token');
     throw redirect('/login');
   }
-}
-
-export async function loader() {
-  await requireAuth();
-  return null;
 }

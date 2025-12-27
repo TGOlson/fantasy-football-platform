@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, publicProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 
 export const teamsRouter = router({
   // Get team by ID (simple, no nested entities)
-  getById: publicProcedure
+  getById: protectedProcedure
     .input(z.object({ teamId: z.string() }))
     .query(async ({ input, ctx }) => {
       const { db } = ctx;
@@ -24,7 +24,7 @@ export const teamsRouter = router({
     }),
 
   // Get franchise for a team
-  getFranchise: publicProcedure
+  getFranchise: protectedProcedure
     .input(z.object({ teamId: z.string() }))
     .query(async ({ input, ctx }) => {
       const { db } = ctx;
@@ -55,7 +55,7 @@ export const teamsRouter = router({
     }),
 
   // Get league season for a team
-  getLeagueSeason: publicProcedure
+  getLeagueSeason: protectedProcedure
     .input(z.object({ teamId: z.string() }))
     .query(async ({ input, ctx }) => {
       const { db } = ctx;
@@ -87,7 +87,7 @@ export const teamsRouter = router({
     }),
 
   // Get current matchup for a team
-  getCurrentMatchup: publicProcedure
+  getCurrentMatchup: protectedProcedure
     .input(z.object({ teamId: z.string(), weekNumber: z.number().int() }))
     .query(async ({ input, ctx }) => {
       const { db } = ctx;

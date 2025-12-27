@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { trpc } from '../hooks/trpc';
 import { useAuth } from './auth-provider';
 import { Center, Loader, Text, Stack } from '@mantine/core';
+import { requireAuth } from '@/router/auth';
 
 type LeagueContextValue = {
   league: {

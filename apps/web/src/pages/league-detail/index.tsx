@@ -203,7 +203,11 @@ export function LeagueDetailPage() {
                     <Paper
                       key={franchise.id}
                       component={teamId ? Link : 'div'}
-                      to={teamId ? `/${leagueSlug}/${year}/teams/${teamId}` : undefined}
+                      to={
+                        teamId
+                          ? `/${leagueSlug}/${year}/teams/${teamId}`
+                          : undefined
+                      }
                       withBorder
                       p="md"
                       radius="md"
