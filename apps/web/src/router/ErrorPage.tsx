@@ -1,6 +1,5 @@
 import { useRouteError, isRouteErrorResponse, Link } from 'react-router-dom';
-import { AppLayout } from '@/components/layouts/app-layout';
-import { Stack, Title, Text, Button, Paper } from '@mantine/core';
+import { Stack, Title, Text, Button, Paper, Center } from '@mantine/core';
 
 export function ErrorPage() {
   const error = useRouteError();
@@ -22,20 +21,18 @@ export function ErrorPage() {
   }
 
   return (
-    <AppLayout>
-      <Stack align="center" gap="md" py={60}>
-        <Paper withBorder p="xl" radius="md" maw={500} w="100%">
-          <Stack gap="md" align="center">
-            <Title order={2}>{title}</Title>
-            <Text c="dimmed" ta="center">
-              {message}
-            </Text>
-            <Button component={Link} to="/" variant="light">
-              Go Home
-            </Button>
-          </Stack>
-        </Paper>
-      </Stack>
-    </AppLayout>
+    <Center mt={80}>
+      <Paper withBorder p="xl" radius="md" maw={500} w="100%">
+        <Stack gap="md" align="center">
+          <Title order={2}>{title}</Title>
+          <Text c="dimmed" ta="center">
+            {message}
+          </Text>
+          <Button component={Link} to="/" variant="light">
+            Go Home
+          </Button>
+        </Stack>
+      </Paper>
+    </Center>
   );
 }

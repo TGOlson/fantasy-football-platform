@@ -1,6 +1,5 @@
 import { useLoaderData, useParams } from 'react-router-dom';
 import { useState } from 'react';
-import { AppLayout } from '@/components/layouts/app-layout';
 import { useLeague } from '@/providers/league-provider';
 import { trpc } from '@/hooks/trpc';
 import {
@@ -31,8 +30,7 @@ export function PlayerDetailPage() {
     year: string;
     playerId: string;
   }>();
-  const { league, leagueSeason, isHistoricalYear, mostRecentLeagueYear } =
-    useLeague();
+  const { league, leagueSeason } = useLeague();
 
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
 
@@ -91,15 +89,8 @@ export function PlayerDetailPage() {
   }
 
   return (
-    <AppLayout>
+    <>
       <Stack gap="lg">
-        {isHistoricalYear && (
-          <HistoricalBanner
-            year={leagueSeason.year}
-            currentYearPath={`/${leagueSlug}/${mostRecentLeagueYear}/players/${playerId}`}
-          />
-        )}
-
         {/* Header */}
         <PageHeader
           title={player.name}
@@ -327,6 +318,6 @@ export function PlayerDetailPage() {
           </Text>
         )}
       </Modal>
-    </AppLayout>
+    </>
   );
 }

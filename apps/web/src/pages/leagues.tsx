@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { AppLayout } from '@/components/layouts/app-layout';
 import { trpc } from '@/hooks/trpc';
 import {
   Button,
@@ -16,7 +15,7 @@ export function LeaguesPage() {
   const { data: leagues, isLoading } = trpc.leagues.list.useQuery();
 
   return (
-    <AppLayout>
+    <>
       <Group justify="space-between" mb="xl">
         <div>
           <Title order={1} mb="xs">
@@ -85,6 +84,6 @@ export function LeaguesPage() {
           </Stack>
         </Paper>
       )}
-    </AppLayout>
+    </>
   );
 }
