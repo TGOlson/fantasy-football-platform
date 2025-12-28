@@ -35,14 +35,29 @@ export type AuthPayload = {
   user: User;
 };
 
+export type Franchise = {
+  __typename?: 'Franchise';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  league: League;
+  name: Scalars['String']['output'];
+  teams: Array<Team>;
+};
+
 export type League = {
   __typename?: 'League';
   createdAt: Scalars['DateTime']['output'];
   currentSeason?: Maybe<LeagueSeason>;
+  franchises: Array<Franchise>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  season?: Maybe<LeagueSeason>;
   seasons: Array<LeagueSeason>;
   slug: Scalars['String']['output'];
+};
+
+export type LeagueSeasonArgs = {
+  year: Scalars['Int']['input'];
 };
 
 export type LeagueSeason = {
@@ -52,6 +67,7 @@ export type LeagueSeason = {
   id: Scalars['ID']['output'];
   league: League;
   status: SeasonStatus;
+  teams: Array<Team>;
   year: Scalars['Int']['output'];
 };
 
@@ -74,8 +90,13 @@ export type MutationRegisterArgs = {
 
 export type Query = {
   __typename?: 'Query';
+  league?: Maybe<League>;
   me: User;
   myLeagues: Array<League>;
+};
+
+export type QueryLeagueArgs = {
+  slug: Scalars['String']['input'];
 };
 
 export enum SeasonStatus {
@@ -84,6 +105,20 @@ export enum SeasonStatus {
   Completed = 'COMPLETED',
   Setup = 'SETUP',
 }
+
+export type Team = {
+  __typename?: 'Team';
+  createdAt: Scalars['DateTime']['output'];
+  franchise: Franchise;
+  id: Scalars['ID']['output'];
+  leagueSeason: LeagueSeason;
+  losses: Scalars['Int']['output'];
+  owner: User;
+  pointsAgainst: Scalars['Float']['output'];
+  pointsFor: Scalars['Float']['output'];
+  ties: Scalars['Int']['output'];
+  wins: Scalars['Int']['output'];
+};
 
 export type User = {
   __typename?: 'User';
@@ -152,6 +187,38 @@ export type MyLeaguesQuery = {
       status: SeasonStatus;
     } | null;
   }>;
+};
+
+export type LeaguePageQueryVariables = Exact<{
+  slug: Scalars['String']['input'];
+  year: Scalars['Int']['input'];
+}>;
+
+export type LeaguePageQuery = {
+  __typename?: 'Query';
+  league?: {
+    __typename?: 'League';
+    id: string;
+    name: string;
+    slug: string;
+    season?: {
+      __typename?: 'LeagueSeason';
+      id: string;
+      year: number;
+      status: SeasonStatus;
+      teams: Array<{
+        __typename?: 'Team';
+        id: string;
+        wins: number;
+        losses: number;
+        ties: number;
+        pointsFor: number;
+        pointsAgainst: number;
+        franchise: { __typename?: 'Franchise'; id: string; name: string };
+        owner: { __typename?: 'User'; id: string; name: string; email: string };
+      }>;
+    } | null;
+  } | null;
 };
 
 export type MeQueryVariables = Exact<{ [key: string]: never }>;
@@ -408,6 +475,160 @@ export const MyLeaguesDocument = {
     },
   ],
 } as unknown as DocumentNode<MyLeaguesQuery, MyLeaguesQueryVariables>;
+export const LeaguePageDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'LeaguePage' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'slug' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'String' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'year' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'league' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'slug' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'slug' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'name' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'slug' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'season' },
+                  arguments: [
+                    {
+                      kind: 'Argument',
+                      name: { kind: 'Name', value: 'year' },
+                      value: {
+                        kind: 'Variable',
+                        name: { kind: 'Name', value: 'year' },
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'year' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'status' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'teams' },
+                        selectionSet: {
+                          kind: 'SelectionSet',
+                          selections: [
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'id' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'wins' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'losses' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'ties' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'pointsFor' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'pointsAgainst' },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'franchise' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'id' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'name' },
+                                  },
+                                ],
+                              },
+                            },
+                            {
+                              kind: 'Field',
+                              name: { kind: 'Name', value: 'owner' },
+                              selectionSet: {
+                                kind: 'SelectionSet',
+                                selections: [
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'id' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'name' },
+                                  },
+                                  {
+                                    kind: 'Field',
+                                    name: { kind: 'Name', value: 'email' },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<LeaguePageQuery, LeaguePageQueryVariables>;
 export const MeDocument = {
   kind: 'Document',
   definitions: [

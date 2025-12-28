@@ -11,3 +11,33 @@ query MyLeagues {
     }
   }
 }
+
+query LeaguePage($slug: String!, $year: Int!) {
+  league(slug: $slug) {
+    id
+    name
+    slug
+    season(year: $year) {
+      id
+      year
+      status
+      teams {
+        id
+        wins
+        losses
+        ties
+        pointsFor
+        pointsAgainst
+        franchise {
+          id
+          name
+        }
+        owner {
+          id
+          name
+          email
+        }
+      }
+    }
+  }
+}

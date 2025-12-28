@@ -2,11 +2,11 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { LoginPage } from '@/pages/login';
 import { RegisterPage } from '@/pages/register';
 import { DashboardPage } from '@/pages/dashboard';
+import { LeaguePage } from '@/pages/league';
 import { ErrorPage } from '@/error-page';
 import { RootLayout, GuestRoute, ProtectedRoute } from '@/route-guards';
 import { AppLayout } from '@/app-layout';
 import { rootLoader } from '@/root-loader';
-import { Text } from '@mantine/core';
 
 export const router = createBrowserRouter([
   {
@@ -53,7 +53,7 @@ export const router = createBrowserRouter([
                   // League routes (require league context)
                   {
                     path: '/:leagueSlug/:year',
-                    element: <Text>League page</Text>,
+                    element: <LeaguePage />,
                   },
                 ],
               },

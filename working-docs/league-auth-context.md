@@ -3,6 +3,7 @@
 ## Overview
 
 95% of queries happen within a league context. Instead of filtering every query, we:
+
 1. Require `leagueId` parameter on most queries
 2. Check access once at the league level
 3. All nested data within that league is accessible (no further auth)
@@ -18,6 +19,7 @@
 ## Files to Update
 
 ### 1. Create Auth Helper
+
 **File:** `apps/api/src/lib/league-auth.ts`
 
 ```typescript
@@ -31,8 +33,8 @@ export async function canAccessLeague(
   const team = await prisma.team.findFirst({
     where: {
       ownerId: userId,
-      franchise: { leagueId }
-    }
+      franchise: { leagueId },
+    },
   });
   return !!team;
 }
@@ -50,6 +52,7 @@ export async function requireLeagueAccess(
 ```
 
 ### 2. Update League Schema
+
 **File:** `apps/api/src/graphql/schema/league.ts`
 
 ```typescript
@@ -60,7 +63,7 @@ builder.queryField('league', (t) =>
   t.prismaField({
     type: 'League',
     args: {
-      id: t.arg.id({ required: true })
+      id: t.arg.id({ required: true }),
     },
     authScopes: { loggedIn: true },
     resolve: async (query, root, args, ctx) => {
@@ -70,9 +73,9 @@ builder.queryField('league', (t) =>
       // No filtering needed - user is authorized
       return ctx.prisma.league.findUniqueOrThrow({
         ...query,
-        where: { id: args.id }
+        where: { id: args.id },
       });
-    }
+    },
   })
 );
 
@@ -84,14 +87,16 @@ builder.queryField('myLeagues', (t) =>
     resolve: async (query, root, args, ctx) => {
       const userTeams = await ctx.prisma.team.findMany({
         where: { ownerId: ctx.user.userId },
-        include: { franchise: true }
+        include: { franchise: true },
       });
-      const leagueIds = [...new Set(userTeams.map(t => t.franchise.leagueId))];
+      const leagueIds = [
+        ...new Set(userTeams.map((t) => t.franchise.leagueId)),
+      ];
       return ctx.prisma.league.findMany({
         ...query,
-        where: { id: { in: leagueIds } }
+        where: { id: { in: leagueIds } },
       });
-    }
+    },
   })
 );
 
@@ -114,16 +119,17 @@ builder.prismaObject('League', {
         return ctx.prisma.team.findFirst({
           where: {
             ownerId: ctx.user.userId,
-            franchise: { leagueId: league.id }
-          }
+            franchise: { leagueId: league.id },
+          },
         });
-      }
-    })
-  })
+      },
+    }),
+  }),
 });
 ```
 
 ### 3. Update Team Schema (if exists)
+
 **File:** `apps/api/src/graphql/schema/team.ts`
 
 ```typescript
@@ -140,11 +146,12 @@ builder.prismaObject('Team', {
     franchise: t.relation('franchise'),
     roster: t.relation('roster'),
     // etc.
-  })
+  }),
 });
 ```
 
 ### 4. Update Client GraphQL Queries
+
 **File:** `apps/web/src/graphql/leagues.graphql`
 
 ```graphql
@@ -199,6 +206,7 @@ query LeaguePage($leagueId: ID!) {
 ```
 
 ### 5. Update Dashboard Page
+
 **File:** `apps/web/src/pages/dashboard.tsx`
 
 ```typescript
@@ -230,13 +238,31 @@ export function DashboardPage() {
 
 ```graphql
 # User's leagues (custom filtering)
-query { myLeagues { id name } }
+query {
+  myLeagues {
+    id
+    name
+  }
+}
 
 # League-scoped (auth once, see everything)
-query { league(id: "123") { teams { roster { players } } } }
+query {
+  league(id: "123") {
+    teams {
+      roster {
+        players
+      }
+    }
+  }
+}
 
 # Current user (edge case)
-query { me { id email } }
+query {
+  me {
+    id
+    email
+  }
+}
 ```
 
 ### ❌ Not Exposed
@@ -265,7 +291,7 @@ builder.mutationField('updateRoster', (t) =>
     resolve: async (root, args, ctx) => {
       // Check ownership
       const team = await ctx.prisma.team.findUniqueOrThrow({
-        where: { id: args.teamId }
+        where: { id: args.teamId },
       });
 
       if (team.ownerId !== ctx.user.userId) {
@@ -273,7 +299,7 @@ builder.mutationField('updateRoster', (t) =>
       }
 
       // Proceed with update
-    }
+    },
   })
 );
 ```
@@ -300,6 +326,7 @@ model League {
 ```
 
 Then update auth:
+
 ```typescript
 export async function canAccessLeague(prisma, userId, leagueId) {
   const league = await prisma.league.findUnique({ where: { id: leagueId } });
