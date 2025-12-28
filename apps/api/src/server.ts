@@ -1,9 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { createExpressMiddleware } from '@trpc/server/adapters/express';
-import { appRouter } from './trpc/router';
-import { createContext } from './trpc/context';
+import { createYoga } from 'graphql-yoga';
+import { schema } from './graphql/schema';
+import { prisma } from './graphql/builder';
+import { verifyToken } from './lib/auth';
+import type { Context } from './graphql/builder';
 
 dotenv.config();
 
@@ -34,20 +36,39 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// tRPC endpoint
-app.use(
-  '/trpc',
-  createExpressMiddleware({
-    router: appRouter,
-    createContext,
-    onError: ({ path, error }) => {
-      console.error(`\x1b[31m[tRPC Error]\x1b[0m ${path}: ${error.message}`);
-      if (error.cause) {
-        console.error('  Cause:', error.cause);
+// GraphQL endpoint
+const yoga = createYoga<Context>({
+  schema,
+  context: ({ request }) => {
+    // Extract and verify JWT token from Authorization header
+    const authHeader = request.headers.get('authorization');
+    let user: { userId: string; email: string } | null = null;
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const decoded = verifyToken(token);
+      if (decoded) {
+        user = decoded;
       }
-    },
-  })
-);
+    }
+
+    return {
+      prisma,
+      user,
+    };
+  },
+  graphiql: {
+    title: 'Fantasy Platform GraphQL API',
+  },
+  logging: {
+    debug: (...args) => console.log('[GraphQL Debug]', ...args),
+    info: (...args) => console.log('[GraphQL Info]', ...args),
+    warn: (...args) => console.warn('[GraphQL Warn]', ...args),
+    error: (...args) => console.error('\x1b[31m[GraphQL Error]\x1b[0m', ...args),
+  },
+});
+
+app.use('/graphql', yoga);
 
 // Error handling middleware
 app.use(
@@ -65,5 +86,6 @@ app.use(
 
 app.listen(PORT, () => {
   console.log(`🚀 API server running on http://localhost:${PORT}`);
-  console.log(`📡 tRPC endpoint: http://localhost:${PORT}/trpc`);
+  console.log(`📡 GraphQL endpoint: http://localhost:${PORT}/graphql`);
+  console.log(`🎮 GraphiQL playground: http://localhost:${PORT}/graphql`);
 });

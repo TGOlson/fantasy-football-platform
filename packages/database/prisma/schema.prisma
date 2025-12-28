@@ -1,0 +1,329 @@
+// Prisma schema for Fantasy Platform
+// Converted from Drizzle with improvements
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum SeasonStatus {
+  SETUP
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum Position {
+  QB
+  RB
+  WR
+  TE
+  K
+  DEF
+}
+
+enum PlayerStatus {
+  ACTIVE
+  INJURED
+  SUSPENDED
+  INACTIVE
+}
+
+enum TransactionType {
+  ADD
+  DROP
+  TRADE
+  WAIVER
+  DRAFT
+}
+
+// =============================================================================
+// MODELS
+// =============================================================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  isSiteAdmin  Boolean  @default(false) @map("is_site_admin")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  commissionedSeasons LeagueSeason[]
+  teams               Team[]
+
+  @@map("users")
+}
+
+model League {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  franchises Franchise[]
+  seasons    LeagueSeason[]
+
+  @@map("leagues")
+}
+
+model Franchise {
+  id        String   @id @default(uuid())
+  leagueId  String   @map("league_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  teams  Team[]
+
+  @@index([leagueId])
+  @@map("franchises")
+}
+
+model LeagueSeason {
+  id              String       @id @default(uuid())
+  leagueId        String       @map("league_id")
+  year            Int
+  status          SeasonStatus
+  commissionerId  String       @map("commissioner_id")
+  settingsId      String       @unique @map("settings_id")
+  createdAt       DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  league       League            @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  commissioner User              @relation(fields: [commissionerId], references: [id], onDelete: Cascade)
+  settings     LeagueSettings    @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+  teams        Team[]
+  matchups     Matchup[]
+  transactions RosterTransaction[]
+
+  @@unique([leagueId, year])
+  @@index([leagueId])
+  @@index([year])
+  @@map("league_seasons")
+}
+
+model LeagueSettings {
+  id                 String   @id @default(uuid())
+  scoringRules       Json     @map("scoring_rules")
+  rosterSlots        Json     @map("roster_slots")
+  playoffTeams       Int      @map("playoff_teams")
+  playoffStartWeek   Int      @map("playoff_start_week")
+  tradeDeadlineWeek  Int      @map("trade_deadline_week")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  leagueSeason LeagueSeason?
+
+  @@map("league_settings")
+}
+
+model Team {
+  id             String   @id @default(uuid())
+  franchiseId    String   @map("franchise_id")
+  leagueSeasonId String   @map("league_season_id")
+  ownerId        String   @map("owner_id")
+  // Cached standings
+  wins           Int      @default(0)
+  losses         Int      @default(0)
+  ties           Int      @default(0)
+  pointsFor      Decimal  @default(0) @map("points_for") @db.Decimal(10, 2)
+  pointsAgainst  Decimal  @default(0) @map("points_against") @db.Decimal(10, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  franchise        Franchise           @relation(fields: [franchiseId], references: [id], onDelete: Cascade)
+  leagueSeason     LeagueSeason        @relation(fields: [leagueSeasonId], references: [id], onDelete: Cascade)
+  owner            User                @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  weeklyLineups    WeeklyLineup[]
+  homeMatchups     Matchup[]           @relation("HomeTeam")
+  awayMatchups     Matchup[]           @relation("AwayTeam")
+  transactions     RosterTransaction[]
+
+  @@unique([franchiseId, leagueSeasonId])
+  @@index([leagueSeasonId])
+  @@index([ownerId])
+  @@map("teams")
+}
+
+model Matchup {
+  id             String    @id @default(uuid())
+  leagueSeasonId String    @map("league_season_id")
+  weekNumber     Int       @map("week_number")
+  homeTeamId     String    @map("home_team_id")
+  awayTeamId     String?   @map("away_team_id") // Nullable for BYE weeks
+  homeScore      Decimal   @default(0) @map("home_score") @db.Decimal(10, 2)
+  awayScore      Decimal   @default(0) @map("away_score") @db.Decimal(10, 2)
+  isPlayoff      Boolean   @map("is_playoff")
+  completedAt    DateTime? @map("completed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  leagueSeason LeagueSeason @relation(fields: [leagueSeasonId], references: [id], onDelete: Cascade)
+  homeTeam     Team         @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: Cascade)
+  awayTeam     Team?        @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: Cascade)
+
+  @@index([leagueSeasonId, weekNumber])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@map("matchups")
+}
+
+model WeeklyLineup {
+  id              String   @id @default(uuid())
+  teamId          String   @map("team_id")
+  weekNumber      Int      @map("week_number")
+  playerId        String   @map("player_id")
+  rosterSlotIndex Int      @map("roster_slot_index")
+  pointsScored    Decimal  @default(0) @map("points_scored") @db.Decimal(10, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, weekNumber, playerId])
+  @@index([teamId, weekNumber])
+  @@map("weekly_lineups")
+}
+
+model Player {
+  id        String   @id @default(uuid())
+  nflId     String   @unique @map("nfl_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  seasons          PlayerSeason[]
+  weeklyStats      PlayerWeeklyStat[]
+  weeklyProjections PlayerWeeklyProjection[]
+  weeklyLineups    WeeklyLineup[]
+  transactions     RosterTransaction[]
+
+  @@map("players")
+}
+
+model PlayerSeason {
+  id           String       @id @default(uuid())
+  playerId     String       @map("player_id")
+  season       Int
+  nflTeam      String       @map("nfl_team")
+  positions    Position[]   // Array to support multi-position eligibility (e.g., RB/WR, QB/TE)
+  status       PlayerStatus
+  jerseyNumber Int?         @map("jersey_number")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, season])
+  @@index([season])
+  @@map("player_seasons")
+}
+
+model PlayerWeeklyStat {
+  id                  String   @id @default(uuid())
+  playerId            String   @map("player_id")
+  season              Int
+  weekNumber          Int      @map("week_number")
+  // Passing
+  passingYards        Int      @default(0) @map("passing_yards")
+  passingTds          Int      @default(0) @map("passing_tds")
+  passingInts         Int      @default(0) @map("passing_ints")
+  completions         Int      @default(0)
+  attempts            Int      @default(0)
+  // Rushing
+  rushingYards        Int      @default(0) @map("rushing_yards")
+  rushingTds          Int      @default(0) @map("rushing_tds")
+  rushingAttempts     Int      @default(0) @map("rushing_attempts")
+  // Receiving
+  receptions          Int      @default(0)
+  receivingYards      Int      @default(0) @map("receiving_yards")
+  receivingTds        Int      @default(0) @map("receiving_tds")
+  targets             Int      @default(0)
+  // Misc
+  fumblesLost         Int      @default(0) @map("fumbles_lost")
+  twoPointConversions Int      @default(0) @map("two_point_conversions")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, season, weekNumber])
+  @@index([season, weekNumber])
+  @@map("player_weekly_stats")
+}
+
+model PlayerWeeklyProjection {
+  id              String   @id @default(uuid())
+  playerId        String   @map("player_id")
+  season          Int
+  weekNumber      Int      @map("week_number")
+  projectedPoints Decimal  @map("projected_points") @db.Decimal(10, 2)
+  source          String
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, season, weekNumber, source])
+  @@index([season, weekNumber])
+  @@map("player_weekly_projections")
+}
+
+model NflGame {
+  id         String   @id @default(uuid())
+  season     Int
+  weekNumber Int      @map("week_number")
+  homeTeam   String   @map("home_team")
+  awayTeam   String   @map("away_team")
+  kickoffAt  DateTime @map("kickoff_at")
+  homeScore  Int      @default(0) @map("home_score")
+  awayScore  Int      @default(0) @map("away_score")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([season, weekNumber, homeTeam, awayTeam])
+  @@index([season, weekNumber])
+  @@map("nfl_games")
+}
+
+model RosterTransaction {
+  id             String          @id @default(uuid())
+  leagueSeasonId String          @map("league_season_id")
+  teamId         String          @map("team_id")
+  type           TransactionType
+  playerId       String          @map("player_id")
+  weekNumber     Int             @map("week_number")
+  details        Json?
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  // Relations
+  leagueSeason LeagueSeason @relation(fields: [leagueSeasonId], references: [id], onDelete: Cascade)
+  team         Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player       Player       @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([leagueSeasonId])
+  @@index([teamId])
+  @@index([weekNumber])
+  @@map("roster_transactions")
+}

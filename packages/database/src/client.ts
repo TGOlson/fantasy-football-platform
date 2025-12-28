@@ -1,26 +1,24 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import * as schema from './schema';
+import { PrismaClient, Prisma } from '@prisma/client';
 
-// Database client type - use this for typing db parameters
-export type DBClient = ReturnType<typeof drizzle<typeof schema>>;
+// Prisma client singleton
+// https://www.prisma.io/docs/guides/performance-and-optimization/connection-management#prevent-hot-reloading-from-creating-new-instances-of-prismaclient
 
-// Lazy singleton pattern - only creates connection when first called
-let dbInstance: DBClient | null = null;
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
-export function getDatabase(): DBClient {
-  if (dbInstance) {
-    return dbInstance;
-  }
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+  });
 
-  const connectionString = process.env.DATABASE_URL;
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
-  if (!connectionString) {
-    throw new Error('DATABASE_URL environment variable is not set');
-  }
+// Legacy alias for compatibility during migration
+export const getDatabase = () => prisma;
 
-  const client = postgres(connectionString);
-  dbInstance = drizzle(client, { schema });
+export type DBClient = PrismaClient;
 
-  return dbInstance;
-}
+// Export Prisma namespace for DMMF access
+export { Prisma };
