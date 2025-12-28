@@ -7,6 +7,7 @@ import { ErrorPage } from '@/error-page';
 import { RootLayout, GuestRoute, ProtectedRoute } from '@/route-guards';
 import { AppLayout } from '@/app-layout';
 import { rootLoader } from '@/root-loader';
+import { LeagueProvider } from '@/providers/league-provider';
 
 export const router = createBrowserRouter([
   {
@@ -53,7 +54,18 @@ export const router = createBrowserRouter([
                   // League routes (require league context)
                   {
                     path: '/:leagueSlug/:year',
-                    element: <LeaguePage />,
+                    element: (
+                      <LeagueProvider>
+                        <Outlet />
+                      </LeagueProvider>
+                    ),
+                    children: [
+                      {
+                        index: true,
+                        element: <LeaguePage />,
+                      },
+                      // Future routes: my-team, matchups, players
+                    ],
                   },
                 ],
               },

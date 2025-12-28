@@ -1,68 +1,8 @@
-import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import {
-  Title,
-  Text,
-  Table,
-  Skeleton,
-  Stack,
-  Paper,
-  Alert,
-} from '@mantine/core';
-import { graphqlClient } from '@/lib/graphql-client';
-import { LeaguePageDocument } from '@/generated/graphql';
+import { Title, Text, Table, Stack, Paper } from '@mantine/core';
+import { useLeagueContext } from '@/providers/league-provider';
 
 export function LeaguePage() {
-  const { leagueSlug, year } = useParams<{
-    leagueSlug: string;
-    year: string;
-  }>();
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['league', leagueSlug, year],
-    queryFn: () =>
-      graphqlClient.request(LeaguePageDocument, {
-        slug: leagueSlug!,
-        year: parseInt(year!, 10),
-      }),
-    enabled: !!leagueSlug && !!year,
-  });
-
-  if (isLoading) {
-    return (
-      <Stack gap="md">
-        <Skeleton height={40} width={300} />
-        <Skeleton height={400} />
-      </Stack>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert color="red" title="Error loading league">
-        {error instanceof Error ? error.message : 'Failed to load league'}
-      </Alert>
-    );
-  }
-
-  if (!data?.league) {
-    return (
-      <Alert color="yellow" title="League not found">
-        Could not find league "{leagueSlug}" for {year}
-      </Alert>
-    );
-  }
-
-  const { league } = data;
-  const season = league.season;
-
-  if (!season) {
-    return (
-      <Alert color="yellow" title="Season not found">
-        No season found for {league.name} in {year}
-      </Alert>
-    );
-  }
+  const { league, season } = useLeagueContext();
 
   // Sort teams by wins (desc), then points for (desc)
   const sortedTeams = [...season.teams].sort((a, b) => {
