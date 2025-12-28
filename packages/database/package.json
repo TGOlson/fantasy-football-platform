@@ -4,7 +4,7 @@
   "type": "module",
   "exports": {
     "./client": "./src/client.ts",
-    "./pothos-types": "./src/pothos-types.d.ts"
+    "./pothos-types": "./src/generated/pothos-types.d.ts"
   },
   "scripts": {
     "db:generate": "prisma generate",
@@ -19,14 +19,11 @@
     "@fantasy-platform/types": "workspace:*",
     "@prisma/client": "^6.19.1",
     "bcryptjs": "^2.4.3",
-    "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.36.4",
-    "postgres": "^3.4.5"
+    "dotenv": "^16.4.7"
   },
   "devDependencies": {
     "@pothos/plugin-prisma": "^4.14.1",
     "@types/node": "^24.10.4",
-    "drizzle-kit": "^0.28.1",
     "prisma": "^6.19.1",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"

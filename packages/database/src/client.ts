@@ -15,9 +15,6 @@ export const prisma =
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
-// Legacy alias for compatibility during migration
-export const getDatabase = () => prisma;
-
 export type DBClient = PrismaClient;
 
 // Export Prisma namespace for DMMF access

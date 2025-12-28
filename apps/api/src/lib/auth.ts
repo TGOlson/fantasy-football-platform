@@ -1,5 +1,5 @@
-import * as jwt from 'jsonwebtoken';
-import * as bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 // JWT token payload
 export type JwtPayload = {

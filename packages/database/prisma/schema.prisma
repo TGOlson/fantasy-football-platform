@@ -1,13 +1,10 @@
-// Prisma schema for Fantasy Platform
-// Converted from Drizzle with improvements
-
 generator client {
   provider = "prisma-client-js"
 }
 
 generator pothos {
   provider = "prisma-pothos-types"
-  output   = "../src/pothos-types.d.ts"
+  output   = "../src/generated/pothos-types.d.ts"
 }
 
 datasource db {

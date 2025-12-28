@@ -1,11 +1,14 @@
 import { Title, Text, Paper, Stack, Anchor } from '@mantine/core';
-import { Link, useRouteLoaderData } from 'react-router-dom';
-import { appLoader } from '@/router/app-loader';
+import { Link } from 'react-router-dom';
 
 export function DashboardPage() {
-  const { leagues } = useRouteLoaderData('app') as Awaited<
-    ReturnType<typeof appLoader>
-  >;
+  // TODO: actually load leagues
+  const leagues: {
+    id: string;
+    slug: string;
+    name: string;
+    currentSeason: { year: number };
+  }[] = [];
 
   return (
     <>

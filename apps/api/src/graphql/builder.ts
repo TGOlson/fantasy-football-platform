@@ -19,6 +19,7 @@ export const builder = new SchemaBuilder<{
   Context: Context;
   AuthScopes: AuthScopes;
   PrismaTypes: PrismaTypes;
+  DefaultFieldNullability: false;
   Scalars: {
     DateTime: {
       Input: Date;

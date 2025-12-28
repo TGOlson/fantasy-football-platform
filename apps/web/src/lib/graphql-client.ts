@@ -11,19 +11,29 @@ class AuthGraphQLClient {
     this.client = new GraphQLClient(GRAPHQL_ENDPOINT);
   }
 
-  async request<TResult, TVariables>(
+  async request<
+    TResult,
+    TVariables extends Record<string, unknown> = Record<string, never>,
+  >(
     document: TypedDocumentNode<TResult, TVariables>,
-    variables?: TVariables
+    ...[variables]: TVariables extends Record<string, never>
+      ? [variables?: TVariables]
+      : [variables: TVariables]
   ): Promise<TResult> {
     const token = localStorage.getItem('auth_token');
 
-    const headers: Record<string, string> = {};
+    // Set auth header before request
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      this.client.setHeader('Authorization', `Bearer ${token}`);
+    } else {
+      this.client.setHeader('Authorization', '');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.client.request(document as any, variables as any, headers);
+    // GraphQLClient.request has complex conditional overloads that are difficult
+    // to satisfy with our rest parameter. Type assertion is safe here because
+    // we're just passing through the exact same types.
+    // @ts-expect-error - Complex conditional types from graphql-request don't align with rest parameters
+    return this.client.request(document, variables);
   }
 }
 

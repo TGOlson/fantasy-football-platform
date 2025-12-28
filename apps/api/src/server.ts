@@ -2,9 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { createYoga } from 'graphql-yoga';
+import pinoHttp from 'pino-http';
 import { schema } from './graphql/schema';
 import { prisma } from './graphql/builder';
 import { verifyToken } from './lib/auth';
+import { logger } from './lib/logger';
 import type { Context } from './graphql/builder';
 
 dotenv.config();
@@ -16,20 +18,17 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Request logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    const status = res.statusCode;
-    const statusColor =
-      status >= 500 ? '\x1b[31m' : status >= 400 ? '\x1b[33m' : '\x1b[32m';
-    console.log(
-      `${statusColor}${status}\x1b[0m ${req.method} ${req.path} ${duration}ms`
-    );
-  });
-  next();
-});
+// Request logging
+app.use(
+  pinoHttp({
+    logger,
+    customLogLevel: (_req, res, err) => {
+      if (res.statusCode >= 500 || err) return 'error';
+      if (res.statusCode >= 400) return 'warn';
+      return 'info';
+    },
+  })
+);
 
 // Health check route (simple Express route)
 app.get('/health', (_req, res) => {
@@ -61,32 +60,36 @@ const yoga = createYoga<Context>({
     title: 'Fantasy Platform GraphQL API',
   },
   logging: {
-    debug: (...args) => console.log('[GraphQL Debug]', ...args),
-    info: (...args) => console.log('[GraphQL Info]', ...args),
-    warn: (...args) => console.warn('[GraphQL Warn]', ...args),
-    error: (...args) =>
-      console.error('\x1b[31m[GraphQL Error]\x1b[0m', ...args),
+    debug: (...args) => logger.debug({ context: 'graphql' }, ...args),
+    info: (...args) => logger.info({ context: 'graphql' }, ...args),
+    warn: (...args) => logger.warn({ context: 'graphql' }, ...args),
+    error: (...args) => logger.error({ context: 'graphql' }, ...args),
   },
 });
 
-app.use('/graphql', yoga);
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+app.use(yoga.graphqlEndpoint, yoga as any);
 
 // Error handling middleware
 app.use(
   (
     err: Error,
-    _req: express.Request,
+    req: express.Request,
     res: express.Response,
     _next: express.NextFunction
   ) => {
-    console.error('\x1b[31m[Express Error]\x1b[0m', err.message);
-    console.error(err.stack);
+    req.log.error({ err }, 'Express error');
     res.status(500).json({ error: 'Something went wrong!' });
   }
 );
 
 app.listen(PORT, () => {
-  console.log(`🚀 API server running on http://localhost:${PORT}`);
-  console.log(`📡 GraphQL endpoint: http://localhost:${PORT}/graphql`);
-  console.log(`🎮 GraphiQL playground: http://localhost:${PORT}/graphql`);
+  logger.info(
+    {
+      port: PORT,
+      graphql: `http://localhost:${PORT}/graphql`,
+      env: process.env.NODE_ENV || 'development',
+    },
+    'Server started'
+  );
 });

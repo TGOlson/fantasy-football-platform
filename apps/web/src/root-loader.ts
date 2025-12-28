@@ -1,5 +1,5 @@
 import { graphqlClient } from '@/lib/graphql-client';
-import { MeDocument } from '@/gql/graphql';
+import { MeDocument } from '@/generated/graphql';
 
 /**
  * Root loader - checks authentication state on app load.

@@ -16,28 +16,19 @@ Fantasy football platform for serious redraft leagues that have outgrown ESPN/Ya
 - Soon: Keepers, then IDP
 - Later: Full dynasty
 
+## Approach
+
+Act as product thinker, architect, and engineer—not just code executor.
+
+**Architecture:** If you see a better way to structure something, say so. Don't just make the current approach work—propose better alternatives when they exist.
+
+**Product thinking:** If a requested feature seems non-critical or there's a more valuable alternative, bring it up. Challenge assumptions. Suggest what might actually be more useful rather than just implementing what was asked.
+
+**Goal:** Make good decisions together, not just write code on command.
+
 ## Design Guidelines
 
-**Philosophy:** Data-dense, efficient, professional. Think Linear's polish + Sleeper's utility. Light mode only. Color communicates meaning, not decoration.
-
-**Visual Identity:**
-
-- Light mode with warm gray backgrounds, white cards with borders + subtle shadows
-- Semantic colors: green/teal (positive), red/coral (negative/alerts), amber (warnings), gray (neutral/disabled)
-- Primary color TBD—avoiding Yahoo's purple. Consider deeper blue or indigo.
-- High contrast: cards lift off backgrounds, headers distinct from rows, interactive elements obviously clickable
-- Dense layouts—minimize padding, maximize information
-
-**Motion:** Subtle, functional, 150-200ms transitions. Loading skeletons, not spinners. No decorative or bouncy animations.
-
-**Implementation:**
-
-- Design tokens (CSS variables/Mantine theme)—no hardcoded values
-- Extend Mantine's theme at theme level, not per-component
-- Build reusable primitives; consistency over customization
-- When in doubt, leave it out
-
-**Avoid:** Decorative color, playful elements, excessive whitespace, flat low-contrast layouts, one-off styles that should be tokens
+**Current approach:** Use default Mantine components in simple layouts. Just get everything into place. We'll improve design later—don't spend time on polish now.
 
 ## Code Style
 
@@ -48,26 +39,10 @@ Fantasy football platform for serious redraft leagues that have outgrown ESPN/Ya
 
 ### Database & API
 
-**Prisma queries:**
-
-- Use `prisma.table.findUnique()` or `findUniqueOrThrow()` for single records by unique field
-- Use `prisma.table.findFirst()` for single records by any criteria
-- Use `prisma.table.findMany()` with `include` or `select` for relations
-- Prisma handles relations automatically - use `include` to eagerly load
-
-**GraphQL schema (Pothos):**
-
-- Define types in `apps/api/src/graphql/schema/`
-- Use `builder.prismaObject()` for Prisma models
-- Use `t.relation()` for Prisma relations (Pothos handles queries automatically)
-- Use `t.prismaField()` for custom resolvers
-- Auth via `authScopes` option on fields/queries
-
-**GraphQL queries (Client):**
-
-- Write queries in `.graphql.ts` files using `graphql()` template tag
-- Run `pnpm codegen` to generate typed hooks
-- Import generated documents from `@/gql`
+- Stack: Prisma (ORM) + Pothos (GraphQL schema builder) + GraphQL Codegen (client types)
+- After schema changes: run `pnpm db:generate` then `pnpm codegen`
+- GraphQL schema in `apps/api/src/graphql/schema/`, client queries in `.graphql` files in `apps/web/src/graphql/`
+- Generated types go to `src/generated/` in each package (e.g., `apps/web/src/generated/graphql.ts`)
 
 ## Development Notes
 
@@ -84,7 +59,6 @@ Fantasy football platform for serious redraft leagues that have outgrown ESPN/Ya
 
 - **No re-exports.** Import from source files directly (e.g., `@fantasy-platform/types/player`). Use wildcard package exports so paths stay clean.
 - **Feature isolation.** Prefer adding new files over spreading changes across many files. If a feature requires changing 3+ files or core abstractions, discuss options first.
-- **Propose alternatives.** Product features and UX patterns are open to discussion—suggest better approaches when you see them.
 
 ## Reference Docs
 

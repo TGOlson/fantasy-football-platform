@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { useAuth } from '@/providers/auth-provider';
 import { graphqlClient } from '@/lib/graphql-client';
-import { LoginDocument } from '@/gql/graphql';
+import { LoginDocument } from '@/generated/graphql';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
