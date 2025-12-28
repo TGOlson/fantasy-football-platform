@@ -8,18 +8,18 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --project tsconfig.app.json --noEmit"
+    "typecheck": "tsc --project tsconfig.app.json --noEmit",
+    "codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
     "@fantasy-platform/types": "workspace:*",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "@mantine/core": "^7.15.3",
     "@mantine/form": "^7.15.3",
     "@mantine/hooks": "^7.15.3",
     "@mantine/notifications": "^7.15.3",
     "@tabler/icons-react": "^3.36.0",
     "@tanstack/react-query": "^5.62.11",
-    "@trpc/client": "^11.0.0",
-    "@trpc/react-query": "^11.0.0",
     "graphql": "^16.12.0",
     "graphql-request": "^7.4.0",
     "mantine-datatable": "^7.15.3",
@@ -30,7 +30,9 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@graphql-codegen/cli": "^6.1.0",
-    "@graphql-codegen/client-preset": "^5.2.2",
+    "@graphql-codegen/typed-document-node": "^6.1.5",
+    "@graphql-codegen/typescript": "^5.0.7",
+    "@graphql-codegen/typescript-operations": "^5.0.7",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
@@ -44,6 +46,6 @@
     "postcss-simple-vars": "^7.0.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4"
+    "vite": "^6.4.1"
   }
 }

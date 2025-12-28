@@ -1,4 +1,5 @@
-import { trpcClient } from '@/lib/trpc-client';
+import { graphqlClient } from '@/lib/graphql-client';
+import { MeDocument } from '@/gql/graphql';
 
 /**
  * Root loader - checks authentication state on app load.
@@ -18,8 +19,9 @@ export async function loader(): Promise<{
   }
 
   try {
-    const user = await trpcClient.auth.me.query();
-    return { user };
+    const { me } = await graphqlClient.request(MeDocument);
+
+    return { user: me };
   } catch (_error) {
     // Token invalid or expired
     localStorage.removeItem('auth_token');

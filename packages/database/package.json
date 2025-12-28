@@ -4,7 +4,7 @@
   "type": "module",
   "exports": {
     "./client": "./src/client.ts",
-    "./*": "./src/*.ts"
+    "./pothos-types": "./src/pothos-types.d.ts"
   },
   "scripts": {
     "db:generate": "prisma generate",
@@ -24,6 +24,7 @@
     "postgres": "^3.4.5"
   },
   "devDependencies": {
+    "@pothos/plugin-prisma": "^4.14.1",
     "@types/node": "^24.10.4",
     "drizzle-kit": "^0.28.1",
     "prisma": "^6.19.1",

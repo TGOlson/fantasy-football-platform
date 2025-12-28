@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import {
   TextInput,
   PasswordInput,
@@ -11,7 +12,8 @@ import {
   Alert,
 } from '@mantine/core';
 import { useAuth } from '@/providers/auth-provider';
-import { trpc } from '@/hooks/trpc';
+import { graphqlClient } from '@/lib/graphql-client';
+import { RegisterDocument } from '@/gql/graphql';
 
 export function RegisterPage() {
   const [name, setName] = useState('');
@@ -21,20 +23,31 @@ export function RegisterPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const registerMutation = trpc.auth.register.useMutation({
-    onSuccess: (data) => {
-      login(data.token, data.user);
-      navigate('/');
-    },
-    onError: (err) => {
-      setError(err.message);
+  const registerMutation = useMutation({
+    mutationFn: async (variables: {
+      name: string;
+      email: string;
+      password: string;
+    }) => {
+      return graphqlClient.request(RegisterDocument, variables);
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    registerMutation.mutate({ name, email, password });
+
+    try {
+      const data = await registerMutation.mutateAsync({
+        name,
+        email,
+        password,
+      });
+      login(data.register.token, data.register.user);
+      navigate('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed');
+    }
   };
 
   return (

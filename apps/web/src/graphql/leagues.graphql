@@ -1,0 +1,13 @@
+query MyLeagues {
+  myLeagues {
+    id
+    name
+    slug
+    createdAt
+    currentSeason {
+      id
+      year
+      status
+    }
+  }
+}

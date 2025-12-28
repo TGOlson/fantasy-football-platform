@@ -46,16 +46,35 @@ Fantasy football platform for serious redraft leagues that have outgrown ESPN/Ya
 - No over-engineering—only build what's needed now
 - Keep TODOs in `TODO.md` files (root or relevant sub-dir)
 
-### Database Queries
+### Database & API
 
-- Prefer `db.query.table.findFirst()` for single records (proper `T | undefined` typing)
-- Simple reads with relations: Use `db.query.table.findMany()` with `with` clause
-- Use SQL-like `db.select().from()` for joins, custom projections, and writes
+**Prisma queries:**
+
+- Use `prisma.table.findUnique()` or `findUniqueOrThrow()` for single records by unique field
+- Use `prisma.table.findFirst()` for single records by any criteria
+- Use `prisma.table.findMany()` with `include` or `select` for relations
+- Prisma handles relations automatically - use `include` to eagerly load
+
+**GraphQL schema (Pothos):**
+
+- Define types in `apps/api/src/graphql/schema/`
+- Use `builder.prismaObject()` for Prisma models
+- Use `t.relation()` for Prisma relations (Pothos handles queries automatically)
+- Use `t.prismaField()` for custom resolvers
+- Auth via `authScopes` option on fields/queries
+
+**GraphQL queries (Client):**
+
+- Write queries in `.graphql.ts` files using `graphql()` template tag
+- Run `pnpm codegen` to generate typed hooks
+- Import generated documents from `@/gql`
 
 ## Development Notes
 
 - Early stage: we can break things freely, no backwards compatibility concerns
 - No migrations needed yet—just `pnpm db:push`
+- After schema changes: run `pnpm db:generate` to update Prisma Client
+- After GraphQL schema changes: run `pnpm codegen` to update typed hooks
 - Don't run `pnpm` commands (eg. `dev`, `typecheck`)—ask the user to run these
 - **Testing:** Don't write tests unless asked. Can suggest tests conceptually.
 - **Ask first:** Before creating files outside existing patterns or major refactors. No need to ask for standard pattern implementations.

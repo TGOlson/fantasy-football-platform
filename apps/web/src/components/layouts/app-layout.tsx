@@ -1,11 +1,5 @@
 import { type ReactNode } from 'react';
-import {
-  Link,
-  useNavigate,
-  useLocation,
-  useParams,
-  useRouteLoaderData,
-} from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppShell,
   Text,
@@ -15,21 +9,13 @@ import {
   ActionIcon,
   NavLink,
   Divider,
-  Menu,
-  Button,
 } from '@mantine/core';
 import {
   IconTrophy,
   IconLogout,
   IconLayoutDashboard,
-  IconUsers,
-  IconUser,
-  IconSettings,
-  IconChevronDown,
 } from '@tabler/icons-react';
 import { useAuth } from '@/providers/auth-provider';
-import { useLeagueOptional } from '@/providers/league-provider';
-import { appLoader } from '@/router/app-loader';
 
 type AppLayoutProps = {
   children: ReactNode;
@@ -39,13 +25,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { leagueSlug, year } = useParams();
-  const leagueContext = useLeagueOptional();
-
-  // Get leagues from the app route loader
-  const { leagues } = useRouteLoaderData('app') as Awaited<
-    ReturnType<typeof appLoader>
-  >;
 
   const handleLogout = () => {
     logout();
@@ -53,15 +32,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   };
 
   const isActive = (path: string) => location.pathname === path;
-  const isActivePrefix = (prefix: string) =>
-    location.pathname.startsWith(prefix);
-
-  const leagueBase = leagueSlug && year ? `/${leagueSlug}/${year}` : null;
 
   return (
     <AppShell
       header={{ height: 60 }}
-      navbar={{ width: 200, breakpoint: 'sm' }}
+      navbar={{ width: 200, breakpoint: 'xs' }}
       padding="md"
     >
       <AppShell.Header>
@@ -83,85 +58,12 @@ export function AppLayout({ children }: AppLayoutProps) {
               leftSection={<IconLayoutDashboard size={18} />}
               active={isActive('/')}
             />
-
-            {leagueBase && (
-              <>
-                <Divider my="sm" />
-                <NavLink
-                  component={Link}
-                  to={leagueBase}
-                  label="League Home"
-                  leftSection={<IconTrophy size={18} />}
-                  active={isActive(leagueBase)}
-                />
-
-                {leagueContext?.myFranchise ? (
-                  <NavLink
-                    component={Link}
-                    to={`${leagueBase}/teams/${leagueContext.myFranchise.teamId}`}
-                    label="My Team"
-                    leftSection={<IconUser size={18} />}
-                    active={isActivePrefix(
-                      `${leagueBase}/teams/${leagueContext.myFranchise.teamId}`
-                    )}
-                  />
-                ) : (
-                  <NavLink
-                    label="My Team"
-                    leftSection={<IconUser size={18} />}
-                    disabled
-                  />
-                )}
-
-                <NavLink
-                  component={Link}
-                  to={`${leagueBase}/players`}
-                  label="Players"
-                  leftSection={<IconUsers size={18} />}
-                  active={isActivePrefix(`${leagueBase}/players`)}
-                />
-
-                <NavLink
-                  component={Link}
-                  to={`${leagueBase}/settings`}
-                  label="Settings"
-                  leftSection={<IconSettings size={18} />}
-                  active={isActive(`${leagueBase}/settings`)}
-                />
-              </>
-            )}
           </Stack>
         </AppShell.Section>
 
         <AppShell.Section>
           <Stack gap="xs">
             <Divider />
-            <Menu>
-              <Menu.Target>
-                <Button
-                  variant="light"
-                  fullWidth
-                  rightSection={<IconChevronDown size={16} />}
-                >
-                  {leagueContext?.league.name || 'Select League'}
-                </Button>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Label>Your Leagues</Menu.Label>
-                {leagues.map((league) => (
-                  <Menu.Item
-                    key={league.id}
-                    onClick={() =>
-                      navigate(
-                        `/${league.slug}/${league.currentSeason?.year || new Date().getFullYear()}`
-                      )
-                    }
-                  >
-                    {league.name}
-                  </Menu.Item>
-                ))}
-              </Menu.Dropdown>
-            </Menu>
 
             <Group gap="xs">
               <Avatar size="sm" color="violet">

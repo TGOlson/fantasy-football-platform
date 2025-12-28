@@ -64,7 +64,8 @@ const yoga = createYoga<Context>({
     debug: (...args) => console.log('[GraphQL Debug]', ...args),
     info: (...args) => console.log('[GraphQL Info]', ...args),
     warn: (...args) => console.warn('[GraphQL Warn]', ...args),
-    error: (...args) => console.error('\x1b[31m[GraphQL Error]\x1b[0m', ...args),
+    error: (...args) =>
+      console.error('\x1b[31m[GraphQL Error]\x1b[0m', ...args),
   },
 });
 

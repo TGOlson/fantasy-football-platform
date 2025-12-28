@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import {
   TextInput,
   PasswordInput,
@@ -11,7 +12,8 @@ import {
   Alert,
 } from '@mantine/core';
 import { useAuth } from '@/providers/auth-provider';
-import { trpc } from '@/hooks/trpc';
+import { graphqlClient } from '@/lib/graphql-client';
+import { LoginDocument } from '@/gql/graphql';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -20,20 +22,23 @@ export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: (data) => {
-      login(data.token, data.user);
-      navigate('/');
-    },
-    onError: (err) => {
-      setError(err.message);
+  const loginMutation = useMutation({
+    mutationFn: async (variables: { email: string; password: string }) => {
+      return graphqlClient.request(LoginDocument, variables);
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    loginMutation.mutate({ email, password });
+
+    try {
+      const data = await loginMutation.mutateAsync({ email, password });
+      login(data.login.token, data.login.user);
+      navigate('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    }
   };
 
   return (

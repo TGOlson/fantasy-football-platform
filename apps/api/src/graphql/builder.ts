@@ -3,6 +3,7 @@ import PrismaPlugin from '@pothos/plugin-prisma';
 import ScopeAuthPlugin from '@pothos/plugin-scope-auth';
 import { DateTimeResolver } from 'graphql-scalars';
 import { prisma, Prisma } from '@fantasy-platform/database/client';
+import type PrismaTypes from '@fantasy-platform/database/pothos-types';
 
 export type Context = {
   prisma: typeof prisma;
@@ -17,6 +18,7 @@ type AuthScopes = {
 export const builder = new SchemaBuilder<{
   Context: Context;
   AuthScopes: AuthScopes;
+  PrismaTypes: PrismaTypes;
   Scalars: {
     DateTime: {
       Input: Date;
@@ -25,6 +27,7 @@ export const builder = new SchemaBuilder<{
   };
 }>({
   plugins: [PrismaPlugin, ScopeAuthPlugin],
+  defaultFieldNullability: false,
   prisma: {
     client: prisma,
     dmmf: Prisma.dmmf,
@@ -42,6 +45,6 @@ builder.addScalarType('DateTime', DateTimeResolver, {});
 
 // Base types
 builder.queryType({});
-// builder.mutationType({}); // Add this back when we have mutations
+builder.mutationType({});
 
 export { prisma };
