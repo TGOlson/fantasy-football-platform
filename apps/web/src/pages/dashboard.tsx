@@ -1,14 +1,31 @@
-import { Title, Text, Paper, Stack, Anchor } from '@mantine/core';
+import { Title, Text, Paper, Stack, Anchor, Skeleton } from '@mantine/core';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { graphqlClient } from '@/lib/graphql-client';
+import { MyLeaguesDocument } from '@/generated/graphql';
 
 export function DashboardPage() {
-  // TODO: actually load leagues
-  const leagues: {
-    id: string;
-    slug: string;
-    name: string;
-    currentSeason: { year: number };
-  }[] = [];
+  const { data, isLoading } = useQuery({
+    queryKey: ['myLeagues'],
+    queryFn: () => graphqlClient.request(MyLeaguesDocument),
+  });
+
+  if (isLoading) {
+    return (
+      <>
+        <Title order={1} mb="md">
+          Your Leagues
+        </Title>
+        <Stack gap="md">
+          <Skeleton height={80} />
+          <Skeleton height={80} />
+          <Skeleton height={80} />
+        </Stack>
+      </>
+    );
+  }
+
+  const leagues = data?.myLeagues || [];
 
   return (
     <>
@@ -16,7 +33,7 @@ export function DashboardPage() {
         Your Leagues
       </Title>
 
-      {leagues && leagues.length > 0 ? (
+      {leagues.length > 0 ? (
         <Stack gap="md">
           {leagues.map((league) => (
             <Paper key={league.id} withBorder p="md">

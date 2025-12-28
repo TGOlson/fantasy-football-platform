@@ -5,7 +5,7 @@ import { MeDocument } from '@/generated/graphql';
  * Root loader - checks authentication state on app load.
  * This runs once when the app starts, providing initial user state.
  */
-export async function loader(): Promise<{
+export async function rootLoader(): Promise<{
   user: {
     id: string;
     email: string;

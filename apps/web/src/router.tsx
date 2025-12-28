@@ -5,7 +5,7 @@ import { DashboardPage } from '@/pages/dashboard';
 import { ErrorPage } from '@/error-page';
 import { RootLayout, GuestRoute, ProtectedRoute } from '@/route-guards';
 import { AppLayout } from '@/app-layout';
-import { loader as rootLoader } from '@/root-loader';
+import { rootLoader } from '@/root-loader';
 import { Text } from '@mantine/core';
 
 export const router = createBrowserRouter([

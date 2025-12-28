@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLoaderData } from 'react-router-dom';
 import { useAuth, AuthProvider } from '@/providers/auth-provider';
-import type { loader as rootLoader } from './root-loader';
+import type { rootLoader } from './root-loader';
 
 // Root layout - wraps entire app with auth provider
 export function RootLayout() {
