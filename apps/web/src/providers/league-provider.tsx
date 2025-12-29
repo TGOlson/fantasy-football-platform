@@ -97,6 +97,7 @@ export function LeagueProvider({ children }: LeagueProviderProps) {
   );
 }
 
+/* eslint-disable-next-line react-refresh/only-export-components */
 export function useLeagueContext() {
   const context = useContext(LeagueContext);
   if (!context) {

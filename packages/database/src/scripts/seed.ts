@@ -1,4 +1,5 @@
 import { prisma } from '../client';
+import { Position, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const CURRENT_YEAR = 2024;
@@ -63,7 +64,7 @@ const FIRST_NAMES = [
   'Stefon',
   'CeeDee',
   'Justin',
-  'Ja\'Marr',
+  "Ja'Marr",
   'Amon-Ra',
   'Travis',
   'Mark',
@@ -167,7 +168,14 @@ async function seed() {
   console.log('🏈 Creating NFL players...');
   const players = [];
   for (let i = 0; i < 100; i++) {
-    const position = randomElement(['QB', 'RB', 'WR', 'TE', 'K', 'DEF']);
+    const position = randomElement([
+      Position.QB,
+      Position.RB,
+      Position.WR,
+      Position.TE,
+      Position.K,
+      Position.DEF,
+    ]);
     const player = await prisma.player.create({
       data: {
         nflId: `nfl-player-${i}`,
@@ -189,13 +197,27 @@ async function seed() {
 
     // Create weekly stats for 4 weeks
     for (let week = 1; week <= 4; week++) {
-      const stats: any = {
-        playerId: player.id,
+      const stats: Prisma.PlayerWeeklyStatCreateInput = {
+        player: { connect: { id: player.id } },
         season: CURRENT_YEAR,
         weekNumber: week,
+        passingYards: 0,
+        passingTds: 0,
+        passingInts: 0,
+        completions: 0,
+        attempts: 0,
+        rushingYards: 0,
+        rushingTds: 0,
+        rushingAttempts: 0,
+        receptions: 0,
+        receivingYards: 0,
+        receivingTds: 0,
+        targets: 0,
+        fumblesLost: 0,
+        twoPointConversions: 0,
       };
 
-      if (position === 'QB') {
+      if (position === Position.QB) {
         stats.passingYards = randomInt(150, 400);
         stats.passingTds = randomInt(0, 4);
         stats.passingInts = randomInt(0, 2);
@@ -203,14 +225,14 @@ async function seed() {
         stats.attempts = randomInt(25, 45);
         stats.rushingYards = randomInt(0, 50);
         stats.rushingTds = randomInt(0, 1);
-      } else if (position === 'RB') {
+      } else if (position === Position.RB) {
         stats.rushingYards = randomInt(30, 150);
         stats.rushingTds = randomInt(0, 2);
         stats.rushingAttempts = randomInt(10, 25);
         stats.receptions = randomInt(0, 8);
         stats.receivingYards = randomInt(0, 80);
         stats.receivingTds = randomInt(0, 1);
-      } else if (position === 'WR' || position === 'TE') {
+      } else if (position === Position.WR || position === Position.TE) {
         stats.receptions = randomInt(2, 12);
         stats.receivingYards = randomInt(20, 150);
         stats.receivingTds = randomInt(0, 2);
@@ -228,7 +250,7 @@ async function seed() {
   async function createLeague(
     name: string,
     slug: string,
-    users: any[],
+    users: { id: string; email: string; name: string }[],
     includeAdmin: boolean
   ) {
     console.log(`🏆 Creating league: ${name}...`);
@@ -402,7 +424,9 @@ async function seed() {
       }
     }
 
-    console.log(`✅ Created league: ${name} with 10 teams and 4 weeks of matchups\n`);
+    console.log(
+      `✅ Created league: ${name} with 10 teams and 4 weeks of matchups\n`
+    );
   }
 
   // Create two leagues
