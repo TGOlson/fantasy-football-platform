@@ -1,0 +1,6 @@
+query NFLSeason {
+  nflSeason {
+    year
+    currentWeek
+  }
+}

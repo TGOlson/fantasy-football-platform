@@ -1,15 +1,17 @@
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, type RouteObject } from 'react-router-dom';
 import { LoginPage } from '@/pages/login';
 import { RegisterPage } from '@/pages/register';
 import { DashboardPage } from '@/pages/dashboard';
 import { LeaguePage } from '@/pages/league';
+import { TeamPage } from '@/pages/team';
+import { TeamRedirect } from '@/pages/team-redirect';
 import { ErrorPage } from '@/error-page';
 import { RootLayout, GuestRoute, ProtectedRoute } from '@/route-guards';
 import { AppLayout } from '@/app-layout';
 import { rootLoader } from '@/root-loader';
 import { LeagueProvider } from '@/providers/league-provider';
 
-export const router = createBrowserRouter([
+export const routes: RouteObject[] = [
   {
     loader: rootLoader,
     element: <RootLayout />,
@@ -64,7 +66,14 @@ export const router = createBrowserRouter([
                         index: true,
                         element: <LeaguePage />,
                       },
-                      // Future routes: my-team, matchups, players
+                      {
+                        path: 'teams/:teamId',
+                        element: <TeamRedirect />,
+                      },
+                      {
+                        path: 'teams/:teamId/w/:weekNumber',
+                        element: <TeamPage />,
+                      },
                     ],
                   },
                 ],
@@ -81,4 +90,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-]);
+];

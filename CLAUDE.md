@@ -44,13 +44,55 @@ Act as product thinker, architect, and engineer—not just code executor.
 - GraphQL schema in `apps/api/src/graphql/schema/`, client queries in `.graphql` files in `apps/web/src/graphql/`
 - Generated types go to `src/generated/` in each package (e.g., `apps/web/src/generated/graphql.ts`)
 
+### Authorization
+
+**Core principle:** All league resources accessed through `league(slug)` query. Auth happens once at league level.
+
+```graphql
+# ✅ Correct: Start at league, drill down
+league(slug: $slug) {        # ← Auth checked once here
+  team(teamId: $id) { ... }  # ← No auth needed
+  matchup(...) { ... }       # ← No auth needed
+}
+
+# ❌ Wrong: Top-level queries for league resources
+team(id: $id) { ... }        # ← Don't create these!
+matchup(...) { ... }
+```
+
+**Rules:**
+- Auth check via `requireLeagueAccess()` in `league(slug)` resolver only
+- No auth on nested fields - if you're in the league, you can see everything
+- Split queries for better caching: static data (team info) separate from dynamic data (weekly matchups)
+- Exceptions: `myLeagues`, `me`, `nflSeason` are OK as top-level queries
+
+### Context Providers
+
+**AuthProvider** (`apps/web/src/providers/auth-provider.tsx`):
+- Usage: `const { user, token, login, logout } = useAuth()`
+- Provides: Current user info, JWT token, auth actions
+- Scope: Wraps entire app via `RootLayout`
+
+**NFLSeasonProvider** (`apps/web/src/providers/nfl-season-provider.tsx`):
+- Usage: `const { currentYear, currentWeek } = useNFLSeasonContext()`
+- Provides: Current NFL season and week (hardcoded for now, will be date-based later)
+- Scope: Wraps entire app (inside `QueryProvider`)
+- Purpose: Default redirects, week navigation bounds
+
+**LeagueProvider** (`apps/web/src/providers/league-provider.tsx`):
+- Usage: `const { league, season, myTeam } = useLeagueContext()`
+- Provides: League, season, and user's team for current league context
+- Scope: Only wraps `/:leagueSlug/:year` routes
+- Note: NOT available in `AppLayout` (wraps routes before LeagueProvider), use separate query if needed there
+
 ## Development Notes
 
 - Early stage: we can break things freely, no backwards compatibility concerns
 - No migrations needed yet—just `pnpm db:push`
-- After schema changes: run `pnpm db:generate` to update Prisma Client
-- After GraphQL schema changes: run `pnpm codegen` to update typed hooks
 - Don't run `pnpm` commands (eg. `dev`, `typecheck`)—ask the user to run these
+- Suggest useful `pnpm` commands after relevant changes, eg.
+  - After schema changes: run `pnpm db:generate` to update Prisma Client
+  - After GraphQL schema changes: run `pnpm codegen` to update typed hooks
 - **Testing:** Don't write tests unless asked. Can suggest tests conceptually.
 - **Ask first:** Before creating files outside existing patterns or major refactors. No need to ask for standard pattern implementations.
 - Use react-hook-form for form state, don't manage form state manually

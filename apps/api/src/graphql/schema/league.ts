@@ -57,6 +57,108 @@ builder.prismaObject('League', {
         });
       },
     }),
+    // Team lookup within league
+    team: t.prismaField({
+      type: 'Team',
+      nullable: true,
+      args: {
+        teamId: t.arg.id({ required: true }),
+      },
+      resolve: async (query, league, args, ctx) => {
+        // Find team that belongs to this league
+        return ctx.prisma.team.findFirst({
+          ...query,
+          where: {
+            id: args.teamId,
+            franchise: {
+              leagueId: league.id,
+            },
+          },
+        });
+      },
+    }),
+    // Matchup lookup for a team in a specific week
+    matchup: t.prismaField({
+      type: 'Matchup',
+      nullable: true,
+      args: {
+        teamId: t.arg.id({ required: true }),
+        weekNumber: t.arg.int({ required: true }),
+      },
+      resolve: async (query, league, args, ctx) => {
+        // Find the team's league season first
+        const team = await ctx.prisma.team.findFirst({
+          where: {
+            id: args.teamId,
+            franchise: { leagueId: league.id },
+          },
+        });
+
+        if (!team) {
+          return null;
+        }
+
+        // Find matchup where this team is either home or away
+        return ctx.prisma.matchup.findFirst({
+          ...query,
+          where: {
+            leagueSeasonId: team.leagueSeasonId,
+            weekNumber: args.weekNumber,
+            OR: [{ homeTeamId: team.id }, { awayTeamId: team.id }],
+          },
+        });
+      },
+    }),
+    // Weekly lineups for a team
+    weeklyLineups: t.prismaField({
+      type: ['WeeklyLineup'],
+      args: {
+        teamId: t.arg.id({ required: true }),
+        weekNumber: t.arg.int({ required: true }),
+      },
+      resolve: async (query, league, args, ctx) => {
+        // Verify team belongs to this league
+        const team = await ctx.prisma.team.findFirst({
+          where: {
+            id: args.teamId,
+            franchise: { leagueId: league.id },
+          },
+        });
+
+        if (!team) {
+          return [];
+        }
+
+        return ctx.prisma.weeklyLineup.findMany({
+          ...query,
+          where: {
+            teamId: args.teamId,
+            weekNumber: args.weekNumber,
+          },
+          orderBy: { rosterSlotIndex: 'asc' },
+        });
+      },
+    }),
+    // Current user's team in this league
+    myTeam: t.prismaField({
+      type: 'Team',
+      nullable: true,
+      resolve: async (query, league, args, ctx) => {
+        if (!ctx.user) {
+          return null;
+        }
+
+        return ctx.prisma.team.findFirst({
+          ...query,
+          where: {
+            ownerId: ctx.user.userId,
+            franchise: {
+              leagueId: league.id,
+            },
+          },
+        });
+      },
+    }),
   }),
 });
 

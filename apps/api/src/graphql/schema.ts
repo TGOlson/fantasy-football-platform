@@ -4,6 +4,7 @@ import { builder } from './builder';
 import './schema/user';
 import './schema/league';
 import './schema/team';
+import './schema/nfl-season';
 
 // Build and export the schema
 export const schema = builder.toSchema();

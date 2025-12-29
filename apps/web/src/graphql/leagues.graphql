@@ -23,15 +23,12 @@ query LeaguePage($slug: String!, $year: Int!) {
       status
       teams {
         id
+        name
         wins
         losses
         ties
         pointsFor
         pointsAgainst
-        franchise {
-          id
-          name
-        }
         owner {
           id
           name

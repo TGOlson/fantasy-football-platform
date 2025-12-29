@@ -1,0 +1,8 @@
+query MyTeamInLeague($leagueSlug: String!) {
+  league(slug: $leagueSlug) {
+    id
+    myTeam {
+      id
+    }
+  }
+}

@@ -23,7 +23,7 @@ import {
 import { useAuth } from '@/providers/auth-provider';
 import { useQuery } from '@tanstack/react-query';
 import { graphqlClient } from '@/lib/graphql-client';
-import { MyLeaguesDocument } from '@/generated/graphql';
+import { MyLeaguesDocument, MyTeamInLeagueDocument } from '@/generated/graphql';
 
 type AppLayoutProps = {
   children: ReactNode;
@@ -44,6 +44,19 @@ export function AppLayout({ children }: AppLayoutProps) {
     queryFn: () => graphqlClient.request(MyLeaguesDocument),
   });
 
+  // Check if we're in a league context
+  const inLeagueContext = !!leagueSlug && !!year;
+
+  // Get myTeam ID for nav link (only when in league context)
+  const { data: myTeamData } = useQuery({
+    queryKey: ['myTeamNav', leagueSlug],
+    queryFn: () =>
+      graphqlClient.request(MyTeamInLeagueDocument, {
+        leagueSlug: leagueSlug!,
+      }),
+    enabled: inLeagueContext,
+  });
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -51,13 +64,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Check if we're in a league context
-  const inLeagueContext = !!leagueSlug && !!year;
-
-  // TODO: Find current league from leagues data
-  // const currentLeague = leaguesData?.myLeagues.find(
-  //   (league) => league.slug === leagueSlug
-  // );
+  const myTeamId = myTeamData?.league?.myTeam?.id;
 
   const handleLeagueChange = (slug: string | null) => {
     if (!slug) return;
@@ -123,9 +130,10 @@ export function AppLayout({ children }: AppLayoutProps) {
 
                 <NavLink
                   component={Link}
-                  to="#"
+                  to={myTeamId ? `/${leagueSlug}/${year}/teams/${myTeamId}` : '#'}
                   label="My Team"
                   leftSection={<IconUser size={18} />}
+                  disabled={!myTeamId}
                 />
 
                 <NavLink

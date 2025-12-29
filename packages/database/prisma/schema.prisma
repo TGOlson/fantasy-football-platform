@@ -83,7 +83,6 @@ model League {
 model Franchise {
   id        String   @id @default(uuid())
   leagueId  String   @map("league_id")
-  name      String
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -138,6 +137,7 @@ model Team {
   franchiseId    String   @map("franchise_id")
   leagueSeasonId String   @map("league_season_id")
   ownerId        String   @map("owner_id")
+  name           String
   // Cached standings
   wins           Int      @default(0)
   losses         Int      @default(0)

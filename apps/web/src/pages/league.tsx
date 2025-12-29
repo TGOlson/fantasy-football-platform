@@ -1,8 +1,13 @@
-import { Title, Text, Table, Stack, Paper } from '@mantine/core';
+import { Title, Text, Table, Stack, Paper, Anchor } from '@mantine/core';
+import { Link, useParams } from 'react-router-dom';
 import { useLeagueContext } from '@/providers/league-provider';
 
 export function LeaguePage() {
   const { league, season } = useLeagueContext();
+  const { leagueSlug, year } = useParams<{
+    leagueSlug: string;
+    year: string;
+  }>();
 
   // Sort teams by wins (desc), then points for (desc)
   const sortedTeams = [...season.teams].sort((a, b) => {
@@ -37,7 +42,14 @@ export function LeaguePage() {
             {sortedTeams.map((team, index) => (
               <Table.Tr key={team.id}>
                 <Table.Td>{index + 1}</Table.Td>
-                <Table.Td fw={500}>{team.franchise.name}</Table.Td>
+                <Table.Td fw={500}>
+                  <Anchor
+                    component={Link}
+                    to={`/${leagueSlug}/${year}/teams/${team.id}`}
+                  >
+                    {team.name}
+                  </Anchor>
+                </Table.Td>
                 <Table.Td>{team.owner.name}</Table.Td>
                 <Table.Td style={{ textAlign: 'right' }}>{team.wins}</Table.Td>
                 <Table.Td style={{ textAlign: 'right' }}>

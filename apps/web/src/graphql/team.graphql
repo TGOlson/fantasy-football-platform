@@ -1,0 +1,51 @@
+# Query team data (cached once per team)
+query Team($leagueSlug: String!, $teamId: ID!) {
+  league(slug: $leagueSlug) {
+    id
+    team(teamId: $teamId) {
+      id
+      name
+      wins
+      losses
+      ties
+      pointsFor
+      pointsAgainst
+      owner {
+        id
+        name
+        email
+      }
+    }
+  }
+}
+
+# Query week-specific data (cached per team + week)
+query TeamWeek($leagueSlug: String!, $teamId: ID!, $weekNumber: Int!) {
+  league(slug: $leagueSlug) {
+    id
+    matchup(teamId: $teamId, weekNumber: $weekNumber) {
+      id
+      weekNumber
+      homeScore
+      awayScore
+      completedAt
+      homeTeam {
+        id
+        name
+      }
+      awayTeam {
+        id
+        name
+      }
+    }
+    weeklyLineups(teamId: $teamId, weekNumber: $weekNumber) {
+      id
+      rosterSlotIndex
+      pointsScored
+      player {
+        id
+        name
+      }
+    }
+  }
+}

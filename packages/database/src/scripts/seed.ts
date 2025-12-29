@@ -321,7 +321,6 @@ async function seed() {
       const franchise = await prisma.franchise.create({
         data: {
           leagueId: league.id,
-          name: `${league.name} ${franchiseNames[i]}`,
         },
       });
 
@@ -330,6 +329,7 @@ async function seed() {
           franchiseId: franchise.id,
           leagueSeasonId: leagueSeason.id,
           ownerId: leagueUsers[i].id,
+          name: franchiseNames[i],
           wins: 0,
           losses: 0,
           ties: 0,
